@@ -13,20 +13,20 @@
 #include<boost\date_time.hpp>
 #include<boost\lexical_cast.hpp>
 
+#include <ppl.h>
+
 int _tmain(int argc, _TCHAR* argv[])
 {
-	std::ifstream file("../back_test_files/EURUSD_min_2013.csv");
-	//std::ifstream file("../test_files/EURUSD_min_11-24-2013.csv");
+	//std::ifstream file("../back_test_files/EURUSD_min_2013.csv");
+	std::ifstream file("../test_files/EURUSD_min_11-24-2013.csv");
 	std::string line;
 	//std::vector<int> cols{ 1, 2, 6 }; //1 date, 2 time, 6 close
 
 	std::vector<strat::event_anti_long_short> algos;
 
 	LOG("tester_begin algo constructor");
-	strat::event_anti_long_short algo("usd", "eur", "../back_test_files/Calendar-2013.csv"
-	, 15, 90, 0.0003);
-	//strat::event_anti_long_short algo("usd", "eur", "../test_files/Calendar-11-24-2013.csv"
-	//, 15, 90, 0.0003);
+	//strat::event_anti_long_short algo("usd", "eur", "../back_test_files/Calendar-2013.csv", 15, 90, 0.0003);
+	strat::event_anti_long_short algo("usd", "eur", "../test_files/Calendar-11-24-2013.csv", 15, 90, 0.0003);
 	LOG("tester_end algo constructor");
 	algos.push_back(algo);
 
@@ -73,12 +73,14 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 
 
-		for (std::vector<strat::event_anti_long_short>::iterator it = algos.begin();
-			it != algos.end(); ++it)
+		//for (std::vector<strat::event_anti_long_short>::iterator it = algos.begin();
+		//	it != algos.end(); ++it)
+		concurrency::parallel_for(size_t(0), algos.size(), [&algos, &tick1](int i)
 		{
 			std::vector<strat::position> close_pos;
-			it->process_tick(tick1, close_pos);
-		}
+			//it->process_tick(tick1, close_pos);
+			algos[i].process_tick(tick1, close_pos);
+		});
 
 		//if (!close_pos.empty())
 		//	LOG_POSITIONS(close_pos);
