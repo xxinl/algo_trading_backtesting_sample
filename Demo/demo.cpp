@@ -9,47 +9,44 @@
 #include <string>
 #include <fstream>
 
-#include<boost\tokenizer.hpp>
-#include<boost\date_time.hpp>
-#include<boost\lexical_cast.hpp>
+#include <boost\tokenizer.hpp>
+#include <boost\date_time.hpp>
+#include <boost\lexical_cast.hpp>
 
 #include <ppl.h>
+#include <concurrent_vector.h>
 
-int _tmain(int argc, _TCHAR* argv[])
-{
-	//std::ifstream file("../back_test_files/EURUSD_min_2013.csv");
-	std::ifstream file("../test_files/EURUSD_min_11-24-2013.csv");
+using std::string;
+
+void run_back_test(){
+
+	std::ifstream file("../back_test_files/EURUSD_min_2013.csv");
+	//std::ifstream file("../test_files/EURUSD_min_11-24-2013.csv");
 	std::string line;
 	//std::vector<int> cols{ 1, 2, 6 }; //1 date, 2 time, 6 close
 
-	std::vector<strat::event_anti_long_short> algos;
+	concurrency::concurrent_vector<strat::event_anti_long_short> algos;
 
 	LOG("tester_begin algo constructor");
-	//strat::event_anti_long_short algo("usd", "eur", "../back_test_files/Calendar-2013.csv", 15, 90, 0.0003);
-	strat::event_anti_long_short algo("usd", "eur", "../test_files/Calendar-11-24-2013.csv", 15, 90, 0.0003);
+	strat::event_anti_long_short algo("eur", "usd", "../back_test_files/Calendar-2013.csv", 15, 90, 0.0003);
+	//strat::event_anti_long_short algo("eur", "usd", "../test_files/Calendar-11-24-2013.csv", size_t(15), size_t(90), 0.0003);
 	LOG("tester_end algo constructor");
 	algos.push_back(algo);
 
 	std::queue<boost::posix_time::ptime> event_q(algo.get_event_queue());
 
-	//strat::event_anti_long_short algo1("usd", "eur", event_q, 10, 60, 0.0003);
-	//algos.push_back(algo1);
+	concurrency::parallel_for(size_t(5), size_t(10), [&event_q, &algos](int o){
 
-	//strat::event_anti_long_short algo2("usd", "eur", event_q, 15, 120, 0.0003);
-	//algos.push_back(algo2);
-
-	for (int o = 1; o <= 10; o++){
-		for (int h = o + 1; h <= 120; h++){
-			strat::event_anti_long_short algo2("usd", "eur", event_q, o, h, 0.0003);
+		for (size_t h = o + 1; h <= 120; h++){
+			strat::event_anti_long_short algo2("eur", "usd", event_q, o, h, 0.0003);
 			algos.push_back(algo2);
 			LOG("push algo " << o << "-" << h);
 		}
-	}
+	});
 
 	//skip header
 	std::getline(file, line);
 
-	boost::posix_time::ptime t;
 	while (std::getline(file, line)) {
 
 		boost::tokenizer<boost::escaped_list_separator<char> > tk(
@@ -61,7 +58,25 @@ int _tmain(int argc, _TCHAR* argv[])
 			row_vec.push_back(*it);
 		}
 
-		t = util::convert_to_dt(row_vec[1] + row_vec[2], "%Y%m%d%H%M%S");
+		boost::posix_time::ptime t = util::convert_to_dt(row_vec[1] + row_vec[2], "%Y%m%d%H%M%S");
+
+		if (t.is_not_a_date_time()){
+
+			LOG_SEV("tester_not a date time, skiped tick " << t, logger::error);
+			continue;
+		}
+
+		boost::posix_time::ptime next_event_t = algo.get_event_queue().front();
+		//skip if no event for the day
+		if (next_event_t.date() > t.date()){
+
+			if (t.time_of_day().hours() == 0 && t.time_of_day().minutes() == 0){
+
+				LOG("tester_skipping tick " << t << " no event for the day");
+			}
+
+			continue;
+		}
 
 		strat::tick tick1;
 		tick1.time_stamp = t;
@@ -72,24 +87,32 @@ int _tmain(int argc, _TCHAR* argv[])
 			LOG("tester_processing tick " << t);
 		}
 
-
-		//for (std::vector<strat::event_anti_long_short>::iterator it = algos.begin();
-		//	it != algos.end(); ++it)
 		concurrency::parallel_for(size_t(0), algos.size(), [&algos, &tick1](int i)
 		{
-			std::vector<strat::position> close_pos;
-			//it->process_tick(tick1, close_pos);
+			strat::position close_pos;
 			algos[i].process_tick(tick1, close_pos);
 		});
 
-		//if (!close_pos.empty())
-		//	LOG_POSITIONS(close_pos);
+		if (t.time_of_day().hours() == 0 && t.time_of_day().minutes() == 0){
+
+			for (concurrency::concurrent_vector<strat::event_anti_long_short>::iterator it = algos.begin();
+				it != algos.end(); ++it)	{
+
+				std::list<strat::position> close_pos;
+				close_pos = it->get_closed_position_history();
+				if (!close_pos.empty()){
+
+					LOG_POSITIONS(close_pos, it->get_obser_threshold(), it->get_hold_threshold());
+					it->clear_closed_position_history();
+				}
+			}
+		}
 	}
 
-	for (std::vector<strat::event_anti_long_short>::iterator it = algos.begin();
-		it != algos.end(); ++it)
-	{
-		std::vector<strat::position> close_pos;
+	for (concurrency::concurrent_vector<strat::event_anti_long_short>::iterator it = algos.begin();
+		it != algos.end(); ++it)	{
+
+		std::list<strat::position> close_pos;
 		close_pos = it->get_closed_position_history();
 		if (!close_pos.empty())
 			LOG_POSITIONS(close_pos, it->get_obser_threshold(), it->get_hold_threshold());
@@ -97,6 +120,11 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	std::cout << "done" << std::endl;
 	std::cin.get();
+}
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+	run_back_test();
 
 	return 0;
 }

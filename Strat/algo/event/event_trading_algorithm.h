@@ -8,20 +8,22 @@
 
 #include <string>
 #include <queue> 
-#include <ctime>
 #include <vector>
+#include <list>
+#include <future>
 
 #include <boost/date_time.hpp>
 #include <boost/algorithm/string.hpp> 
+
+using std::string;
 
 namespace strat{
 
 	class event_trading_algorithm : public trading_algorithm {
 	private:
-		std::string _event_f_path;
 		std::queue<boost::posix_time::ptime> _event_q;
 
-		std::vector<strat::position> _closed_pos_hist;
+		std::list<strat::position> _closed_pos_hist;
 
 #pragma region "online run sd - commentted out"
 		
@@ -52,7 +54,9 @@ namespace strat{
 
 #pragma endregion
 
-		int _push_obser_queue_if_event(const tick &crr_tick){
+		///return size of the event_q
+		int _push_obser_queue_if_event(tick crr_tick){
+
 			if (_event_q.empty()) return 0;
 
 			boost::posix_time::ptime next_event_t = _event_q.front();
@@ -63,23 +67,22 @@ namespace strat{
 				LOG(_name << ":observed at tick " << crr_tick.time_stamp);
 
 				_event_q.pop();
-				return _event_q.size();
 			}
 
-			return -1;
+			return _event_q.size();
 		}
 
 	protected:
-		int _obser_win;
-		int _hold_win;
+		const size_t _obser_win;
+		const size_t _hold_win;
 		
 		//int _sd_diff_back;
 		double _run_sd;		
 
 		std::queue<tick> _obser_tick_q;
 
-		virtual signal _get_signal_algo(const tick &crr_tick) = 0;
-		virtual int _close_position_algo(const tick &crr_tick, std::vector<position> &close_pos) = 0;
+		virtual signal _get_signal_algo(const tick& crr_tick) = 0;
+		virtual int _close_position_algo(const tick& crr_tick, position& close_pos) = 0;
 
 		void _pop_obser_tick_queue(){
 
@@ -92,86 +95,103 @@ namespace strat{
 
 	public:
 		/// Constructor 
-		event_trading_algorithm(const std::string symbol_base, const std::string symbol_target, 
-			const char *event_f_path, int obser_win, int hold_win, double run_sd) :
-			trading_algorithm(symbol_base, symbol_target), _event_f_path(event_f_path), _obser_win(obser_win), _hold_win(hold_win), _run_sd(run_sd){
+		event_trading_algorithm(string symbol_base, string symbol_quote, 
+			string event_f_path, size_t obser_win, size_t hold_win, double run_sd = 0.0003) :
+			trading_algorithm(symbol_base, symbol_quote), _obser_win(obser_win), _hold_win(hold_win), _run_sd(run_sd){
 			
 			std::vector<std::vector<std::string>> event_v;
 			std::vector<int> cols_v{ 0, 1, 3, 5 };
 			util::read_csv(event_f_path, event_v, cols_v);
-			
+			LOG_SEV("read event csv file. event count: " << event_v.size(), logger::debug);
+
 			boost::posix_time::ptime t;
 			// assume event_v is in ascending order
-			for (std::vector<std::vector<std::string>>::iterator it = event_v.begin(); it != event_v.end(); ++it){	
+			for (std::vector<std::vector<string>>::iterator it = event_v.begin(); it != event_v.end(); ++it){
 
 				//add 0 if date is single digit
-				std::string date = (*it)[0];
+				string date = (*it)[0];
 				if (date.length() == (size_t)9)
 					date = date.insert(8, "0");
 
 				t = util::convert_to_dt("2013 " + date + " " + (*it)[1]);
 
 				if (t.is_not_a_date_time()){
-					LOG_SEV("failed to convert " << "2013 " + (*it)[0] + " " + (*it)[1], logger::warning);
 
+					LOG_SEV("failed to convert " << "2013 " + (*it)[0] + " " + (*it)[1], logger::warning);
 					continue;
 				}
 
 				if (_event_q.empty() || _event_q.back() != t)	{
-					std::string symbol = (*it)[2];
+
+					string symbol = (*it)[2];
 					boost::algorithm::to_lower(symbol);
-					std::string importance = (*it)[3];
+					string importance = (*it)[3];
 					boost::algorithm::to_lower(importance);
 
-					if ((symbol == _symbol_base || symbol == _symbol_target)
-						&& (importance == "high" || importance == "medium"))
-					_event_q.push(t);
+					if ((symbol == _symbol_base || symbol == _symbol_quote)
+						&& (importance == "high" || importance == "medium")){
+
+						_event_q.push(t);
+					}
 				}
 			}
 
-			LOG(_event_q.size() << " events enqueued");
-
 			_name = "algo" + std::to_string(_obser_win) + "-" + std::to_string(_hold_win);
+			LOG(_name << ": " << _event_q.size() << " events enqueued");
 		};
 
-		event_trading_algorithm(const std::string symbol_base, const std::string symbol_target,
+		event_trading_algorithm(const string symbol_base, const string symbol_target,
 			std::queue<boost::posix_time::ptime> event_queue, int obser_win, int hold_win, double run_sd) :
 			trading_algorithm(symbol_base, symbol_target),_obser_win(obser_win), _hold_win(hold_win), _run_sd(run_sd){
 
 			_event_q = event_queue;
-
-			LOG(_event_q.size() << " events enqueued");
-
+			
 			_name = "algo" + std::to_string(_obser_win) + "-" + std::to_string(_hold_win);
+			LOG(_name << ": " << _event_q.size() << " events enqueued");
 		};
+				
+		signal process_tick(const tick& crr_tick, position& close_pos){
 
-		///// Destructor
-		//virtual ~event_trading_algorithm();
-		
-		signal process_tick(const tick &crr_tick, std::vector<position> &close_pos){
+			LOG_SEV(_name << ": processing tick " << crr_tick.time_stamp, logger::debug);
 			
 			_push_obser_queue_if_event(crr_tick);
-			//_update_run_sd(crr_tick);
 
-			if (_obser_tick_q.empty() || _positions.empty()){
+			if (_obser_tick_q.empty() && _positions.empty()){
 			
 				LOG_SEV("empty obser and position queue, abord process tick at tick " << crr_tick.time_stamp, logger::debug);
+				return signal::NONE;
 			}
 
-			//TODO maybe new thread/parallel run
 			//process existing observe queue
-			signal ret_sig = _get_signal_algo(crr_tick);
-			LOG_SEV(ret_sig << " signal at tick " << crr_tick.time_stamp, logger::debug);
+			auto fut_get_sig = std::async([&]{
 
-			//TODO maybe new thread/parallel run
+				return _get_signal_algo(crr_tick);
+			});
+
 			//process open positions
-			_close_position_algo(crr_tick, close_pos);
-			LOG_SEV(close_pos.size() << " close positions returned at tick " << crr_tick.time_stamp, logger::debug);
+			auto fut_close_pos = std::async([&]{
 
-			if (!close_pos.empty())
-				_closed_pos_hist.insert(_closed_pos_hist.end(), close_pos.begin(), close_pos.end());
+				_close_position_algo(crr_tick, close_pos);
+			});
 
-			//_push_hist_tick_queue(crr_tick);
+			fut_get_sig.wait();
+			fut_close_pos.wait();
+
+			signal ret_sig = fut_get_sig.get();
+			if (ret_sig){
+
+				LOG_SEV(_name << ": " << ret_sig << " signal at tick " << crr_tick.time_stamp, logger::debug);
+			}
+
+			if (close_pos.type != signal::NONE)	{
+
+				_closed_pos_hist.push_back(close_pos);
+
+				LOG_SEV(_name << ": " << " position(" << close_pos.open_tick.time_stamp << ") closed at tick "
+					<< crr_tick.time_stamp, logger::debug);
+			}
+
+			LOG_SEV(_name << ": processed " << crr_tick.time_stamp, logger::debug);
 
 			return ret_sig;
 		}
@@ -184,15 +204,19 @@ namespace strat{
 			return _obser_tick_q;
 		}
 
-		std::vector<position> get_closed_position_history(){
+		std::list<position> get_closed_position_history() const{
 			return _closed_pos_hist;
 		}
 
-		int get_obser_threshold(){
+		void clear_closed_position_history() {
+			_closed_pos_hist.clear();
+		}
+
+		int get_obser_threshold() const{
 			return _obser_win;
 		}
 
-		int get_hold_threshold(){
+		int get_hold_threshold() const{
 			return _hold_win;
 		}
 	};

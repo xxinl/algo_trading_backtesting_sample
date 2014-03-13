@@ -5,6 +5,7 @@
 #include "tick.h"
 
 #include<vector>
+#include<list>
 #include<string>
 #include<fstream>
 #include<sstream>
@@ -13,9 +14,11 @@
 #include<boost\date_time.hpp>
 #include<boost\lexical_cast.hpp>
 
+using std::string;
+
 class util{
 public:
-	static int read_csv(const char *path, std::vector<std::vector<std::string>> &vec, const std::vector<int> &cols, bool with_header = true){
+	static int read_csv(string path, std::vector<std::vector<std::string>>& vec, const std::vector<int>& cols, bool with_header = true){
 		
 		try {
 
@@ -60,24 +63,14 @@ public:
 
 	static boost::posix_time::ptime convert_to_dt(const std::string s, const std::string format = "%Y %a %b %d %H:%M")	{
 
-		const std::locale formats[] = {
-			std::locale(std::locale::classic(), new  boost::posix_time::time_input_facet(format)) };
-		const size_t formats_n = sizeof(formats) / sizeof(formats[0]);
+		const std::locale f = std::locale(std::locale::classic(), new  boost::posix_time::time_input_facet(format));
 
 		boost::posix_time::ptime pt;
-		for (size_t i = 0; i<formats_n; ++i)
-		{
-			std::istringstream is(s);
-			is.imbue(formats[i]);
-			is >> pt;
-			if (pt != boost::posix_time::ptime()) break;
-		}
+		std::istringstream is(s);
+		is.imbue(f);
+		is >> pt;
 
 		return pt;
-
-		//boost::posix_time::ptime timet_start(boost::gregorian::date(1970, 1, 1));
-		//boost::posix_time::time_duration diff = pt - timet_start;
-		//return diff.ticks() / boost::posix_time::time_duration::rep_type::ticks_per_second;
 	}
 
 	//// http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
@@ -89,15 +82,14 @@ public:
 	//	return sqrt(run_M2 / (n - 1));
 	//}
 
-	static int read_tick_csv(const char *path, std::vector<strat::tick> &tick_vec){
+	static int read_tick_csv(string path, std::vector<strat::tick>& tick_vec){
 		
 		std::vector<std::vector<std::string>> csv_vec;
 		std::vector<int> cols_v{ 1, 2, 6 };
 		util::read_csv(path, csv_vec, cols_v);
 
 		boost::posix_time::ptime t;
-		for (std::vector<std::vector<std::string>>::iterator it = csv_vec.begin();
-			it != csv_vec.end(); ++it){
+		for (std::vector<std::vector<std::string>>::iterator it = csv_vec.begin(); it != csv_vec.end(); ++it){
 
 			t = util::convert_to_dt((*it)[0] + (*it)[1], "%Y%m%d%H%M%S");
 			strat::tick tick1;
@@ -109,7 +101,7 @@ public:
 		return 1;
 	}
 
-	static std::string get_current_dt_str(const char *format = "%Y%m%d.%H%M%S"){
+	static std::string get_current_dt_str(){
 	
 		std::stringstream s;
 
@@ -117,7 +109,7 @@ public:
 			boost::posix_time::second_clock::local_time();
 
 		boost::posix_time::time_facet*const f =
-			new boost::posix_time::time_facet(format);
+			new boost::posix_time::time_facet("%Y%m%d.%H%M%S");
 		s.imbue(std::locale(s.getloc(), f));
 		s << now;
 
@@ -125,6 +117,7 @@ public:
 	}
 
 	static std::string dt_to_string(boost::posix_time::ptime pt){
+
 		return boost::posix_time::to_simple_string(pt);
 	}
 };

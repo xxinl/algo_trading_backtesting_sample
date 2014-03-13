@@ -21,23 +21,13 @@ namespace Strat
 	{
 	public:
 		
-		//TEST_CLASS_INITIALIZE(methodName)
-		//{
-		//	// test class initialization  code
-		//}
-
-		//TEST_CLASS_CLEANUP(methodName)
-		//{
-		//	// test class cleanup  code
-		//}
-
 		TEST_METHOD(util_read_csv)
 		{
 			std::vector<std::vector<std::string>> vec;
 			std::vector<int> cols_v{ 0, 1 };
-			util::read_csv("../Strat/test_files/Calendar-11-24-2013.csv", vec, cols_v);
-
-			size_t size = 135;
+			util::read_csv("../test_files/Calendar-11-24-2013.csv", vec, cols_v);
+			
+			size_t size = 28;
 			Assert::AreEqual(size, vec.size());
 			size = 2;
 			Assert::AreEqual(size, vec[0].size());
@@ -99,7 +89,7 @@ namespace Strat
 
 		TEST_METHOD(event_anti_long_short_constructor)
 		{
-			strat::event_anti_long_short algo("usd", "eur", "../test_files/Calendar-11-24-2013.csv"
+			strat::event_anti_long_short algo("eur", "usd", "../test_files/Calendar-11-24-2013.csv"
 				, 5, 15, 0.0003);
 
 			std::queue<boost::posix_time::ptime> event_q = algo.get_event_queue();
@@ -117,9 +107,9 @@ namespace Strat
 		TEST_METHOD(util_read_tick_csv)
 		{
 			std::vector<strat::tick> tick_vec;
-			util::read_tick_csv("../Strat/test_files/EURUSD_min_11-24-2013.csv", tick_vec);
+			util::read_tick_csv("../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
 
-			size_t size = 7071;
+			size_t size = 2938;
 			Assert::AreEqual(tick_vec.size(), size);
 			boost::posix_time::ptime t =
 				boost::posix_time::time_from_string(std::string("2013-11-24 23:10:00.000"));
@@ -130,13 +120,13 @@ namespace Strat
 
 		TEST_METHOD(event_anti_long_short_process_tick)
 		{
-			strat::event_anti_long_short algo("usd", "eur", "../test_files/Calendar-11-24-2013.csv"
+			strat::event_anti_long_short algo("eur", "usd", "../test_files/Calendar-11-24-2013.csv"
 				, 5, 15, 0.0003);
 
 			std::vector<strat::tick> tick_vec;
 			util::read_tick_csv("../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
 
-			std::vector<strat::position> close_pos;
+			strat::position close_pos;
 			std::queue<strat::tick> obser_q;
 			strat::signal sig = strat::signal::NONE;
 
@@ -151,29 +141,29 @@ namespace Strat
 			sig = algo.process_tick(tick_vec[298], close_pos);
 			obser_q = algo.get_obser_tick_queue();
 			Assert::IsTrue(obser_q.empty());
-			Assert::IsTrue(close_pos.empty());
+			Assert::IsTrue(close_pos.type == strat::signal::NONE);
 			Assert::IsTrue(strat::signal::NONE == sig);
 
 			sig = algo.process_tick(tick_vec[299], close_pos);
 			obser_q = algo.get_obser_tick_queue();
 			size_t size = 1;
 			Assert::AreEqual(obser_q.size(), size);
-			Assert::IsTrue(close_pos.empty());
+			Assert::IsTrue(close_pos.type == strat::signal::NONE);
 			Assert::IsTrue(strat::signal::NONE == sig);
 
 			sig = algo.process_tick(tick_vec[304], close_pos);
 			obser_q = algo.get_obser_tick_queue();
-			Assert::IsTrue(close_pos.empty());
+			Assert::IsTrue(close_pos.type == strat::signal::NONE);
 			Assert::IsTrue(strat::signal::BUY == sig);
-			std::vector<strat::position> pos = algo.get_positions();
+			std::list<strat::position> pos = algo.get_positions();
 			Assert::IsTrue(pos.size() == size);
-			Assert::IsTrue(pos[0].open_tick.close == 1.3540);
+			Assert::IsTrue(pos.front().open_tick.close == 1.3540);
 
 			sig = algo.process_tick(tick_vec[319], close_pos);
 			obser_q = algo.get_obser_tick_queue();
 			Assert::IsTrue(obser_q.empty());
 			Assert::IsTrue(strat::signal::NONE == sig);
-			Assert::IsTrue(close_pos.size() == size);
+			Assert::IsTrue(close_pos.type != strat::signal::NONE);
 			pos = algo.get_positions();
 			Assert::IsTrue(pos.empty());
 		}
@@ -191,7 +181,7 @@ namespace Strat
 			LOG_SEV(t << " A error severity message, will pass to the file at " << now,
 				logger::error);
 
-			std::vector<strat::position> pos;
+			std::list<strat::position> pos;
 			strat::position p;
 			
 			strat::tick tick1;

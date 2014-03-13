@@ -9,22 +9,25 @@
 
 #include <string>
 
+using std::string;
+
 namespace strat{
 
 	class trading_algorithm {
 	private:
 
 	protected:
-		std::string _name;
+		string _name;
+		const string _symbol_base;
+		const string _symbol_quote;
 
-		std::string _symbol_base;
-		std::string _symbol_target;
-		std::vector<position> _positions;
+		std::list<position> _positions;
 
-		int _add_position(const tick &t, strat::signal type){
+		int _add_position(tick t, signal type, tick obser_t){
 
 			position pos;
 			pos.open_tick = t;
+			pos.obser_tick = obser_t;
 			pos.type = type;
 			_positions.push_back(pos);
 
@@ -33,7 +36,8 @@ namespace strat{
 			return _positions.size();
 		}
 
-		std::vector<position>::iterator _delete_position(std::vector<position>::iterator it){
+		std::list<position>::iterator _delete_position(std::list<position>::iterator it){
+
 			LOG(_name << ":closing position at tick " << it->open_tick.time_stamp);
 			return _positions.erase(it);
 		}
@@ -41,15 +45,13 @@ namespace strat{
 	public:
 
 		/// Constructor 
-		trading_algorithm(const std::string symbol_base, const std::string symbol_target) :
-			_symbol_base(symbol_base), _symbol_target(symbol_target){		};
+		trading_algorithm(string symbol_base, string symbol_quote) :
+			_symbol_base(symbol_base), _symbol_quote(symbol_quote){};
 
-		///// Destructor
-		//virtual ~trading_algorithm() = 0;
+		virtual signal process_tick(const tick&, position& close_pos) = 0;
 
-		virtual signal process_tick(const tick&, std::vector<position>&) = 0;
+		std::list<position> get_positions() const{
 
-		std::vector<position> get_positions() const{
 			return _positions;
 		}
 	};

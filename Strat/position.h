@@ -8,26 +8,22 @@
 namespace strat{
 
 	enum signal{
+
 		SELL = -1,
 		NONE = 0,
 		BUY =1
 	};
 
-	class position{
-	private:
-	
-	public:
-		int id;
+	struct position{
+
+		tick obser_tick;
 		tick open_tick;
 		tick close_tick;
-		strat::signal type;
+		signal type;
 
-		/// Constructor 
-		position(){};
-
-		/// Destructor
-		~position(){};
-
+		position(){
+			type = signal::NONE;
+		}
 	};
 
 }

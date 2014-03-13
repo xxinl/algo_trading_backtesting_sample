@@ -6,20 +6,10 @@
 
 namespace strat{
 
-	class tick {
-	private:
+	struct tick {
 
-	public:
 		boost::posix_time::ptime time_stamp;
 		double close;
-
-		/// Constructor 
-		tick(){};
-
-		/// Destructor
-		~tick(){};
-
-		//TODO copy constructor
 	};
 }
 
