@@ -204,7 +204,7 @@ namespace Strat
 			pos.push_back(p);
 			pos.push_back(p);
 
-			LOG_POSITIONS(pos);
+			LOG_POSITIONS(pos, 3, 3);
 		}
 
 		//https://github.com/boostorg/log/blob/master/example/basic_usage/main.cpp

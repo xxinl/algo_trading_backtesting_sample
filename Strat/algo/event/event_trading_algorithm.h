@@ -21,6 +21,8 @@ namespace strat{
 		std::string _event_f_path;
 		std::queue<boost::posix_time::ptime> _event_q;
 
+		std::vector<strat::position> _closed_pos_hist;
+
 #pragma region "online run sd - commentted out"
 		
 		//double _run_mean;
@@ -58,7 +60,7 @@ namespace strat{
 			if (next_event_t <= crr_tick.time_stamp){
 				_obser_tick_q.push(crr_tick);
 
-				LOG("observed at tick " << crr_tick.time_stamp);
+				LOG(_name << ":observed at tick " << crr_tick.time_stamp);
 
 				_event_q.pop();
 				return _event_q.size();
@@ -83,7 +85,7 @@ namespace strat{
 
 			if (!_obser_tick_q.empty()){
 
-				LOG("removing observe " << _obser_tick_q.front().time_stamp);
+				LOG(_name << ":removing observe " << _obser_tick_q.front().time_stamp);
 				_obser_tick_q.pop();
 			}
 		}
@@ -128,6 +130,8 @@ namespace strat{
 			}
 
 			LOG(_event_q.size() << " events enqueued");
+
+			_name = "algo" + std::to_string(_obser_win) + "-" + std::to_string(_hold_win);
 		};
 
 		event_trading_algorithm(const std::string symbol_base, const std::string symbol_target,
@@ -137,6 +141,8 @@ namespace strat{
 			_event_q = event_queue;
 
 			LOG(_event_q.size() << " events enqueued");
+
+			_name = "algo" + std::to_string(_obser_win) + "-" + std::to_string(_hold_win);
 		};
 
 		///// Destructor
@@ -162,6 +168,9 @@ namespace strat{
 			_close_position_algo(crr_tick, close_pos);
 			LOG_SEV(close_pos.size() << " close positions returned at tick " << crr_tick.time_stamp, logger::debug);
 
+			if (!close_pos.empty())
+				_closed_pos_hist.insert(_closed_pos_hist.end(), close_pos.begin(), close_pos.end());
+
 			//_push_hist_tick_queue(crr_tick);
 
 			return ret_sig;
@@ -173,6 +182,18 @@ namespace strat{
 
 		std::queue<tick> get_obser_tick_queue() const{
 			return _obser_tick_q;
+		}
+
+		std::vector<position> get_closed_position_history(){
+			return _closed_pos_hist;
+		}
+
+		int get_obser_threshold(){
+			return _obser_win;
+		}
+
+		int get_hold_threshold(){
+			return _hold_win;
 		}
 	};
 }

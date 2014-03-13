@@ -27,6 +27,10 @@ namespace strat{
 			const char *event_f_path, int obser_win, int hold_win, double run_sd) :
 			event_trading_algorithm(symbol_base, symbol_target, event_f_path, obser_win, hold_win, run_sd){};
 
+		event_anti_long_short(const std::string symbol_base, const std::string symbol_target,
+			std::queue<boost::posix_time::ptime> event_queue, int obser_win, int hold_win, double run_sd) :
+			event_trading_algorithm(symbol_base, symbol_target, event_queue, obser_win, hold_win, run_sd){};
+
 		/// Destructor
 		~event_anti_long_short(){};
 

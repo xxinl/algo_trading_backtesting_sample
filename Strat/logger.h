@@ -82,22 +82,23 @@ public:
 		BOOST_LOG_SEV(slg, lev) << msg;
 	}
 
-	static void log_position(const strat::position &position){
+	static void log_position(const strat::position &position, int obser, int hold){
 		std::stringstream s;
 
-		s << position.open_tick.time_stamp << "," << position.open_tick.close 
+		s << obser << "," << hold << ","
+			<< position.open_tick.time_stamp << "," << position.open_tick.close 
 			<< "," << position.close_tick.time_stamp << "," << position.close_tick.close 
 			<< "," << position.type;
 
 		log_sev(s.str(), severity_level::order);
 	}
 
-	static void log_positions(const std::vector<strat::position> &positions){
+	static void log_positions(const std::vector<strat::position> &positions, int obser, int hold){
 		
 		for (std::vector<strat::position>::const_iterator it = positions.begin();
 			it != positions.end(); ++it){
 		
-			log_position(*it);
+			log_position(*it, obser, hold);
 		}
 	}
 };
@@ -106,7 +107,7 @@ public:
 	std::ostringstream().flush() << msg \
 	).str(), lev);
 
-#define LOG_POSITIONS(pos) logger::log_positions(pos);
+#define LOG_POSITIONS(pos, obser, hold) logger::log_positions(pos, obser, hold);
 
 #define LOG(msg) logger::log_sev(static_cast<std::ostringstream&>( \
 	std::ostringstream().flush() << msg \

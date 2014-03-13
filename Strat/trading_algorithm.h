@@ -15,6 +15,8 @@ namespace strat{
 	private:
 
 	protected:
+		std::string _name;
+
 		std::string _symbol_base;
 		std::string _symbol_target;
 		std::vector<position> _positions;
@@ -26,13 +28,13 @@ namespace strat{
 			pos.type = type;
 			_positions.push_back(pos);
 
-			LOG("opened position at tick " << t.time_stamp);
+			LOG(_name << ":opened position at tick " << t.time_stamp);
 
 			return _positions.size();
 		}
 
 		std::vector<position>::iterator _delete_position(std::vector<position>::iterator it){
-			LOG("closing position at tick " << it->open_tick.time_stamp);
+			LOG(_name << ":closing position at tick " << it->open_tick.time_stamp);
 			return _positions.erase(it);
 		}
 
