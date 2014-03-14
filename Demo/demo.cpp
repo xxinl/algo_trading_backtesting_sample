@@ -20,22 +20,22 @@ using std::string;
 
 void run_back_test(){
 
-	std::ifstream file("../back_test_files/EURUSD_min_2013.csv");
-	//std::ifstream file("../test_files/EURUSD_min_11-24-2013.csv");
+	std::ifstream file("../../back_test_files/EURUSD_min_2013.csv");
+	//std::ifstream file("../../test_files/EURUSD_min_11-24-2013.csv");
 	std::string line;
 	//std::vector<int> cols{ 1, 2, 6 }; //1 date, 2 time, 6 close
 
 	concurrency::concurrent_vector<strat::event_anti_long_short> algos;
 
 	LOG("tester_begin algo constructor");
-	strat::event_anti_long_short algo("eur", "usd", "../back_test_files/Calendar-2013.csv", 15, 90, 0.0003);
-	//strat::event_anti_long_short algo("eur", "usd", "../test_files/Calendar-11-24-2013.csv", size_t(15), size_t(90), 0.0003);
+	strat::event_anti_long_short algo("eur", "usd", "../../back_test_files/Calendar-2013.csv", 15, 90, 0.0003);
+	//strat::event_anti_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv", size_t(15), size_t(90), 0.0003);
 	LOG("tester_end algo constructor");
 	algos.push_back(algo);
 
 	std::queue<boost::posix_time::ptime> event_q(algo.get_event_queue());
 
-	concurrency::parallel_for(size_t(5), size_t(10), [&event_q, &algos](int o){
+	concurrency::parallel_for(size_t(1), size_t(10), [&event_q, &algos](int o){
 
 		for (size_t h = o + 1; h <= 120; h++){
 			strat::event_anti_long_short algo2("eur", "usd", event_q, o, h, 0.0003);

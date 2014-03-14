@@ -25,7 +25,7 @@ namespace Strat
 		{
 			std::vector<std::vector<std::string>> vec;
 			std::vector<int> cols_v{ 0, 1 };
-			util::read_csv("../test_files/Calendar-11-24-2013.csv", vec, cols_v);
+			util::read_csv("../../test_files/Calendar-11-24-2013.csv", vec, cols_v);
 			
 			size_t size = 28;
 			Assert::AreEqual(size, vec.size());
@@ -89,7 +89,7 @@ namespace Strat
 
 		TEST_METHOD(event_anti_long_short_constructor)
 		{
-			strat::event_anti_long_short algo("eur", "usd", "../test_files/Calendar-11-24-2013.csv"
+			strat::event_anti_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv"
 				, 5, 15, 0.0003);
 
 			std::queue<boost::posix_time::ptime> event_q = algo.get_event_queue();
@@ -107,7 +107,7 @@ namespace Strat
 		TEST_METHOD(util_read_tick_csv)
 		{
 			std::vector<strat::tick> tick_vec;
-			util::read_tick_csv("../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
+			util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
 
 			size_t size = 2938;
 			Assert::AreEqual(tick_vec.size(), size);
@@ -120,11 +120,11 @@ namespace Strat
 
 		TEST_METHOD(event_anti_long_short_process_tick)
 		{
-			strat::event_anti_long_short algo("eur", "usd", "../test_files/Calendar-11-24-2013.csv"
+			strat::event_anti_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv"
 				, 5, 15, 0.0003);
 
 			std::vector<strat::tick> tick_vec;
-			util::read_tick_csv("../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
+			util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
 
 			strat::position close_pos;
 			std::queue<strat::tick> obser_q;
