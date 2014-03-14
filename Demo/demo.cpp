@@ -20,7 +20,7 @@ using std::string;
 
 void run_back_test(){
 
-#ifdef RELEASE
+#ifndef _DEBUG
 	std::ifstream file("../../back_test_files/EURUSD_min_2013.csv");
 #else
 	std::ifstream file("../../test_files/EURUSD_min_11-24-2013.csv");
@@ -32,7 +32,7 @@ void run_back_test(){
 	concurrency::concurrent_vector<strat::event_anti_long_short> algos;
 
 	LOG("tester_begin algo constructor");
-#ifdef RELEASE
+#ifndef _DEBUG
 	strat::event_anti_long_short algo("eur", "usd", "../../back_test_files/Calendar-2013.csv", 15, 90, 0.0003);
 #else
 	strat::event_anti_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv", size_t(15), size_t(90), 0.0003);
