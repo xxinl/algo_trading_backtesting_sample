@@ -82,7 +82,7 @@ namespace strat{
 		std::queue<tick> _obser_tick_q;
 
 		virtual signal _get_signal_algo(const tick& crr_tick) = 0;
-		virtual int _close_position_algo(const tick& crr_tick, position& close_pos) = 0;
+		virtual int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) = 0;
 
 		void _pop_obser_tick_queue(){
 
@@ -150,7 +150,7 @@ namespace strat{
 			LOG(_name << ": " << _event_q.size() << " events enqueued");
 		};
 				
-		signal process_tick(const tick& crr_tick, position& close_pos){
+		signal process_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1){
 
 			LOG_SEV(_name << ": processing tick " << crr_tick.time_stamp, logger::debug);
 			
@@ -171,7 +171,7 @@ namespace strat{
 			//process open positions
 			auto fut_close_pos = std::async([&]{
 
-				_close_position_algo(crr_tick, close_pos);
+				_close_position_algo(crr_tick, close_pos, stop_loss);
 			});
 
 			fut_get_sig.wait();
@@ -196,6 +196,8 @@ namespace strat{
 			return ret_sig;
 		}
 
+#pragma region properties gets
+
 		std::queue<boost::posix_time::ptime> get_event_queue() const{
 			return _event_q;
 		}
@@ -219,6 +221,8 @@ namespace strat{
 		int get_hold_threshold() const{
 			return _hold_win;
 		}
+
+#pragma endregion
 	};
 }
 

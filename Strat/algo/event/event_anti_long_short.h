@@ -48,11 +48,14 @@ namespace strat{
 			return ret_sig;
 		}
 
-		int _close_position_algo(const tick& crr_tick, position& close_pos){
+		int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss){
 
 			for (std::list<position>::iterator it = _positions.begin(); it != _positions.end();){
 
-				if (crr_tick.time_stamp >= it->open_tick.time_stamp + boost::posix_time::minutes(_hold_win))
+				bool is_stop_out = stop_loss != -1 && (it->open_tick.close - crr_tick.close) * it->type > stop_loss;
+
+				if (is_stop_out || 
+					crr_tick.time_stamp >= it->open_tick.time_stamp + boost::posix_time::minutes(_hold_win))
 				{
 					it->close_tick = crr_tick;
 					close_pos = *it;

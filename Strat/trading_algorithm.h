@@ -48,7 +48,7 @@ namespace strat{
 		trading_algorithm(string symbol_base, string symbol_quote) :
 			_symbol_base(symbol_base), _symbol_quote(symbol_quote){};
 
-		virtual signal process_tick(const tick&, position& close_pos) = 0;
+		virtual signal process_tick(const tick&, position& close_pos, double stop_loss = -1) = 0;
 
 		std::list<position> get_positions() const{
 

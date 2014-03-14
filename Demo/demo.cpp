@@ -20,16 +20,23 @@ using std::string;
 
 void run_back_test(){
 
+#ifdef RELEASE
 	std::ifstream file("../../back_test_files/EURUSD_min_2013.csv");
-	//std::ifstream file("../../test_files/EURUSD_min_11-24-2013.csv");
+#else
+	std::ifstream file("../../test_files/EURUSD_min_11-24-2013.csv");
+#endif
+	
 	std::string line;
 	//std::vector<int> cols{ 1, 2, 6 }; //1 date, 2 time, 6 close
 
 	concurrency::concurrent_vector<strat::event_anti_long_short> algos;
 
 	LOG("tester_begin algo constructor");
+#ifdef RELEASE
 	strat::event_anti_long_short algo("eur", "usd", "../../back_test_files/Calendar-2013.csv", 15, 90, 0.0003);
-	//strat::event_anti_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv", size_t(15), size_t(90), 0.0003);
+#else
+	strat::event_anti_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv", size_t(15), size_t(90), 0.0003);
+#endif
 	LOG("tester_end algo constructor");
 	algos.push_back(algo);
 
@@ -46,6 +53,7 @@ void run_back_test(){
 
 	//skip header
 	std::getline(file, line);
+	const double sp = 0.0003;
 
 	while (std::getline(file, line)) {
 
@@ -87,10 +95,10 @@ void run_back_test(){
 			LOG("tester_processing tick " << t);
 		}
 
-		concurrency::parallel_for(size_t(0), algos.size(), [&algos, &tick1](int i)
+		concurrency::parallel_for(size_t(0), algos.size(), [&algos, &tick1, &sp](int i)
 		{
 			strat::position close_pos;
-			algos[i].process_tick(tick1, close_pos);
+			algos[i].process_tick(tick1, close_pos, sp);
 		});
 
 		if (t.time_of_day().hours() == 0 && t.time_of_day().minutes() == 0){

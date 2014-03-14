@@ -209,5 +209,55 @@ namespace Strat
 
 #pragma endregion
 
+		TEST_METHOD(event_anti_long_short_process_tick_with_stoploss)
+		{
+			strat::event_anti_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv"
+				, 5, 15, 0.0003);
+
+			std::vector<strat::tick> tick_vec;
+			util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
+
+			strat::position close_pos;
+			std::queue<strat::tick> obser_q;
+			strat::signal sig = strat::signal::NONE;
+
+			for (int i = 0; i < 10; i++){
+				algo.process_tick(tick_vec[i], close_pos);
+				obser_q = algo.get_obser_tick_queue();
+				Assert::IsTrue(obser_q.empty());
+				Assert::IsTrue(strat::signal::NONE == sig);
+			}
+
+			//index no here = 'row index in file' - 2 (exclude header and c++ is 0 start index)
+			sig = algo.process_tick(tick_vec[298], close_pos);
+			obser_q = algo.get_obser_tick_queue();
+			Assert::IsTrue(obser_q.empty());
+			Assert::IsTrue(close_pos.type == strat::signal::NONE);
+			Assert::IsTrue(strat::signal::NONE == sig);
+
+			sig = algo.process_tick(tick_vec[299], close_pos);
+			obser_q = algo.get_obser_tick_queue();
+			size_t size = 1;
+			Assert::AreEqual(obser_q.size(), size);
+			Assert::IsTrue(close_pos.type == strat::signal::NONE);
+			Assert::IsTrue(strat::signal::NONE == sig);
+
+			sig = algo.process_tick(tick_vec[304], close_pos);
+			obser_q = algo.get_obser_tick_queue();
+			Assert::IsTrue(close_pos.type == strat::signal::NONE);
+			Assert::IsTrue(strat::signal::BUY == sig);
+			std::list<strat::position> pos = algo.get_positions();
+			Assert::IsTrue(pos.size() == size);
+			Assert::IsTrue(pos.front().open_tick.close == 1.3540);
+
+			sig = algo.process_tick(tick_vec[317], close_pos, 0.0003);
+			obser_q = algo.get_obser_tick_queue();
+			Assert::IsTrue(obser_q.empty());
+			Assert::IsTrue(strat::signal::NONE == sig);
+			Assert::IsTrue(close_pos.type != strat::signal::NONE);
+			pos = algo.get_positions();
+			Assert::IsTrue(pos.empty());
+		}
+
 	};
 }
