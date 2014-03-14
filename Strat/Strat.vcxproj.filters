@@ -53,9 +53,6 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="algo\event\event_anti_long_short.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mql5_export_wrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
