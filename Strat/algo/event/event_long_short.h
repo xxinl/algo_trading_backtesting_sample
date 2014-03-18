@@ -3,9 +3,9 @@
 #ifndef _STRAT_EVENT_LONG_SHORT
 #define _STRAT_EVENT_LONG_SHORT
 
-#include "../../tick.h"
-#include "../../position.h"
-#include "event_trading_algorithm.h"
+#include "tick.h"
+#include "position.h"
+#include "event_algo.h"
 
 #include <vector>
 #include <queue>
@@ -16,10 +16,13 @@ using std::string;
 
 namespace strat{
 
-	class event_anti_long_short : public event_trading_algorithm{
+	class event_long_short : public event_algo{
 	private:
 
 	protected:
+
+		const bool _is_anti_trend;
+
 		signal _get_signal_algo(const tick& crr_tick){
 
 			signal ret_sig = signal::NONE;
@@ -32,12 +35,12 @@ namespace strat{
 
 					if (crr_tick.close >= front_tick.close + _run_sd){
 
-						ret_sig = signal::SELL;
+						ret_sig = _is_anti_trend ? signal::SELL : signal::BUY;
 						_add_position(crr_tick, ret_sig, front_tick);
 					}
 					else if (crr_tick.close <= front_tick.close - _run_sd){
 
-						ret_sig = signal::BUY;
+						ret_sig = _is_anti_trend ? signal::BUY : signal::SELL;
 						_add_position(crr_tick, ret_sig, front_tick);
 					}
 
@@ -48,6 +51,7 @@ namespace strat{
 			return ret_sig;
 		}
 
+		//duplicate code as event_algo_ma
 		int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss){
 
 			for (std::list<position>::iterator it = _positions.begin(); it != _positions.end();){
@@ -69,17 +73,25 @@ namespace strat{
 		}
 
 	public:
-		/// Constructor 
-		event_anti_long_short(const std::string symbol_base, const std::string symbol_target,
-			string event_f_path, size_t obser_win, size_t hold_win, double run_sd) :
-			event_trading_algorithm(symbol_base, symbol_target, event_f_path, obser_win, hold_win, run_sd){};
 
-		event_anti_long_short(const std::string symbol_base, const std::string symbol_target,
-			std::queue<boost::posix_time::ptime> event_queue, size_t obser_win, size_t hold_win, double run_sd) :
-			event_trading_algorithm(symbol_base, symbol_target, event_queue, obser_win, hold_win, run_sd){};
+#pragma regino constructors
+
+		event_long_short(const std::string symbol_base, const std::string symbol_target,
+			string event_f_path, size_t obser_win, size_t hold_win, double run_sd, 
+			bool is_anti_trend = false) :
+			event_algo(symbol_base, symbol_target, event_f_path, obser_win, hold_win, run_sd),
+			_is_anti_trend(is_anti_trend){};
+
+		event_long_short(const std::string symbol_base, const std::string symbol_target,
+			std::queue<boost::posix_time::ptime> event_queue, size_t obser_win, size_t hold_win, 
+			double run_sd, bool is_anti_trend = false) :
+			event_algo(symbol_base, symbol_target, event_queue, obser_win, hold_win, run_sd),
+			_is_anti_trend(is_anti_trend){};
+
+#pragma endregion
 
 		/// Destructor
-		~event_anti_long_short(){};
+		~event_long_short(){};
 	};
 }
 

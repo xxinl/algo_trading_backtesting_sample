@@ -24,13 +24,7 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="trading_algorithm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="tick.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="algo\event\event_trading_algorithm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="util.h">
@@ -39,10 +33,28 @@
     <ClInclude Include="position.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="algo\event\event_anti_long_short.h">
+    <ClInclude Include="logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="logger.h">
+    <ClInclude Include="algo\event\event_long_short.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="indicator\sma.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="algo\event\event_algo_ma.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="algo\event\event_algo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="algo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="indicator\indicator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="trend.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

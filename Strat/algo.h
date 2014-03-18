@@ -1,7 +1,7 @@
 
 
-#ifndef _STRAT_TRADING_ALGORITHM
-#define _STRAT_TRADING_ALGORITHM
+#ifndef _STRAT_ALGO
+#define _STRAT_ALGO
 
 #include "tick.h"
 #include "position.h"
@@ -13,7 +13,7 @@ using std::string;
 
 namespace strat{
 
-	class trading_algorithm {
+	class algo {
 	private:
 
 	protected:
@@ -45,7 +45,7 @@ namespace strat{
 	public:
 
 		/// Constructor 
-		trading_algorithm(string symbol_base, string symbol_quote) :
+		algo(string symbol_base, string symbol_quote) :
 			_symbol_base(symbol_base), _symbol_quote(symbol_quote){};
 
 		virtual signal process_tick(const tick&, position& close_pos, double stop_loss = -1) = 0;

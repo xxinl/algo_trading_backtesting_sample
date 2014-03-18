@@ -1,10 +1,10 @@
 
 
-#ifndef _STRAT_EVENT_TRADING_ALGORITHM
-#define _STRAT_EVENT_TRADING_ALGORITHM
+#ifndef _STRAT_EVENT_ALGO
+#define _STRAT_EVENT_ALGO
 
-#include "../../trading_algorithm.h"
-#include "../../util.h"
+#include "algo.h"
+#include "util.h"
 
 #include <string>
 #include <queue> 
@@ -19,11 +19,13 @@ using std::string;
 
 namespace strat{
 
-	class event_trading_algorithm : public trading_algorithm {
+	class event_algo : public algo {
 	private:
 		std::queue<boost::posix_time::ptime> _event_q;
 
 		std::list<strat::position> _closed_pos_hist;
+
+		void _set_algo_name();
 
 #pragma region "online run sd - commentted out"
 		
@@ -57,11 +59,13 @@ namespace strat{
 		///return size of the event_q
 		int _push_obser_queue_if_event(tick crr_tick){
 
-			if (_event_q.empty()) return 0;
+			//delete any event in queue that has passed
+			while (!_event_q.empty() && _event_q.front() < crr_tick.time_stamp)
+			{
+				_event_q.pop();
+			}
 
-			boost::posix_time::ptime next_event_t = _event_q.front();
-
-			if (next_event_t <= crr_tick.time_stamp){
+			if (!_event_q.empty() && _event_q.front() == crr_tick.time_stamp){
 				_obser_tick_q.push(crr_tick);
 
 				LOG(_name << ":observed at tick " << crr_tick.time_stamp);
@@ -73,6 +77,7 @@ namespace strat{
 		}
 
 	protected:
+
 		const size_t _obser_win;
 		const size_t _hold_win;
 		
@@ -94,10 +99,10 @@ namespace strat{
 		}
 
 	public:
-		/// Constructor 
-		event_trading_algorithm(string symbol_base, string symbol_quote, 
+
+		event_algo(string symbol_base, string symbol_quote, 
 			string event_f_path, size_t obser_win, size_t hold_win, double run_sd = 0.0003) :
-			trading_algorithm(symbol_base, symbol_quote), _obser_win(obser_win), _hold_win(hold_win), _run_sd(run_sd){
+			algo(symbol_base, symbol_quote), _obser_win(obser_win), _hold_win(hold_win), _run_sd(run_sd){
 			
 			std::vector<std::vector<std::string>> event_v;
 			std::vector<int> cols_v{ 0, 1, 3, 5 };
@@ -140,9 +145,9 @@ namespace strat{
 			LOG(_name << ": " << _event_q.size() << " events enqueued");
 		};
 
-		event_trading_algorithm(const string symbol_base, const string symbol_target,
+		event_algo(const string symbol_base, const string symbol_target,
 			std::queue<boost::posix_time::ptime> event_queue, int obser_win, int hold_win, double run_sd) :
-			trading_algorithm(symbol_base, symbol_target),_obser_win(obser_win), _hold_win(hold_win), _run_sd(run_sd){
+			algo(symbol_base, symbol_target),_obser_win(obser_win), _hold_win(hold_win), _run_sd(run_sd){
 
 			_event_q = event_queue;
 			

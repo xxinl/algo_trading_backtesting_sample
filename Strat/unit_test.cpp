@@ -2,8 +2,9 @@
 #include "CppUnitTest.h"
 
 #include "util.h"
-#include "algo\event\event_anti_long_short.h"
+#include "algo\event\event_long_short.h"
 #include "logger.h"
+#include "indicator\sma.h"
 
 #include <vector>
 #include <string>
@@ -87,9 +88,9 @@ namespace Strat
 
 #pragma endregion
 
-		TEST_METHOD(event_anti_long_short_constructor)
+		TEST_METHOD(event_long_short_constructor)
 		{
-			strat::event_anti_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv"
+			strat::event_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv"
 				, 5, 15, 0.0003);
 
 			std::queue<boost::posix_time::ptime> event_q = algo.get_event_queue();
@@ -118,10 +119,10 @@ namespace Strat
 
 		}
 
-		TEST_METHOD(event_anti_long_short_process_tick)
+		TEST_METHOD(event_long_short_process_tick)
 		{
-			strat::event_anti_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv"
-				, 5, 15, 0.0003);
+			strat::event_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv"
+				, 5, 15, 0.0003, true);
 
 			std::vector<strat::tick> tick_vec;
 			util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
@@ -209,10 +210,10 @@ namespace Strat
 
 #pragma endregion
 
-		TEST_METHOD(event_anti_long_short_process_tick_with_stoploss)
+		TEST_METHOD(event_long_short_process_tick_with_stoploss)
 		{
-			strat::event_anti_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv"
-				, 5, 15, 0.0003);
+			strat::event_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv"
+				, 5, 15, 0.0003, true);
 
 			std::vector<strat::tick> tick_vec;
 			util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
@@ -259,5 +260,23 @@ namespace Strat
 			Assert::IsTrue(pos.empty());
 		}
 
+		TEST_METHOD(sma){ 
+
+			strat::sma ma(5);
+
+			//mean of last 5 = 0.654106
+			std::vector<double> t = { 0.1538291, 0.7083242, 0.9330954, 0.7555677, 0.1090589, 1.2543208, 0.7245816, 0.3999856, 0.4196101, 0.4720318 };
+			for (std::vector<double>::iterator it = t.begin(); it != t.end(); ++it){
+			
+				ma.push(*it);
+			}
+
+			Assert::AreEqual(0.654106, ma.get_value());
+		}
+
+		TEST_METHOD(trend){
+		
+			Assert::IsTrue(1 == 2);
+		}
 	};
 }

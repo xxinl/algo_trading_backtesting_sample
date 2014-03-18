@@ -100,7 +100,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;STRAT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;C:\Boost\include\boost-1_55;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(VCInstallDir)UnitTest\include;C:\Boost\include\boost-1_55;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -149,14 +149,18 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="algo\event\event_anti_long_short.h" />
-    <ClInclude Include="algo\event\event_trading_algorithm.h" />
+    <ClInclude Include="algo\event\event_long_short.h" />
+    <ClInclude Include="algo\event\event_algo.h" />
+    <ClInclude Include="algo\event\event_algo_ma.h" />
+    <ClInclude Include="indicator\indicator.h" />
+    <ClInclude Include="indicator\sma.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="position.h" />
     <ClInclude Include="tick.h" />
-    <ClInclude Include="trading_algorithm.h" />
+    <ClInclude Include="algo.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="trend.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
