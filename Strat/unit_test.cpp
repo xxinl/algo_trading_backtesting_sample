@@ -5,6 +5,7 @@
 #include "algo\event\event_long_short.h"
 #include "logger.h"
 #include "indicator\sma.h"
+#include "trend.h"
 
 #include <vector>
 #include <string>
@@ -271,12 +272,20 @@ namespace Strat
 				ma.push(*it);
 			}
 
-			Assert::AreEqual(0.654106, ma.get_value());
+			Assert::IsTrue(ma.get_value() - 0.654106 < 0.000001);
 		}
 
 		TEST_METHOD(trend){
 		
-			Assert::IsTrue(1 == 2);
+			strat::trend trd(10);
+
+			//slope = -0.344222101
+			std::vector<double> t = { 0.1538291, 0.7083242, 0.9330954, 0.7555677, 0.1090589, 1.2543208, 0.7245816, 0.3999856, 0.4196101, 0.4720318 };
+			double slope = 0;
+			strat::trend_type type = trd.get_trend(t, slope);
+
+			Assert::IsTrue(slope + 0.344222101 < 0.000001);
+			Assert::IsTrue(type == strat::trend_type::SIDEWAYS);
 		}
 	};
 }

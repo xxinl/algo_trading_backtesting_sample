@@ -33,11 +33,10 @@ namespace strat{
 
 		double push(double v){
 			
-			if (!_seriers_q.empty()){
+			if (!_seriers_q.empty() && _seriers_q.size() == _look_back_n){
 
 				_sum = _sum - _seriers_q.front() + v;
-				if (_seriers_q.size() == _look_back_n)
-					_seriers_q.pop();
+				_seriers_q.pop();
 			}
 			else{
 
