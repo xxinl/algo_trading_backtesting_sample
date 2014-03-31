@@ -171,7 +171,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	end_t = start_t + boost::gregorian::weeks(c);
-	std::cout << "test start from " << start_t << " end on " << end_t << std::endl;
+	std::cout << "test start from " << start_t << " end on " << end_t << ". enter to continue" << std::endl;
 	std::cin.get();
 
 	run_back_test(start_t, end_t);

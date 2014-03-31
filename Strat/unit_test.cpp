@@ -3,6 +3,7 @@
 
 #include "util.h"
 #include "algo\event\event_long_short.h"
+#include "algo\event\event_algo_ma.h"
 #include "logger.h"
 #include "indicator\sma.h"
 #include "trend.h"
@@ -279,13 +280,78 @@ namespace Strat
 		
 			strat::trend trd(10);
 
-			//slope = -0.344222101
-			std::vector<double> t = { 0.1538291, 0.7083242, 0.9330954, 0.7555677, 0.1090589, 1.2543208, 0.7245816, 0.3999856, 0.4196101, 0.4720318 };
+			//slope = -0.004669211
+			//std::vector<double> t = { 0.1538291, 0.7083242, 0.9330954, 0.7555677, 0.1090589, 1.2543208, 0.7245816, 0.3999856, 0.4196101, 0.4720318 };
+			//y = 2x + 10 +- error(1)
+			std::vector<double> t = { 11, 15, 15, 19, 19, 23, 23, 27, 27, 31 };
 			double slope = 0;
 			strat::trend_type type = trd.get_trend(t, slope);
 
-			Assert::IsTrue(slope + 0.344222101 < 0.000001);
-			Assert::IsTrue(type == strat::trend_type::SIDEWAYS);
+			Assert::IsTrue(slope - 2 < 0.1);
+			Assert::IsTrue(type == strat::trend_type::UP);
+		}
+
+		TEST_METHOD(event_ma_process_tick){
+
+			strat::event_algo_ma algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv",
+				 5, 15, 0.0003, 15, 60);
+
+			std::vector<strat::tick> tick_vec;
+			util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
+
+			strat::position close_pos;
+			std::queue<strat::tick> obser_q;
+			strat::signal sig = strat::signal::NONE;
+
+			for (int i = 0; i < 10; i++){
+				algo.process_tick(tick_vec[i], close_pos);
+				obser_q = algo.get_obser_tick_queue();
+				Assert::IsTrue(obser_q.empty());
+				Assert::IsTrue(strat::signal::NONE == sig);
+			}
+
+			size_t size = 1;
+			for (int i = 100; i < 320; i++){
+				//index no here = 'row index in file' - 2 (exclude header and c++ is 0 start index)
+				sig = algo.process_tick(tick_vec[i], close_pos);
+
+				if (i == 298){
+
+					obser_q = algo.get_obser_tick_queue();
+					Assert::IsTrue(obser_q.empty());
+					Assert::IsTrue(close_pos.type == strat::signal::NONE);
+					Assert::IsTrue(strat::signal::NONE == sig);
+				}
+
+				if (i == 299){
+
+					obser_q = algo.get_obser_tick_queue();
+					Assert::AreEqual(obser_q.size(), size);
+					Assert::IsTrue(close_pos.type == strat::signal::NONE);
+					Assert::IsTrue(strat::signal::NONE == sig);
+				}
+
+				if (i == 304){
+
+					obser_q = algo.get_obser_tick_queue();
+					Assert::IsTrue(close_pos.type == strat::signal::NONE);
+					Assert::IsTrue(strat::signal::BUY == sig);
+					std::list<strat::position> pos = algo.get_positions();
+					Assert::IsTrue(pos.size() == size);
+					Assert::IsTrue(pos.front().open_tick.close == 1.3540);
+				}
+
+				if (i == 319){
+
+					obser_q = algo.get_obser_tick_queue();
+					Assert::IsTrue(obser_q.empty());
+					Assert::IsTrue(strat::signal::NONE == sig);
+					std::list<strat::position> pos = algo.get_positions();
+					Assert::IsTrue(close_pos.type != strat::signal::NONE);
+					pos = algo.get_positions();
+					Assert::IsTrue(pos.empty());
+				}
+			}
 		}
 	};
 }

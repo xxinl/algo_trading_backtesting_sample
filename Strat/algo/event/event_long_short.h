@@ -74,17 +74,17 @@ namespace strat{
 
 	public:
 
-#pragma regino constructors
+#pragma region constructors
 
-		event_long_short(const std::string symbol_base, const std::string symbol_target,
+		event_long_short(const string symbol_base, const string symbol_target,
 			string event_f_path, size_t obser_win, size_t hold_win, double run_sd, 
-			bool is_anti_trend = false) :
+			bool is_anti_trend = true) :
 			event_algo(symbol_base, symbol_target, event_f_path, obser_win, hold_win, run_sd),
 			_is_anti_trend(is_anti_trend){};
 
-		event_long_short(const std::string symbol_base, const std::string symbol_target,
+		event_long_short(const string symbol_base, const string symbol_target,
 			std::queue<boost::posix_time::ptime> event_queue, size_t obser_win, size_t hold_win, 
-			double run_sd, bool is_anti_trend = false) :
+			double run_sd, bool is_anti_trend = true) :
 			event_algo(symbol_base, symbol_target, event_queue, obser_win, hold_win, run_sd),
 			_is_anti_trend(is_anti_trend){};
 

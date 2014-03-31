@@ -8,7 +8,7 @@
 #include "trend.h"
 
 #include <string>
-#include <queue>
+#include <deque>
 
 using std::string;
 
@@ -17,24 +17,26 @@ namespace strat{
 	class event_algo_ma : public event_algo{
 	private:
 
-		std::queue<double> _ma_lookback_q;
+		std::deque<double> _ma_lookback_q;
 		const int _ma_lookback;
 		sma _sma;
 		trend _trend;
 		trend_type _trend_type;
 
-		void _process_ma(const tick& crr_tick, double ma){
+		void _process_ma(const tick& crr_tick){
 		
-			_ma_lookback_q.push(_sma.push(crr_tick.close));
+			_ma_lookback_q.push_back(_sma.push(crr_tick.close));
 			if (_ma_lookback_q.size() > _ma_lookback)
-				_ma_lookback_q.pop();
-				
-			_trend_type = _trend.get_trend(_ma_lookback_q);
+				_ma_lookback_q.pop_front();
+			
+			double slope;
+			std::vector<double> x(_ma_lookback_q.begin(), _ma_lookback_q.end());
+			_trend_type = _trend.get_trend(x, slope);
 		}
 
 	protected:
 
-		signal _get_signal_algo(const tick& crr_tick){
+		signal _get_signal_algo(const tick& crr_tick) override		{
 
 			signal ret_sig = signal::NONE;
 
@@ -63,7 +65,7 @@ namespace strat{
 		}
 
 		//duplicate code as event_algo
-		int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss){
+		int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) override		{
 
 			for (std::list<position>::iterator it = _positions.begin(); it != _positions.end();){
 
@@ -85,38 +87,42 @@ namespace strat{
 
 	public:
 
-#pragma regino constructors
+#pragma region constructors
 
 		event_algo_ma(const std::string symbol_base, const std::string symbol_target,
-			string event_f_path, size_t obser_win, size_t hold_win, double run_sd) :
-			event_algo(symbol_base, symbol_target, event_f_path, obser_win, hold_win, run_sd){
-
-			_sma(7200);
-			_trend(_ma_lookback);
-		};
+			string event_f_path, size_t obser_win, size_t hold_win, double run_sd,
+			int ma_period, int ma_lookback) :
+			event_algo(symbol_base, symbol_target, event_f_path, obser_win, hold_win, run_sd),
+			_ma_lookback(ma_lookback), _sma(ma_period), _trend(ma_lookback, 1) {		}
 
 		event_algo_ma(const std::string symbol_base, const std::string symbol_target,
 			std::queue<boost::posix_time::ptime> event_queue, size_t obser_win, size_t hold_win,
-			double run_sd) :
-			event_algo(symbol_base, symbol_target, event_queue, obser_win, hold_win, run_sd){
-		
-			_sma(7200);
-			_trend(_ma_lookback);
-		};
+			double run_sd, int ma_period, int ma_lookback) :
+			event_algo(symbol_base, symbol_target, event_queue, obser_win, hold_win, run_sd),
+			_ma_lookback(ma_lookback), _sma(ma_period), _trend(ma_lookback, 0.3){}
+
+		~event_algo_ma(){};
 
 #pragma endregion
 
-		signal process_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1, double ma = -1){
+		signal process_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1){
 
-			_process_ma(ma);
+			_process_ma(crr_tick);
 
 			signal ret_sig = event_algo::process_tick(crr_tick, close_pos, stop_loss);
 
 			return ret_sig;
 		}
 
-		/// Destructor
-		~event_algo_ma(){};
+		void init_ma_queue(const std::vector<int>& close_s){
+		
+			for (int i : close_s){
+			
+				_ma_lookback_q.push_back(_sma.push(i));
+				if (_ma_lookback_q.size() > _ma_lookback)
+					_ma_lookback_q.pop_front();
+			}
+		}
 	};
 }
 
