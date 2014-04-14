@@ -13,6 +13,7 @@
 #include "stdafx.h"
 
 #include "algo/event/event_long_short.h"
+#include "algo\event\event_algo_ma.h"
 
 #include <vector>
 #include <string>
@@ -27,31 +28,66 @@
 
 using std::string;
 
-void run_back_test(boost::posix_time::ptime start_t, boost::posix_time::ptime end_t){
-
-	std::ifstream file("../../back_test_files/EURUSD_min_2013.csv");
+void algo_factory_get(const string& algo_name, concurrency::concurrent_vector<std::unique_ptr<strat::event_algo>>& algos){
 	
-	std::string line;
 	//std::vector<int> cols{ 1, 2, 6 }; //1 date, 2 time, 6 close
 
-	concurrency::concurrent_vector<strat::event_long_short> algos;
+	const string path = "C:/workspace/Strat/back_test_files/Calendar-2013.csv";//"../../back_test_files/Calendar-2013.csv";
 
-	LOG("tester_begin algo constructor");
-	strat::event_long_short algo("eur", "usd", "../../back_test_files/Calendar-2013.csv", size_t(15), size_t(90), 0.0003);
-	LOG("tester_end algo constructor");
-	algos.push_back(algo);
+	if (algo_name == "event_long_short"){		
 
-	std::queue<boost::posix_time::ptime> event_q(algo.get_event_queue());
+		LOG("tester_begin event_long_short algo constructor");
+		std::unique_ptr<strat::event_algo> algo(new strat::event_long_short(
+			"eur", "usd", path, size_t(15), size_t(90), 0.0003));
+		LOG("tester_end event_long_short algo constructor");
+		algos.push_back(std::move(algo));
 
-	concurrency::parallel_for(size_t(1), size_t(10), [&event_q, &algos](int o){
+		std::queue<boost::posix_time::ptime> event_q(algos[0]->get_event_queue());
 
-		for (size_t h = o + 1; h <= 120; h++){
-			strat::event_long_short algo2("eur", "usd", event_q, o, h, 0.0003);
-			algos.push_back(algo2);
-			LOG("push algo " << o << "-" << h);
+		concurrency::parallel_for(size_t(1), size_t(10), [&event_q, &algos](int o){
+
+			for (size_t h = o + 1; h <= 120; h++){
+				std::unique_ptr<strat::event_algo> algo2(new strat::event_long_short(
+					"eur", "usd", event_q, o, h, 0.0003));
+				algos.push_back(std::move(algo2));
+				LOG("push algo " << o << "-" << h);
+			}
+		});
+	} else if (algo_name == "event_algo_ma"){
+		
+		LOG("tester_begin event_algo_ma algo constructor");
+		std::unique_ptr<strat::event_algo> algo(new strat::event_algo_ma(
+			"eur", "usd", path,
+			7, 45, 0.0003, 15, 60));
+		LOG("tester_end event_algo_ma algo constructor");
+		algos.push_back(std::move(algo));
+
+		std::queue<boost::posix_time::ptime> event_q(algos[0]->get_event_queue());
+
+		for (size_t sma_peroid = 5; sma_peroid <= 120; sma_peroid += 5){
+
+			for (size_t look_back = 20; look_back <= 1000; look_back += 10){
+				std::unique_ptr<strat::event_algo> algo2(new strat::event_algo_ma(
+					"eur", "usd", event_q,
+					7, 45, 0.0003, sma_peroid, look_back));
+				algos.push_back(std::move(algo2));
+				LOG("push algo " << sma_peroid << "-" << look_back);
+			}
 		}
-	});
+	}
+}
 
+void run_back_test(boost::posix_time::ptime start_t, boost::posix_time::ptime end_t, 
+	concurrency::concurrent_vector<std::unique_ptr<strat::event_algo>>& algos){
+
+	const string path = "C:/workspace/Strat/back_test_files/EURUSD_min_2013.csv";
+	std::ifstream file(path); //("../../back_test_files/EURUSD_min_2013.csv");
+	if (!file.is_open())
+	{
+		LOG_SEV("file doesn't exist at " << path, logger::error);
+	}
+
+	std::string line;
 	//skip header
 	std::getline(file, line);
 	const double sp = 0.01;
@@ -96,7 +132,7 @@ void run_back_test(boost::posix_time::ptime start_t, boost::posix_time::ptime en
 			break;
 		}
 
-		boost::posix_time::ptime next_event_t = algo.get_event_queue().front();
+		boost::posix_time::ptime next_event_t = algos[0]->get_event_queue().front();
 		//skip if no event for the day
 		if (next_event_t.date() > t.date()){
 
@@ -120,32 +156,32 @@ void run_back_test(boost::posix_time::ptime start_t, boost::posix_time::ptime en
 		concurrency::parallel_for(size_t(0), algos.size(), [&algos, &tick1, &sp](int i)
 		{
 			strat::position close_pos;
-			algos[i].process_tick(tick1, close_pos, sp);
+			algos[i]->process_tick(tick1, close_pos, sp);
 		});
 
 		if (t.time_of_day().hours() == 0 && t.time_of_day().minutes() == 0){
 
-			for (concurrency::concurrent_vector<strat::event_long_short>::iterator it = algos.begin();
+			for (concurrency::concurrent_vector<std::unique_ptr<strat::event_algo>>::iterator it = algos.begin();
 				it != algos.end(); ++it)	{
 
 				std::list<strat::position> close_pos;
-				close_pos = it->get_closed_position_history();
+				close_pos = (*it)->get_closed_position_history();
 				if (!close_pos.empty()){
 
-					LOG_POSITIONS(close_pos, it->get_obser_threshold(), it->get_hold_threshold());
-					it->clear_closed_position_history();
+					LOG_POSITIONS(close_pos, (*it)->get_obser_threshold(), (*it)->get_hold_threshold());
+					(*it)->clear_closed_position_history();
 				}
 			}
 		}
 	}
 
-	for (concurrency::concurrent_vector<strat::event_long_short>::iterator it = algos.begin();
+	for (concurrency::concurrent_vector<std::unique_ptr<strat::event_algo>>::iterator it = algos.begin();
 		it != algos.end(); ++it)	{
 
 		std::list<strat::position> close_pos;
-		close_pos = it->get_closed_position_history();
+		close_pos = (*it)->get_closed_position_history();
 		if (!close_pos.empty())
-			LOG_POSITIONS(close_pos, it->get_obser_threshold(), it->get_hold_threshold());
+			LOG_POSITIONS(close_pos, (*it)->get_obser_threshold(), (*it)->get_hold_threshold());
 	}
 
 	std::cout << "done" << std::endl;
@@ -174,7 +210,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	std::cout << "test start from " << start_t << " end on " << end_t << ". enter to continue" << std::endl;
 	std::cin.get();
 
-	run_back_test(start_t, end_t);
+	concurrency::concurrent_vector<std::unique_ptr<strat::event_algo>> algos;
+	algo_factory_get("event_algo_ma", algos);
+	run_back_test(start_t, end_t, algos);
 
 	return 0;
 }

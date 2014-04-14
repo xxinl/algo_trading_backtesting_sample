@@ -287,7 +287,7 @@ namespace Strat
 			double slope = 0;
 			strat::trend_type type = trd.get_trend(t, slope);
 
-			Assert::IsTrue(slope - 2 < 0.1);
+			Assert::IsTrue(slope/1000000 - 2 < 0.1);
 			Assert::IsTrue(type == strat::trend_type::UP);
 		}
 
