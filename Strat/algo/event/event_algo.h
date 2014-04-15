@@ -24,9 +24,7 @@ namespace strat{
 		std::queue<boost::posix_time::ptime> _event_q;
 
 		std::list<strat::position> _closed_pos_hist;
-
-		void _set_algo_name();
-
+		
 #pragma region "online run sd - commentted out"
 		
 		//double _run_mean;
@@ -86,6 +84,8 @@ namespace strat{
 
 		std::queue<tick> _obser_tick_q;
 
+		virtual void _set_algo_name() = 0;
+
 		virtual signal _get_signal_algo(const tick& crr_tick) = 0;
 		virtual int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) = 0;
 
@@ -140,9 +140,6 @@ namespace strat{
 					}
 				}
 			}
-
-			_name = "algo" + std::to_string(_obser_win) + "-" + std::to_string(_hold_win);
-			LOG(_name << ": " << _event_q.size() << " events enqueued");
 		};
 
 		event_algo(const string symbol_base, const string symbol_target,
@@ -150,9 +147,6 @@ namespace strat{
 			algo(symbol_base, symbol_target),_obser_win(obser_win), _hold_win(hold_win), _run_sd(run_sd){
 
 			_event_q = event_queue;
-			
-			_name = "algo" + std::to_string(_obser_win) + "-" + std::to_string(_hold_win);
-			LOG(_name << ": " << _event_q.size() << " events enqueued");
 		};
 				
 		signal process_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1){

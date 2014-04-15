@@ -36,7 +36,12 @@ namespace strat{
 
 	protected:
 
-		signal _get_signal_algo(const tick& crr_tick) override		{
+		void _set_algo_name() override{
+
+			_name = "algo" + std::to_string(_sma.get_lookback()) + "-" + std::to_string(_ma_lookback);
+		}
+
+		signal _get_signal_algo(const tick& crr_tick) override {
 
 			signal ret_sig = signal::NONE;
 
@@ -93,13 +98,21 @@ namespace strat{
 			string event_f_path, size_t obser_win, size_t hold_win, double run_sd,
 			int ma_period, int ma_lookback) :
 			event_algo(symbol_base, symbol_target, event_f_path, obser_win, hold_win, run_sd),
-			_ma_lookback(ma_lookback), _sma(ma_period), _trend(ma_lookback, 1) {		}
+			_ma_lookback(ma_lookback), _sma(ma_period), _trend(ma_lookback, 1){
+
+			_set_algo_name();
+			LOG(_name << ": " << get_event_queue().size() << " events enqueued");
+		}
 
 		event_algo_ma(const std::string symbol_base, const std::string symbol_target,
 			std::queue<boost::posix_time::ptime> event_queue, size_t obser_win, size_t hold_win,
 			double run_sd, int ma_period, int ma_lookback) :
 			event_algo(symbol_base, symbol_target, event_queue, obser_win, hold_win, run_sd),
-			_ma_lookback(ma_lookback), _sma(ma_period), _trend(ma_lookback, 0.3){}
+			_ma_lookback(ma_lookback), _sma(ma_period), _trend(ma_lookback, 0.3){
+			
+			_set_algo_name();
+			LOG(_name << ": " << get_event_queue().size() << " events enqueued");
+		}
 
 		~event_algo_ma(){};
 

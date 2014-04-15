@@ -23,7 +23,12 @@ namespace strat{
 
 		const bool _is_anti_trend;
 
-		signal _get_signal_algo(const tick& crr_tick){
+		void _set_algo_name() override{
+			
+			_name = "algo" + std::to_string(_obser_win) + "-" + std::to_string(_hold_win);
+		}
+
+		signal _get_signal_algo(const tick& crr_tick) override {
 
 			signal ret_sig = signal::NONE;
 
@@ -80,13 +85,21 @@ namespace strat{
 			string event_f_path, size_t obser_win, size_t hold_win, double run_sd, 
 			bool is_anti_trend = true) :
 			event_algo(symbol_base, symbol_target, event_f_path, obser_win, hold_win, run_sd),
-			_is_anti_trend(is_anti_trend){};
+			_is_anti_trend(is_anti_trend){
+			
+			_set_algo_name();
+			LOG(_name << ": " << get_event_queue().size() << " events enqueued");
+		};
 
 		event_long_short(const string symbol_base, const string symbol_target,
 			std::queue<boost::posix_time::ptime> event_queue, size_t obser_win, size_t hold_win, 
 			double run_sd, bool is_anti_trend = true) :
 			event_algo(symbol_base, symbol_target, event_queue, obser_win, hold_win, run_sd),
-			_is_anti_trend(is_anti_trend){};
+			_is_anti_trend(is_anti_trend){
+			
+			_set_algo_name();
+			LOG(_name << ": " << get_event_queue().size() << " events enqueued");
+		};
 
 #pragma endregion
 

@@ -17,7 +17,7 @@ namespace strat{
 	private:
 
 		double _sum;
-		const double _look_back_n;
+		const int _look_back_n;
 		std::queue<double> _seriers_q;
 
 	public:
@@ -49,11 +49,16 @@ namespace strat{
 		}
 
 		/// -1 invalid value, not enough notes to calculate
-		double get_value(){
+		double get_value() override {
 			
 			if (_seriers_q.size() < _look_back_n) return -1;
 
 			return _sum / _look_back_n;
+		}
+
+		int get_lookback() const{
+			
+			return _look_back_n;
 		}
 	};
 }
