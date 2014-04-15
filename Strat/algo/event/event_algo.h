@@ -213,11 +213,11 @@ namespace strat{
 			_closed_pos_hist.clear();
 		}
 
-		int get_obser_threshold() const{
+		virtual int get_obser_threshold() const{
 			return _obser_win;
 		}
 
-		int get_hold_threshold() const{
+		virtual int get_hold_threshold() const{
 			return _hold_win;
 		}
 

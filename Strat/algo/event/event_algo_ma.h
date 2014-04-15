@@ -136,6 +136,14 @@ namespace strat{
 					_ma_lookback_q.pop_front();
 			}
 		}
+
+		int get_obser_threshold() const{
+			return _sma.get_lookback();
+		}
+
+		int get_hold_threshold() const{
+			return _ma_lookback;
+		}
 	};
 }
 
