@@ -58,15 +58,15 @@ void algo_factory_get(const string& algo_name, concurrency::concurrent_vector<st
 		LOG("tester_begin event_algo_ma algo constructor");
 		std::unique_ptr<strat::event_algo> algo(new strat::event_algo_ma(
 			"eur", "usd", path,
-			7, 45, 0.0003, 15, 60));
+			7, 45, 0.0003, 50, 510));
 		LOG("tester_end event_algo_ma algo constructor");
 		algos.push_back(std::move(algo));
 
 		std::queue<boost::posix_time::ptime> event_q(algos[0]->get_event_queue());
 
-		for (size_t sma_peroid = 5; sma_peroid <= 120; sma_peroid += 5){
+		for (size_t sma_peroid = 5; sma_peroid <= 125; sma_peroid += 10){
 
-			for (size_t look_back = 20; look_back <= 1000; look_back += 10){
+			for (size_t look_back = 20; look_back <= 1000; look_back += 20){
 				std::unique_ptr<strat::event_algo> algo2(new strat::event_algo_ma(
 					"eur", "usd", event_q,
 					7, 45, 0.0003, sma_peroid, look_back));
@@ -91,6 +91,8 @@ void run_back_test(boost::posix_time::ptime start_t, boost::posix_time::ptime en
 	//skip header
 	std::getline(file, line);
 	const double sp = 0.01;
+	boost::posix_time::ptime skip_date = 
+		boost::posix_time::time_from_string(std::string("1900-01-01 00:00:00.000"));
 
 	while (std::getline(file, line)) {
 
@@ -134,15 +136,15 @@ void run_back_test(boost::posix_time::ptime start_t, boost::posix_time::ptime en
 
 		boost::posix_time::ptime next_event_t = algos[0]->get_event_queue().front();
 		//skip if no event for the day
-		if (next_event_t.date() > t.date()){
+		if (next_event_t.date() > t.date()
+			&& t.time_of_day().hours() == 0 && t.time_of_day().minutes() == 0){
 
-			if (t.time_of_day().hours() == 0 && t.time_of_day().minutes() == 0){
-
-				LOG("tester_skipping tick " << t << " no event for the day");
-			}
-
-			continue;
+			skip_date = t;
+			LOG("tester_skipping tick " << t << " no event for the day");
 		}
+
+		if (skip_date.date() == t.date())
+			continue;
 
 		strat::tick tick1;
 		tick1.time_stamp = t;
