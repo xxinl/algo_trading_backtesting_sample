@@ -168,7 +168,7 @@ void run_back_test(boost::posix_time::ptime start_t, boost::posix_time::ptime en
 				close_pos = (*it)->get_closed_position_history();
 				if (!close_pos.empty()){
 
-					LOG_POSITIONS(close_pos, (*it)->get_obser_threshold(), (*it)->get_hold_threshold());
+					LOG_POSITIONS(close_pos, (*it)->get_threshold1(), (*it)->get_threshold2());
 					(*it)->clear_closed_position_history();
 				}
 			}
@@ -181,7 +181,7 @@ void run_back_test(boost::posix_time::ptime start_t, boost::posix_time::ptime en
 		std::list<strat::position> close_pos;
 		close_pos = (*it)->get_closed_position_history();
 		if (!close_pos.empty())
-			LOG_POSITIONS(close_pos, (*it)->get_obser_threshold(), (*it)->get_hold_threshold());
+			LOG_POSITIONS(close_pos, (*it)->get_threshold1(), (*it)->get_threshold2());
 	}
 
 	std::cout << "done" << std::endl;

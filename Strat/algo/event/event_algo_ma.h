@@ -137,11 +137,11 @@ namespace strat{
 			}
 		}
 
-		int get_obser_threshold() const{
+		int get_threshold1() const{
 			return _sma.get_lookback();
 		}
 
-		int get_hold_threshold() const{
+		int get_threshold2() const{
 			return _ma_lookback;
 		}
 	};
