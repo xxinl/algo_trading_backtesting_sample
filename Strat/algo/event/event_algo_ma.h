@@ -96,9 +96,9 @@ namespace strat{
 
 		event_algo_ma(const std::string symbol_base, const std::string symbol_target,
 			string event_f_path, size_t obser_win, size_t hold_win, double run_sd,
-			int ma_period, int ma_lookback) :
+			int ma_period, int ma_lookback, double trend_slope_t = 1) :
 			event_algo(symbol_base, symbol_target, event_f_path, obser_win, hold_win, run_sd),
-			_ma_lookback(ma_lookback), _sma(ma_period), _trend(ma_lookback, 1){
+			_ma_lookback(ma_lookback), _sma(ma_period), _trend(ma_lookback, trend_slope_t){
 
 			_set_algo_name();
 			LOG(_name << ": " << get_event_queue().size() << " events enqueued");
@@ -106,9 +106,9 @@ namespace strat{
 
 		event_algo_ma(const std::string symbol_base, const std::string symbol_target,
 			std::queue<boost::posix_time::ptime> event_queue, size_t obser_win, size_t hold_win,
-			double run_sd, int ma_period, int ma_lookback) :
+			double run_sd, int ma_period, int ma_lookback, double trend_slope_t = 1) :
 			event_algo(symbol_base, symbol_target, event_queue, obser_win, hold_win, run_sd),
-			_ma_lookback(ma_lookback), _sma(ma_period), _trend(ma_lookback, 0.3){
+			_ma_lookback(ma_lookback), _sma(ma_period), _trend(ma_lookback, trend_slope_t){
 			
 			_set_algo_name();
 			LOG(_name << ": " << get_event_queue().size() << " events enqueued");
@@ -118,7 +118,7 @@ namespace strat{
 
 #pragma endregion
 
-		signal process_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1){
+		signal process_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1) override{
 
 			_process_ma(crr_tick);
 
@@ -137,11 +137,11 @@ namespace strat{
 			}
 		}
 
-		int get_threshold1() const{
+		int get_threshold1() const override{
 			return _sma.get_lookback();
 		}
 
-		int get_threshold2() const{
+		int get_threshold2() const override{
 			return _ma_lookback;
 		}
 	};
