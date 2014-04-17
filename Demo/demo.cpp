@@ -58,22 +58,32 @@ void algo_factory_get(const string& algo_name, concurrency::concurrent_vector<st
 		LOG("tester_begin event_algo_ma algo constructor");
 		std::unique_ptr<strat::event_algo> algo(new strat::event_algo_ma(
 			"eur", "usd", path,
-			7, 45, 0.0003, 50, 510));
+			7, 45, 0.0003, 25, 270, 0.7));
 		LOG("tester_end event_algo_ma algo constructor");
 		algos.push_back(std::move(algo));
 
 		std::queue<boost::posix_time::ptime> event_q(algos[0]->get_event_queue());
 
-		for (size_t sma_peroid = 5; sma_peroid <= 125; sma_peroid += 10){
+		//for (size_t sma_peroid = 5; sma_peroid <= 125; sma_peroid += 10){
 
-			for (size_t look_back = 20; look_back <= 1000; look_back += 50){
-				std::unique_ptr<strat::event_algo> algo2(new strat::event_algo_ma(
-					"eur", "usd", event_q,
-					7, 45, 0.0003, sma_peroid, look_back));
-				algos.push_back(std::move(algo2));
-				LOG("push algo " << sma_peroid << "-" << look_back);
-			}
-		}
+		//	for (size_t look_back = 20; look_back <= 1000; look_back += 50){
+		//		std::unique_ptr<strat::event_algo> algo2(new strat::event_algo_ma(
+		//			"eur", "usd", event_q,
+		//			7, 45, 0.0003, sma_peroid, look_back));
+		//		algos.push_back(std::move(algo2));
+		//		LOG("push algo " << sma_peroid << "-" << look_back);
+		//	}
+		//}
+
+		//for (size_t o = 5; o <= 10; o++){
+
+		//	for (size_t h = 30; h <= 60; h = h + 5){
+		//		std::unique_ptr<strat::event_algo> algo2(new strat::event_algo_ma(
+		//			"eur", "usd", event_q,
+		//			o, h, 0.0003, 25, 270, 0.7));
+		//		algos.push_back(std::move(algo2));
+		//	}
+		//}
 	}
 }
 

@@ -195,6 +195,8 @@ namespace strat{
 			return ret_sig;
 		}
 
+		//TODO reload event
+
 #pragma region properties gets
 
 		std::queue<boost::posix_time::ptime> get_event_queue() const{

@@ -2,7 +2,7 @@ setwd("c:/workspace")
 library(zoo)
 library(TTR)
 
-file_pos <- '20140416.085052.order'
+file_pos <- 'o-h_ma_25-270_0.7.order'
 
 pos <- read.csv(file_pos, header = F)
 pos <- subset(pos[,c(1,2,4,6,8,9)])
@@ -22,20 +22,13 @@ funcGetRtnAnalysis = function(ret, o, h){
     win_loss_ratio = NROW(ret[ret>0])/NROW(ret[ret<0])))
 }
 
-ret_temp = subset(pos, V1==10 & V2==60)
+ret_temp = subset(pos, V1==25 & V2==7)
 ret = (ret_temp$V8 - ret_temp$V6)*ret_temp$V9
-result = funcGetRtnAnalysis(ret,10,60)
+result = funcGetRtnAnalysis(ret,25,7)
 
-# for (o in 1:10) {  
-#   for(h in o + 1:(120- o - 1)){
-#     ret_temp = subset(pos, V1==o & V2==h)
-#     ret = (ret_temp$V8 - ret_temp$V6)*ret_temp$V9
-#     result <- rbind(result, funcGetRtnAnalysis(ret, o, h))
-#   }
-# }
 
-for (o in seq(5, 125, by = 15)) {  
-  for(h in seq(20, 1000, by = 20)){
+for (o in seq(5, 10, by = 1)) {  
+  for(h in seq(30, 60, by = 5)){
     ret_temp = subset(pos, V1==o & V2==h)
     ret = (ret_temp$V8 - ret_temp$V6)*ret_temp$V9
     result <- rbind(result, funcGetRtnAnalysis(ret, o, h))
