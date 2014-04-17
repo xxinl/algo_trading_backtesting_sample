@@ -68,7 +68,7 @@ namespace strat{
 			return SIDEWAYS;
 		}
 
-		double get_slope_threshod() const{
+		double get_slope_threshold() const{
 			
 			return _threshold;
 		}
