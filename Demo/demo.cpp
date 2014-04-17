@@ -66,7 +66,7 @@ void algo_factory_get(const string& algo_name, concurrency::concurrent_vector<st
 
 		for (size_t sma_peroid = 5; sma_peroid <= 125; sma_peroid += 10){
 
-			for (size_t look_back = 20; look_back <= 1000; look_back += 20){
+			for (size_t look_back = 20; look_back <= 1000; look_back += 50){
 				std::unique_ptr<strat::event_algo> algo2(new strat::event_algo_ma(
 					"eur", "usd", event_q,
 					7, 45, 0.0003, sma_peroid, look_back));
