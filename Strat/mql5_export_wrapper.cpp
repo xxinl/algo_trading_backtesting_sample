@@ -10,9 +10,9 @@
 
 
 extern "C"	__declspec(dllexport)
-strat::event_algo_ma* get_algo(char* path){
+strat::event_algo_ma* get_algo(char* base, char* quote, char* path){
 
-	return new strat::event_algo_ma("eur", "usd", path,
+	return new strat::event_algo_ma(base, quote, path,
 		7, 45, 0.0003, 25, 270, 0.7);
 }
 
