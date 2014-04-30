@@ -71,12 +71,15 @@ int process_tick(size_t algo_add, wchar_t* time, double close, double stop_loss)
 
 		strat::position close_pos;
 		strat::event_algo_ma* algo_p = reinterpret_cast<strat::event_algo_ma*>(algo_add);
-		strat::signal sig = algo_p->process_tick(tick, close_pos, stop_loss);
+		sig = algo_p->process_tick(tick, close_pos, stop_loss);
 	}
 	catch (std::exception& e){
 
 		LOG_SEV("process_tick error: " << e.what(), logger::error);
 	}
+
+	if (sig != strat::signal::NONE)
+		LOG("return signal:" << sig);
 
 	return sig;
 }
