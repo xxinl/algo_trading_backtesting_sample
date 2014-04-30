@@ -58,8 +58,10 @@ namespace strat{
 		int _push_obser_queue_if_event(tick crr_tick){
 
 			//delete any event in queue that has passed
-			while (!_event_q.empty() && _event_q.front() < crr_tick.time_stamp)
-			{
+			while (!_event_q.empty() && _event_q.front() < crr_tick.time_stamp) {
+				
+				LOG_SEV(_name << ":removing historical event from event queue " << _event_q.front(), logger::debug);
+
 				_event_q.pop();
 			}
 
@@ -70,6 +72,8 @@ namespace strat{
 
 				_event_q.pop();
 			}
+			else
+				LOG_SEV(_name << ":comparing event " << _event_q.front() << " and tick " << crr_tick.time_stamp, logger::debug);
 
 			return _event_q.size();
 		}
@@ -104,10 +108,14 @@ namespace strat{
 			string event_f_path, size_t obser_win, size_t hold_win, double run_sd = 0.0003) :
 			algo(symbol_base, symbol_quote), _obser_win(obser_win), _hold_win(hold_win), _run_sd(run_sd){
 			
+			LOG_SEV("base:" << symbol_base << " quote:" << symbol_quote,
+				logger::debug);
+
 			std::vector<std::vector<std::string>> event_v;
 			std::vector<int> cols_v{ 0, 1, 3, 5 };
 			util::read_csv(event_f_path, event_v, cols_v);
-			LOG_SEV("read event csv file. event count: " << event_v.size(), logger::debug);
+			LOG_SEV("read event csv file. event count: " << event_v.size() << ". path: " << event_f_path, 
+				logger::debug);
 
 			boost::posix_time::ptime t;
 			// assume event_v is in ascending order
@@ -157,7 +165,7 @@ namespace strat{
 
 			if (_obser_tick_q.empty() && _positions.empty()){
 			
-				LOG_SEV("empty obser and position queue, abord process tick at tick " << crr_tick.time_stamp, logger::debug);
+				LOG_SEV("empty obser and position queue, abort process tick at tick " << crr_tick.time_stamp, logger::debug);
 				return signal::NONE;
 			}
 

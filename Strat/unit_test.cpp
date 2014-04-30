@@ -1,3 +1,6 @@
+
+#ifdef _DEBUG
+
 #include "stdafx.h"
 #include "CppUnitTest.h"
 
@@ -353,5 +356,52 @@ namespace Strat
 				}
 			}
 		}
+
+#pragma region test mql5 export wrapper
+
+		size_t get_algo(wchar_t* base, wchar_t* quote, wchar_t* path){
+
+			std::wstring w_base_str = std::wstring(base);
+			std::wstring w_quote_str = std::wstring(quote);
+			std::wstring w_path_str = std::wstring(path);
+
+			strat::event_algo_ma* ret_p = nullptr;
+
+			ret_p = new strat::event_algo_ma(string(w_base_str.begin(), w_base_str.end()),
+				string(w_quote_str.begin(), w_quote_str.end()),
+				string(w_path_str.begin(), w_path_str.end()),
+				7, 45, 0.0003, 25, 270, 0.7);
+
+			size_t ret_add = reinterpret_cast<size_t>(ret_p);
+
+			return ret_add;
+		}
+
+		int process_tick(size_t algo_add, wchar_t* time, double close, double stop_loss){
+
+			std::wstring w_time_str = std::wstring(time);
+			strat::signal sig = strat::signal::NONE;
+
+			strat::tick tick;
+			tick.time_stamp = boost::posix_time::time_from_string(string(w_time_str.begin(), w_time_str.end()));
+			tick.close = close;
+
+			strat::position close_pos;
+			strat::event_algo_ma* algo_p = reinterpret_cast<strat::event_algo_ma*>(algo_add);
+			strat::signal sig = algo_p->process_tick(tick, close_pos, stop_loss);
+
+			return sig;
+		}
+
+		TEST_METHOD(mql5_export_wrapper){
+		
+			size_t algo_add = get_algo(L"eur", L"usd", L"C:\\workspace\\Strat\\back_test_files\\Calendar - 2013.csv");
+
+			process_tick(algo_add, L"2013.04.14 05:00", 1.35, 0.01);
+		}
+
+#pragma endregion
 	};
 }
+
+#endif

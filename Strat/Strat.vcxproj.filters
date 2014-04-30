@@ -57,6 +57,9 @@
     <ClInclude Include="trend.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="algo\algo_pullback_ma.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

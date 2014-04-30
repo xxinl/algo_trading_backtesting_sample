@@ -46,7 +46,7 @@ private:
 			boost::log::add_console_log(std::clog, boost::log::keywords::format = "%TimeStamp%: %Message%"
 			,boost::log::keywords::filter = boost::log::expressions::attr< severity_level >("Severity") > debug);
 			
-			string file_name = util::get_current_dt_str();
+			string file_name = "C:/strat_logs/" + util::get_current_dt_str();
 
 			boost::log::add_file_log
 				(

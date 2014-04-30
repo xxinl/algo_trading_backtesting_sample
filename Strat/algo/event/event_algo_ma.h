@@ -63,6 +63,8 @@ namespace strat{
 					}
 
 					_pop_obser_tick_queue();
+					LOG(_name << ":remove obser. curr close: " << crr_tick.close << " obser close: " << front_tick.close << " sd: " << _run_sd
+						<< " trend: " << _trend_type);
 				}
 			}
 
@@ -119,6 +121,8 @@ namespace strat{
 #pragma endregion
 
 		signal process_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1) override{
+
+			LOG_SEV("processing tick " << crr_tick.time_stamp, logger::debug);
 
 			_process_ma(crr_tick);
 
