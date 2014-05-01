@@ -134,6 +134,8 @@ namespace strat{
 					continue;
 				}
 
+				t = t + boost::posix_time::hours(3);
+
 				if (_event_q.empty() || _event_q.back() != t)	{
 
 					string symbol = (*it)[2];
