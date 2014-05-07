@@ -6,6 +6,7 @@
 
 #include "algo.h"
 #include "algo\event\event_algo_ma.h"
+#include "algo\event\event_long_short.h"
 #include "logger.h"
 
 #include <boost/date_time.hpp>
@@ -20,7 +21,7 @@ size_t get_algo(wchar_t* base, wchar_t* quote, wchar_t* path){
 	std::wstring w_quote_str = std::wstring(quote);
 	std::wstring w_path_str = std::wstring(path);
 
-	strat::event_algo_ma* ret_p = nullptr;
+	strat::event_algo* ret_p = nullptr;
 
 	try{
 	
@@ -28,6 +29,11 @@ size_t get_algo(wchar_t* base, wchar_t* quote, wchar_t* path){
 			string(w_quote_str.begin(), w_quote_str.end()),
 			string(w_path_str.begin(), w_path_str.end()),
 			7, 45, 0.0003, 25, 270, 0.7);
+
+		//ret_p = new strat::event_long_short(string(w_base_str.begin(), w_base_str.end()),
+		//	string(w_quote_str.begin(), w_quote_str.end()),
+		//	string(w_path_str.begin(), w_path_str.end()),
+		//	7, 45, 0.0003);
 	}
 	catch(std::exception& e){
 		
@@ -52,7 +58,7 @@ int delete_algo(size_t algo_add){
 
 //time eg.2013-11-25 23:50:00.000
 extern "C"	__declspec(dllexport)
-int process_tick(size_t algo_add, wchar_t* time, double close, double stop_loss){
+int process_tick(size_t algo_add, wchar_t* time, double ask, double bid, double close, double stop_loss){
 
 	std::wstring w_time_str = std::wstring(time);
 

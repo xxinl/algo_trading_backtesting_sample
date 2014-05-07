@@ -49,49 +49,6 @@ namespace Strat
 			boost::posix_time::ptime t2 = util::convert_to_dt(std::string("2013 Mon Nov 25 23:50"));
 			Assert::IsTrue(t1 == t2);
 		}
-		
-#pragma region "online run sd test - commentted out"
-
-		//TEST_METHOD(util_get_run_sd)
-		//{
-		//	std::vector<double> data = { 10.0073665, 0.3597628, 3.3309777, 11.2367244,
-		//		6.8589224, 4.9200999, 11.0411543, 11.6657897, 9.2686672, 12.0793347 };
-
-		//	int look_back = 5;
-
-		//	//sd for first 5 in data
-		//	double sd = 4.541819;
-		//	double mean = 6.358751;
-		//	double M2 = sd * sd * (look_back - 1);
-
-		//	//sd for first 6 in data
-		//	double sd_6 = 4.064902;
-		//	//sd for first 7 in data
-		//	double sd_7 = 3.568893;
-		//	//sd for first 8 in data
-		//	double sd_8 = 3.057819;
-		//	//sd for first 9 in data
-		//	double sd_9 = 2.840094;
-		//	//sd for first 10 in data
-		//	double sd_10 = 2.928849;
-
-		//	sd = util::get_run_sd(mean, data[5], look_back, M2);
-		//	Assert::AreEqual(sd_6, sd);
-
-		//	sd = util::get_run_sd(mean, data[6], look_back, M2);
-		//	Assert::AreEqual(sd_7, sd);
-
-		//	sd = util::get_run_sd(mean, data[7], look_back, M2);
-		//	Assert::AreEqual(sd_8, sd);
-
-		//	sd = util::get_run_sd(mean, data[8], look_back, M2);
-		//	Assert::AreEqual(sd_9, sd);
-
-		//	sd = util::get_run_sd(mean, data[9], look_back, M2);
-		//	Assert::AreEqual(sd_10, sd);
-		//}
-
-#pragma endregion
 
 		TEST_METHOD(event_long_short_constructor)
 		{
@@ -388,7 +345,7 @@ namespace Strat
 
 			strat::position close_pos;
 			strat::event_algo_ma* algo_p = reinterpret_cast<strat::event_algo_ma*>(algo_add);
-			strat::signal sig = algo_p->process_tick(tick, close_pos, stop_loss);
+			sig = algo_p->process_tick(tick, close_pos, stop_loss);
 
 			return sig;
 		}

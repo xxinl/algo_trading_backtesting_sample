@@ -24,13 +24,13 @@ namespace strat{
 
 	private:
 
-		const double _threshold;
+		const double _slope_threshold;
 		const int _size;
 		std::vector<sample_type> _x;
 
 	public:
 
-		trend(int size, double threshold = 1) : _size(size), _threshold(threshold){
+		trend(int size, double slope_threshold = 1) : _size(size), _slope_threshold(slope_threshold){
 		
 			sample_type m;
 			for (int i = 1; i <= size; i++){
@@ -60,17 +60,12 @@ namespace strat{
 			double y10 = test(m);
 			slope = (y10 - y1) * 1000000 / 9;
 
-			if (slope > _threshold)
+			if (slope > _slope_threshold)
 				return UP;
-			else if (slope < 0 - _threshold)
+			else if (slope < 0 - _slope_threshold)
 				return DOWN;
 
 			return SIDEWAYS;
-		}
-
-		double get_slope_threshold() const{
-			
-			return _threshold;
 		}
 	};
 }

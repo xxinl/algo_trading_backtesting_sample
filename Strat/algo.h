@@ -14,39 +14,40 @@ using std::string;
 namespace strat{
 
 	class algo {
-	private:
 
 	protected:
 		string _name;
-		const string _symbol_base;
-		const string _symbol_quote;
+		const string _s_base;
+		const string _s_quote;
 
 		std::list<position> _positions;
 
-		int _add_position(tick t, signal type, tick obser_t){
+		virtual int _add_position(tick t, signal type){
 
 			position pos;
 			pos.open_tick = t;
-			pos.obser_tick = obser_t;
 			pos.type = type;
 			_positions.push_back(pos);
 
-			LOG(_name << ":opened position at tick " << t.time_stamp);
+			LOG("opened position at tick " << t.time_stamp);
 
 			return _positions.size();
 		}
 
 		std::list<position>::iterator _delete_position(std::list<position>::iterator it){
 
-			LOG(_name << ":closing position at tick " << it->open_tick.time_stamp);
+			LOG("closing position at tick " << it->open_tick.time_stamp);
 			return _positions.erase(it);
 		}
 
-	public:
+		virtual signal _get_signal_algo(const tick& crr_tick) = 0;
+		virtual int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) = 0;
 
-		/// Constructor 
-		algo(string symbol_base, string symbol_quote) :
-			_symbol_base(symbol_base), _symbol_quote(symbol_quote){};
+	public:
+		virtual ~algo() {}
+
+		algo(string s_base, string s_quote) :
+			_s_base(s_base), _s_quote(s_quote){};
 
 		virtual signal process_tick(const tick&, position& close_pos, double stop_loss = -1) = 0;
 

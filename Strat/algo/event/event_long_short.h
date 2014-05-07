@@ -17,22 +17,19 @@ using std::string;
 namespace strat{
 
 	class event_long_short : public event_algo{
-	private:
 
-	protected:
+	private:
 
 		const bool _is_anti_trend;
 
-		void _set_algo_name() override{
-			
-			_name = "algo" + std::to_string(_obser_win) + "-" + std::to_string(_hold_win);
-		}
+	protected:
 
 		signal _get_signal_algo(const tick& crr_tick) override {
 
 			signal ret_sig = signal::NONE;
 
-			//assumption: only one event exist at any particular time(min), therefore only one signal will be returned here. ie. not signal conflict
+			//assumption: only one event exist at any particular time(min), 
+			//	therefore only one signal will be returned here. ie. not signal conflict
 			if (!_obser_tick_q.empty()){
 
 				tick front_tick = _obser_tick_q.front();
@@ -57,7 +54,7 @@ namespace strat{
 		}
 
 		//duplicate code as event_algo_ma
-		int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss){
+		int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) override{
 
 			for (std::list<position>::iterator it = _positions.begin(); it != _positions.end();){
 
@@ -81,25 +78,11 @@ namespace strat{
 
 #pragma region constructors
 
-		event_long_short(const string symbol_base, const string symbol_target,
+		event_long_short(const string s_base, const string symbol_target,
 			string event_f_path, size_t obser_win, size_t hold_win, double run_sd, 
 			bool is_anti_trend = true) :
-			event_algo(symbol_base, symbol_target, event_f_path, obser_win, hold_win, run_sd),
-			_is_anti_trend(is_anti_trend){
-			
-			_set_algo_name();
-			LOG(_name << ": " << get_event_queue().size() << " events enqueued");
-		};
-
-		event_long_short(const string symbol_base, const string symbol_target,
-			std::queue<boost::posix_time::ptime> event_queue, size_t obser_win, size_t hold_win, 
-			double run_sd, bool is_anti_trend = true) :
-			event_algo(symbol_base, symbol_target, event_queue, obser_win, hold_win, run_sd),
-			_is_anti_trend(is_anti_trend){
-			
-			_set_algo_name();
-			LOG(_name << ": " << get_event_queue().size() << " events enqueued");
-		};
+			event_algo(s_base, symbol_target, event_f_path, obser_win, hold_win, run_sd),
+			_is_anti_trend(is_anti_trend){		};
 
 #pragma endregion
 

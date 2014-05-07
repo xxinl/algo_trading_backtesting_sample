@@ -13,6 +13,7 @@ namespace strat{
 	class indicator {
 
 	public:
+		virtual ~indicator() {}
 
 		virtual T get_value() = 0;
 	};

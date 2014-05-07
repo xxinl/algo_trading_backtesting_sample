@@ -73,15 +73,6 @@ public:
 		return pt;
 	}
 
-	//// http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
-	//static double get_run_sd(double &run_mean, double new_d, int n, double &run_M2){
-
-	//	double delta = new_d - run_mean;
-	//	run_mean += delta / n;
-	//	run_M2 += delta*(new_d - run_mean);
-	//	return sqrt(run_M2 / (n - 1));
-	//}
-
 	static int read_tick_csv(string path, std::vector<strat::tick>& tick_vec){
 		
 		std::vector<std::vector<std::string>> csv_vec;

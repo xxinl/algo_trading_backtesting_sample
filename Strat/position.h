@@ -16,7 +16,6 @@ namespace strat{
 
 	struct position{
 
-		tick obser_tick;
 		tick open_tick;
 		tick close_tick;
 		signal type;
@@ -24,8 +23,14 @@ namespace strat{
 		position(){
 			type = signal::NONE;
 		}
+
+		~position(){}
 	};
 
+	struct event_position : position{
+
+		tick obser_tick;
+	};
 }
 
 #endif

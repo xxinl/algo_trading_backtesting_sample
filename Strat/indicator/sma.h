@@ -14,6 +14,7 @@ namespace strat{
 
 	/// online sma
 	class sma : indicator<double> {
+
 	private:
 
 		double _sum;
@@ -23,12 +24,6 @@ namespace strat{
 	public:
 
 		sma(int look_back_n) : _look_back_n(look_back_n), _sum(0){
-		}
-
-		sma(int look_back_n, std::queue<double> seriers_q) :
-			sma(look_back_n){
-
-			_seriers_q = seriers_q;
 		}
 
 		double push(double v){
