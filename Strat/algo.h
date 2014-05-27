@@ -22,7 +22,7 @@ namespace strat{
 
 		std::list<position> _positions;
 
-		virtual int _add_position(tick t, signal type){
+		virtual size_t _add_position(tick t, signal type){
 
 			position pos;
 			pos.open_tick = t;

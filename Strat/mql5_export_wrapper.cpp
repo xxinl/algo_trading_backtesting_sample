@@ -8,32 +8,38 @@
 #include "algo\event\event_algo_ma.h"
 #include "algo\event\event_long_short.h"
 #include "logger.h"
+#include "optimizer\optimizable_algo_genetic.h"
+#include "optimizer\optimizer_genetic.h"
 
+#include <string>
 #include <boost/date_time.hpp>
 
 #include <exception>
+
+using std::string;
+
+
+string convert_wchar_to_string(wchar_t* wchar){
+
+	std::wstring w_base_str = std::wstring(wchar);
+	return string(w_base_str.begin(), w_base_str.end());
+}
 
 
 extern "C"	__declspec(dllexport)
 size_t get_algo(wchar_t* base, wchar_t* quote, wchar_t* path){
 
-	std::wstring w_base_str = std::wstring(base);
-	std::wstring w_quote_str = std::wstring(quote);
-	std::wstring w_path_str = std::wstring(path);
-
 	strat::event_algo* ret_p = nullptr;
 
 	try{
 	
-		ret_p = new strat::event_algo_ma(string(w_base_str.begin(), w_base_str.end()),
-			string(w_quote_str.begin(), w_quote_str.end()),
-			string(w_path_str.begin(), w_path_str.end()),
-			7, 45, 0.0003, 25, 270, 0.7);
+		//ret_p = new strat::event_algo_ma(
+		//	convert_wchar_to_string(base), convert_wchar_to_string(quote), convert_wchar_to_string(path),
+		//	7, 45, 0.0003, 25, 270, 0.7);
 
-		//ret_p = new strat::event_long_short(string(w_base_str.begin(), w_base_str.end()),
-		//	string(w_quote_str.begin(), w_quote_str.end()),
-		//	string(w_path_str.begin(), w_path_str.end()),
-		//	7, 45, 0.0003);
+		ret_p = new strat::event_long_short(
+			convert_wchar_to_string(base), convert_wchar_to_string(quote), convert_wchar_to_string(path),
+			7, 45, 0.0003);
 	}
 	catch(std::exception& e){
 		
@@ -58,11 +64,11 @@ int delete_algo(size_t algo_add){
 
 //time eg.2013-11-25 23:50:00.000
 extern "C"	__declspec(dllexport)
-int process_tick(size_t algo_add, wchar_t* time, double ask, double bid, double close, double stop_loss){
+int process_tick(size_t algo_addr, wchar_t* time, double ask, double bid, double close, double stop_loss){
 
-	std::wstring w_time_str = std::wstring(time);
+	string time_str = convert_wchar_to_string(time);
 
-	LOG_SEV("process_tick algo:" << algo_add << " time:" << string(w_time_str.begin(), w_time_str.end())
+	LOG_SEV("process_tick algo:" << algo_addr << " time:" << time_str
 		<< " close:" << close << " sl:" << stop_loss, logger::debug);
 
 	strat::signal sig = strat::signal::NONE;
@@ -70,13 +76,13 @@ int process_tick(size_t algo_add, wchar_t* time, double ask, double bid, double 
 	try{
 
 		strat::tick tick;
-		tick.time_stamp = boost::posix_time::time_from_string(string(w_time_str.begin(), w_time_str.end()));
+		tick.time_stamp = boost::posix_time::time_from_string(time_str);
 		tick.close = close;
 
 		LOG_SEV("process_tick casted time:" << tick.time_stamp, logger::debug);
 
 		strat::position close_pos;
-		strat::event_algo_ma* algo_p = reinterpret_cast<strat::event_algo_ma*>(algo_add);
+		strat::algo* algo_p = reinterpret_cast<strat::algo*>(algo_addr);
 		sig = algo_p->process_tick(tick, close_pos, stop_loss);
 	}
 	catch (std::exception& e){
@@ -88,6 +94,18 @@ int process_tick(size_t algo_add, wchar_t* time, double ask, double bid, double 
 		LOG("return signal:" << sig);
 
 	return sig;
+}
+
+__declspec(dllexport)
+void optimize(size_t algo_addr){
+
+	typedef strat::optimizable_algo_genetic<size_t, size_t, double> OPTIMIZER_TYPE;
+
+	OPTIMIZER_TYPE* algo_p =reinterpret_cast<OPTIMIZER_TYPE*>(algo_addr);
+	strat::optimizer_genetic<size_t, size_t, double> optimizer(algo_p);
+	std::pair<double, std::tuple<size_t, size_t, double>> opti_params = optimizer.optimize();
+
+	//todo save opti_params
 }
 
 #endif

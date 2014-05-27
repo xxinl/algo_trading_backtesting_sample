@@ -27,7 +27,7 @@ namespace strat{
 		std::list<strat::position> _closed_pos_hist;
 
 		///return size of the event_q
-		int _push_obser_queue_if_event(tick crr_tick){
+		size_t _push_obser_queue_if_event(tick crr_tick){
 
 			//delete any event in queue that has passed
 			while (!_event_q.empty() && _event_q.front() < crr_tick.time_stamp) {
@@ -55,7 +55,7 @@ namespace strat{
 		double _run_sd;		
 		std::queue<tick> _obser_tick_q;
 		
-		int _add_position(tick t, signal type, tick obser_t) {
+		size_t _add_position(tick t, signal type, tick obser_t) {
 
 			event_position pos;
 			pos.open_tick = t;
@@ -81,8 +81,14 @@ namespace strat{
 		//  file downloaded from http://www.dailyfx.com/calendar
 		//  default filter cols_v. //Date,Time,Currency,Importance
 		//  date time is in GMT time zone
-		int _load_event(string event_f_path, const std::vector<int>& cols_filter){
+		size_t _load_event(string event_f_path, const std::vector<int>& cols_filter){
 			
+			if (event_f_path.empty()){
+				
+				LOG_SEV("passed in empty event path.",	logger::warning);
+				return 0;
+			}
+
 			std::vector<std::vector<std::string>> event_v;
 			util::read_csv(event_f_path, event_v, cols_filter);
 			LOG_SEV("loaded event csv file. event count(all currencies): " << event_v.size() << ". path: " << event_f_path,
@@ -190,6 +196,15 @@ namespace strat{
 			}
 
 			return ret_sig;
+		}
+
+		size_t load_event(std::queue<boost::posix_time::ptime> event_q){
+
+			_event_q = event_q;
+
+			LOG(_event_q.size() << " events enqueued");
+
+			return _event_q.size();
 		}
 		
 #pragma region properties gets

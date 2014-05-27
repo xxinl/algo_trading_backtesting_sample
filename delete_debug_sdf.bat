@@ -1,29 +1,36 @@
+@set path=c:\workspace\strat - copy
+
 del *.sdf
 
-set folder=".\x64\Debug"
-cd %folder%
+cd "%path%\x64\Debug"
 del . /F /Q
 
-set folder="..\Release"
-cd %folder%
+cd "%path%\x64\Release"
 del . /F /Q
 
-set folder="..\..\Demo\x64\Debug"
-cd %folder%
+cd "%path%\Debug"
 del . /F /Q
 
-set folder="..\Release"
-cd %folder%
+cd "%path%\Strat\x64\Debug"
 del . /F /Q
 
-set folder="..\..\..\Strat\x64\Debug"
-cd %folder%
+cd "%path%\Strat\x64\Release"
 del . /F /Q
 
-set folder="..\Release"
-cd %folder%
+cd "%path%\Strat\Debug"
 del . /F /Q
 
-set folder="..\..\..\TestResults"
-cd %folder%
+cd "%path%\TestResults"
+del . /F /Q
+
+cd "%path%\BackTester\bin\Debug"
+del . /F /Q
+
+cd "%path%\BackTester\bin\Release"
+del . /F /Q
+
+cd "%path%\test_files"
+del . /F /Q
+
+cd "%path%\back_test_files"
 del . /F /Q

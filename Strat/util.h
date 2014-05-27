@@ -24,7 +24,7 @@ public:
 
 			std::ifstream file(path);
 			std::string line;
-			int cols_len = cols.size();
+			size_t cols_len = cols.size();
 
 			if (with_header) std::getline(file, line);
 

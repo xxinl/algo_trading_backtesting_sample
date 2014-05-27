@@ -85,7 +85,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;STRAT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\dlib-18.6;$(VCInstallDir)UnitTest\include;C:\Boost\include\boost-1_55;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dlib-18.7;$(VCInstallDir)UnitTest\include;C:\Boost\include\boost-1_55;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -100,7 +100,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;STRAT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\dlib-18.6;$(ProjectDir);$(VCInstallDir)UnitTest\include;C:\Boost\include\boost-1_55;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dlib-18.7;$(ProjectDir);$(VCInstallDir)UnitTest\include;C:\Boost\include\boost-1_55;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -117,7 +117,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;STRAT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\dlib-18.6;C:\boost_1_55_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dlib-18.7;C:\boost_1_55_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -135,7 +135,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;STRAT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\dlib-18.6;$(ProjectDir);$(VCInstallDir)UnitTest\include;C:\boost_1_55_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dlib-18.7;$(ProjectDir);$(VCInstallDir)UnitTest\include;C:\boost_1_55_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -149,16 +149,15 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="algo\algo_pullback_ma.h" />
+    <ClInclude Include="algo\algo_bollinger.h" />
     <ClInclude Include="algo\event\event_long_short.h" />
     <ClInclude Include="algo\event\event_algo.h" />
     <ClInclude Include="algo\event\event_algo_ma.h" />
     <ClInclude Include="indicator\indicator.h" />
     <ClInclude Include="indicator\sma.h" />
     <ClInclude Include="logger.h" />
+    <ClInclude Include="optimizer\optimizable_algo_genetic.h" />
+    <ClInclude Include="optimizer\optimizer_genetic.h" />
     <ClInclude Include="position.h" />
     <ClInclude Include="tick.h" />
     <ClInclude Include="algo.h" />
@@ -168,7 +167,7 @@
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\dlib-18.6\dlib\all\source.cpp" />
+    <ClCompile Include="..\..\..\dlib-18.7\dlib\all\source.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>

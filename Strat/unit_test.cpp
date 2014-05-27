@@ -314,7 +314,7 @@ namespace Strat
 			}
 		}
 
-#pragma region test mql5 export wrapper
+#pragma region test mql5 _export wrapper
 
 		size_t get_algo(wchar_t* base, wchar_t* quote, wchar_t* path){
 

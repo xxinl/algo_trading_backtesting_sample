@@ -1,4 +1,9 @@
-
+/*
+idea principle: price tend to move dramatically after a ecnomic event and revert to mean after a cool down period
+implementation: a. fixed observe period to observe the volatitly and fixed hold period to exit;
+								b. only entry when there is a historical trend formed as price more likely rever 
+										to mean where there is a anti trend movement after a ecnomic event annouced;
+*/
 
 #ifndef _STRAT_EVENT_ALGO_MA
 #define _STRAT_EVENT_ALGO_MA
@@ -14,7 +19,7 @@ using std::string;
 
 namespace strat{
 
-	class event_algo_ma : public event_algo{
+	class event_algo_ma : public event_algo {
 	private:
 
 		std::deque<double> _ma_lookback_q;
@@ -89,10 +94,10 @@ namespace strat{
 
 #pragma region constructors
 
-		event_algo_ma(const std::string s_base, const std::string symbol_target,
+		event_algo_ma(const std::string s_base, const std::string s_quote,
 			string event_f_path, size_t obser_win, size_t hold_win, double run_sd,
 			int ma_period, int ma_lookback, double trend_slope_t = 0.7) :
-			event_algo(s_base, symbol_target, event_f_path, obser_win, hold_win, run_sd),
+			event_algo(s_base, s_quote, event_f_path, obser_win, hold_win, run_sd),
 			_ma_lookback(ma_lookback), _sma(ma_period), _trend(ma_lookback, trend_slope_t){
 		}
 
