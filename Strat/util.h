@@ -10,9 +10,11 @@
 #include<fstream>
 #include<sstream>
 
-#include<boost\tokenizer.hpp>
-#include<boost\date_time.hpp>
-#include<boost\lexical_cast.hpp>
+#include <boost/tokenizer.hpp>
+#include <boost/date_time.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ini_parser.hpp>
 
 using std::string;
 
@@ -73,16 +75,19 @@ public:
 		return pt;
 	}
 
-	static int read_tick_csv(string path, std::vector<strat::tick>& tick_vec){
+	static int read_tick_csv(string path, std::vector<strat::tick>& tick_vec, 
+		string dt_format = "%Y%m%d%H%M%S", const std::vector<int>& cols_v = { 1, 2, 6 }){
 		
 		std::vector<std::vector<std::string>> csv_vec;
-		std::vector<int> cols_v{ 1, 2, 6 };
 		util::read_csv(path, csv_vec, cols_v);
 
 		boost::posix_time::ptime t;
 		for (std::vector<std::vector<std::string>>::iterator it = csv_vec.begin(); it != csv_vec.end(); ++it){
 
-			t = util::convert_to_dt((*it)[0] + (*it)[1], "%Y%m%d%H%M%S");
+			if (cols_v.size() >= 3) // combine first two cols for date time
+				t = util::convert_to_dt((*it)[0] + (*it)[1], dt_format);
+			else // first single col for date time
+				t = util::convert_to_dt((*it)[0] + (*it)[1], dt_format);
 			strat::tick tick1;
 			tick1.time_stamp = t;
 			tick1.close = boost::lexical_cast<double>((*it)[2]);
@@ -92,7 +97,7 @@ public:
 		return 1;
 	}
 
-	static std::string get_current_dt_str(){
+	static string get_current_dt_str(string format = "%Y%m%d.%H%M%S"){
 	
 		std::stringstream s;
 
@@ -107,10 +112,74 @@ public:
 		return s.str();
 	}
 
-	static std::string dt_to_string(boost::posix_time::ptime pt){
+	static string dt_to_string(boost::posix_time::ptime pt){
 
 		return boost::posix_time::to_simple_string(pt);
 	}
+
+	template<typename T>
+	static T read_ini(string path, string section){
+	
+		boost::property_tree::ptree pt;
+		boost::property_tree::ini_parser::read_ini(path, pt);
+		return pt.get<T>(section);
+	}
+
+	template<typename T>
+	static void write_ini(string path, string section, T value){
+
+		boost::property_tree::ptree pt;
+		boost::property_tree::ini_parser::read_ini(path, pt);
+		pt.put(section, value);
+	}
+
+	static int delete_hist_tick(string path, int keep_days_no){
+
+		try {
+
+			std::ifstream file(path);
+			std::string line;
+			std::string tmp_f_path = path + ".tmp";
+			std::ofstream tmp_file(tmp_f_path);
+
+			//header
+			std::getline(file, line);
+			tmp_file << line;
+			
+			boost::posix_time::ptime t_no_early_than = 
+				boost::posix_time::second_clock::local_time() - boost::posix_time::hours(keep_days_no * 24);
+
+			while (std::getline(file, line)) {
+
+				boost::tokenizer<boost::escaped_list_separator<char> > tk(
+					line, boost::escaped_list_separator<char>('\\', ',', '\"'));
+
+				boost::posix_time::ptime t = util::convert_to_dt(*tk.begin(), "%Y%m%d %H%M");
+				if (t.date() >= t_no_early_than.date())
+					continue;
+
+				tmp_file << line;
+			}
+
+			file.close();
+			tmp_file.close();
+
+			if (0 == remove(path.c_str())){
+			
+				rename(tmp_f_path.c_str(), path.c_str());
+			}
+
+			return 1;
+		}
+		catch (std::ifstream::failure e) {
+			//std::cerr << "Exception opening/reading/closing file\n";
+			throw;
+		}
+		catch (...) {
+			throw;
+		}
+	}
+
 };
 
 #endif

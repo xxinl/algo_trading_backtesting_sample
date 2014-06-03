@@ -5,6 +5,8 @@ implementation: a. fixed observe period to observe the volatitly and fixed hold 
 										to mean where there is a anti trend movement after a ecnomic event annouced;
 */
 
+#ifdef _DEBUG
+
 #ifndef _STRAT_EVENT_ALGO_MA
 #define _STRAT_EVENT_ALGO_MA
 
@@ -115,5 +117,7 @@ namespace strat{
 		}
 	};
 }
+
+#endif
 
 #endif

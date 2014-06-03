@@ -50,8 +50,8 @@ namespace strat{
 		}
 
 	protected:
-		const size_t _obser_win;
-		const size_t _hold_win;		
+		size_t _obser_win;
+		size_t _hold_win;		
 		double _run_sd;		
 		std::queue<tick> _obser_tick_q;
 		
@@ -117,7 +117,7 @@ namespace strat{
 
 				//note: summer start and end date is not same every year, below is based on 2014.
 				//		but this is good enough approximation for back testing purpose
-				auto summer_start = util::convert_to_dt(year_str + "0330", "%Y%m%d");;
+				auto summer_start = util::convert_to_dt(year_str + "0330", "%Y%m%d");
 				auto summer_end = util::convert_to_dt(year_str + "1026", "%Y%m%d");
 				if (t > summer_start && t < summer_end)
 					t = t + boost::posix_time::hours(3);
@@ -138,8 +138,11 @@ namespace strat{
 					}
 				}
 
-				LOG(_event_q.size() << " events enqueued");
+				if (t.time_of_day().hours() == 0 && t.time_of_day().minutes() == 0)
+					LOG("process events file on date: " << t);
 			}
+
+			LOG(_event_q.size() << " events enqueued");
 
 			return _event_q.size();
 		}

@@ -1,8 +1,34 @@
 ﻿<Window x:Class="BackTester.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
-    </Grid>
+        Title="" Height="200" Width="400"
+        DataContext="{Binding BackTester, Source={StaticResource Locator}}">
+  <Grid>
+    <DockPanel>
+      <ProgressBar Height="25" DockPanel.Dock="Bottom" Value="{Binding ProgressValue, Mode=OneWay}"></ProgressBar>
+      <StackPanel Margin="2">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+          <Label Content="Tick File:"/>
+          <TextBox Width="200" Margin="8,0,0,0"
+                   Text="{Binding TickFilePath, Mode=TwoWay}"/>
+          <Button Content="Browse" Margin="5,1,0,1"></Button>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+          <Label Content="Event File:"/>
+          <TextBox Width="200"
+                   Text="{Binding EventFilePath, Mode=TwoWay}"/>
+          <Button Content="Browse" Margin="5,1,0,1"></Button>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,10,0,0" VerticalAlignment="Top">
+          <Label Content="Start:" HorizontalAlignment="Left" />
+          <DatePicker SelectedDate="{Binding StartDate, Mode=TwoWay}" />
+          <Label Content="End:" HorizontalAlignment="Left" Margin="30,0,0,0" />
+          <DatePicker SelectedDate="{Binding EndDate, Mode=TwoWay}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,5,10,0" HorizontalAlignment="Right">
+          <Button Content="{Binding RunState, Mode=OneWay}" Command="{Binding RunTestCommand}" />
+        </StackPanel>
+      </StackPanel>
+    </DockPanel>
+  </Grid>
 </Window>

@@ -9,7 +9,7 @@ implementation: fixed observe period to observe the volatitly and fixed hold per
 #include "tick.h"
 #include "position.h"
 #include "event_algo.h"
-#include "optimizer\optimizable_algo_genetic.h"
+#include "optimizer/optimizable_algo_genetic.h"
 
 #include <vector>
 #include <queue>
@@ -95,6 +95,13 @@ namespace strat{
 
 #pragma endregion
 
+		void reset_params(size_t obser_win, size_t hold_win, double run_sd){
+		
+			_obser_win = obser_win;
+			_hold_win = hold_win;
+			_run_sd = run_sd;
+		}
+		
 
 #pragma region optimizable_algo members
 

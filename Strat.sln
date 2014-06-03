@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Strat", "Strat\Strat.vcxproj", "{A7933499-5911-4F81-85C6-4A5E05EE81B4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackTester", "BackTester\BackTester.csproj", "{5ADFFA93-1627-478C-B873-5A83AC06A9CB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A7933499-5911-4F81-85C6-4A5E05EE81B4} = {A7933499-5911-4F81-85C6-4A5E05EE81B4}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,8 +27,8 @@ Global
 		{A7933499-5911-4F81-85C6-4A5E05EE81B4}.Debug|Mixed Platforms.Build.0 = Debug|x64
 		{A7933499-5911-4F81-85C6-4A5E05EE81B4}.Debug|Win32.ActiveCfg = Debug|Win32
 		{A7933499-5911-4F81-85C6-4A5E05EE81B4}.Debug|Win32.Build.0 = Debug|Win32
-		{A7933499-5911-4F81-85C6-4A5E05EE81B4}.Debug|x64.ActiveCfg = Debug|x64
-		{A7933499-5911-4F81-85C6-4A5E05EE81B4}.Debug|x64.Build.0 = Debug|x64
+		{A7933499-5911-4F81-85C6-4A5E05EE81B4}.Debug|x64.ActiveCfg = Release|x64
+		{A7933499-5911-4F81-85C6-4A5E05EE81B4}.Debug|x64.Build.0 = Release|x64
 		{A7933499-5911-4F81-85C6-4A5E05EE81B4}.Release|Any CPU.ActiveCfg = Release|Win32
 		{A7933499-5911-4F81-85C6-4A5E05EE81B4}.Release|Mixed Platforms.ActiveCfg = Release|x64
 		{A7933499-5911-4F81-85C6-4A5E05EE81B4}.Release|Mixed Platforms.Build.0 = Release|x64
@@ -39,6 +42,7 @@ Global
 		{5ADFFA93-1627-478C-B873-5A83AC06A9CB}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{5ADFFA93-1627-478C-B873-5A83AC06A9CB}.Debug|Win32.ActiveCfg = Debug|Any CPU
 		{5ADFFA93-1627-478C-B873-5A83AC06A9CB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5ADFFA93-1627-478C-B873-5A83AC06A9CB}.Debug|x64.Build.0 = Debug|Any CPU
 		{5ADFFA93-1627-478C-B873-5A83AC06A9CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5ADFFA93-1627-478C-B873-5A83AC06A9CB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5ADFFA93-1627-478C-B873-5A83AC06A9CB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU

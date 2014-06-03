@@ -44,6 +44,7 @@ namespace strat{
 		virtual int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) = 0;
 
 	public:
+
 		virtual ~algo() {}
 
 		algo(string s_base, string s_quote) :

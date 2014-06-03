@@ -26,15 +26,19 @@ namespace strat{
 		const double _mutation_rate;
 		const int _max_iteration;
 		const int _population_size;
+		const string _hist_ticks_f_path;
 
 		typedef std::pair<double, std::tuple<Params...>> CITIZEN_TYPE;
 
 		std::vector<CITIZEN_TYPE> _population;
 		std::vector<CITIZEN_TYPE> _next_generation;
 
-		std::vector<tick> read_sample_ticks(){
+		std::vector<tick> read_sample_ticks(string hist_ticks_f_path){
 		
 			std::vector<tick> ticks;
+			std::vector<int> cols_v{ 0, 4 };
+
+			util::read_tick_csv(hist_ticks_f_path, ticks, "%Y.%m.%d %H:%M", cols_v);
 			return ticks;
 		}
 
@@ -88,13 +92,14 @@ namespace strat{
 		}
 
 	public:
-		optimizer_genetic(optimizable_algo_genetic<Params...>* opti_algo,
+		optimizer_genetic(string hist_ticks_f_path, optimizable_algo_genetic<Params...>* opti_algo,
 			double elit_rate = 0.20f, double mutation_rate = 0.40f, int max_iteration = 128, int population_size = 128) :
-			_opti_algo(opti_algo), _elit_size(elit_rate * population_size), _mutation_rate(mutation_rate), _max_iteration(max_iteration), _population_size(population_size){}
+			_opti_algo(opti_algo), _elit_size(elit_rate * population_size), _mutation_rate(mutation_rate), 
+			_max_iteration(max_iteration), _population_size(population_size), _hist_ticks_f_path(hist_ticks_f_path){}
 
 		CITIZEN_TYPE optimize(){
 
-			std::vector<tick> ticks = read_sample_ticks();
+			std::vector<tick> ticks = read_sample_ticks(_hist_ticks_f_path);
 
 			init_population();
 			calc_population_fitness(0, ticks, _population, _opti_algo);

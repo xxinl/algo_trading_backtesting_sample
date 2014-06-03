@@ -34,3 +34,6 @@ del . /F /Q
 
 cd "%path%\back_test_files"
 del . /F /Q
+
+cd "%path%\ipch\strat-8673b740
+del . /F /Q
