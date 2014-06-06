@@ -40,12 +40,12 @@ namespace strat{
 				tick front_tick = _obser_tick_q.front();
 				if (crr_tick.time_stamp >= front_tick.time_stamp + boost::posix_time::minutes(_obser_win)){
 
-					if (crr_tick.close >= front_tick.close + _run_sd){
+					if (crr_tick.last >= front_tick.last + _run_sd){
 
 						ret_sig = _is_anti_trend ? signal::SELL : signal::BUY;
 						_add_position(crr_tick, ret_sig, front_tick);
 					}
-					else if (crr_tick.close <= front_tick.close - _run_sd){
+					else if (crr_tick.last <= front_tick.last - _run_sd){
 
 						ret_sig = _is_anti_trend ? signal::BUY : signal::SELL;
 						_add_position(crr_tick, ret_sig, front_tick);
@@ -63,7 +63,7 @@ namespace strat{
 
 			for (std::list<position>::iterator it = _positions.begin(); it != _positions.end();){
 
-				bool is_stop_out = stop_loss != -1 && (it->open_tick.close - crr_tick.close) * it->type > stop_loss;
+				bool is_stop_out = stop_loss != -1 && (it->open_tick.last - crr_tick.last) * it->type > stop_loss;
 
 				if (is_stop_out || 
 					crr_tick.time_stamp >= it->open_tick.time_stamp + boost::posix_time::minutes(_hold_win))

@@ -43,7 +43,7 @@ namespace strat{
 
 				if (close_pos.type != signal::NONE){
 					
-					ttl_ret += close_pos.close_tick.close - close_pos.open_tick.close;
+					ttl_ret += close_pos.close_tick.last - close_pos.open_tick.last;
 				}
 			}
 

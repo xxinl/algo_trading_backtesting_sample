@@ -1,7 +1,7 @@
-﻿<Window x:Class="BackTester.DebugInfoWin"
+﻿<Window x:Class="BackTester.Views.DebugInfoWin"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MessageWin" Height="550" Width="500"
+        Title="" Height="550" Width="500"
         DataContext="{Binding MessageWin, Source={StaticResource Locator}}">
     <Grid>
     <DockPanel>

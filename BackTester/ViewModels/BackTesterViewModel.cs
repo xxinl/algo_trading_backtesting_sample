@@ -1,28 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-
+using System.Windows;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Threading;
 using GalaSoft.MvvmLight.Messaging;
 using System.Threading;
-using System.Windows;
+using BackTester.Views;
 
-namespace BackTester
+namespace BackTester.ViewModels
 {
   public class BackTesterViewModel : GalaSoft.MvvmLight.ViewModelBase
   {
+    [DllImport("strat.dll", EntryPoint = "test", CallingConvention = CallingConvention.Cdecl)]
+    private static extern double test(double ask);
+
     private CancellationTokenSource _cts;
     private DebugInfoWin _debugInfoWin;
+    private SummaryWin _summaryWin;
 
     #region properties
+
+    #region input properties
 
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public string TickFilePath { get; set; }
     public string EventFilePath { get; set; }
+    public int Leverage { get; set; }
+    public double StartBalance { get; set; }
+
+    #endregion input properties
 
     private int _progressValue;
     public int ProgressValue
@@ -30,14 +39,15 @@ namespace BackTester
       get { return _progressValue; }
       set { _progressValue = value; this.RaisePropertyChanged(() => this.ProgressValue); }
     }
+
     public string RunState { get; set; }
 
-    public RelayCommand RunTestCommand { get; private set; }
-
     private bool _isBusy;
-    public bool IsBusy {
+    public bool IsBusy
+    {
       get { return _isBusy; }
-      set { 
+      set
+      {
         _isBusy = value;
         this.RaisePropertyChanged(() => this.IsBusy);
         RunState = _isBusy ? "Cancel" : "Run";
@@ -45,16 +55,20 @@ namespace BackTester
       }
     }
 
-    #endregion
+    public RelayCommand RunTestCommand { get; private set; }
 
-    public BackTesterViewModel() {
+    #endregion properties
     
+    public BackTesterViewModel() {
+
       StartDate = new DateTime(2013,01,01);
       EndDate = new DateTime(2013, 01, 31);
 
       TickFilePath = @"C:\workspace\Strat\back_test_files\EURUSD_2013_1min_alpari.csv";
       EventFilePath = @"C:\workspace\Strat\back_test_files\Calendar-Jan2013.csv";
       RunState = "Run";
+      Leverage = 500;
+      StartBalance = 500;
 
       RunTestCommand = new RelayCommand(async () => {
         if (IsBusy)
@@ -71,15 +85,25 @@ namespace BackTester
 
       IsBusy = true;
 
+      TickProcessor tickPro = new TickProcessor(Leverage, StartBalance);
+
+      if (_summaryWin == null || !_summaryWin.IsLoaded)
+      {
+        _summaryWin = new SummaryWin();
+        _summaryWin.Show();
+      }
+
       try {
 
         _setProgress();
-        AlgoService algo = new AlgoService(_onMessage);
-        await algo.Init(EventFilePath);
+        using (AlgoService algo = new AlgoService(_onMessage))
+        {
+          await algo.Init(EventFilePath);
 
-        _setProgress();
-        List<Tick> ticks = await Util.ReadTickCsv(TickFilePath, StartDate, EndDate);
-        await _runTicks(ticks, algo);
+          _setProgress();
+          List<Tick> ticks = await Util.ReadTickCsv(TickFilePath, StartDate, EndDate, ct);
+          await _runTicks(ticks, algo, tickPro, ct);
+        }
       }
       catch (OperationCanceledException)
       {
@@ -112,7 +136,7 @@ namespace BackTester
       {
         if (info != null && !string.IsNullOrWhiteSpace(info.Info))
         {
-          if (_debugInfoWin == null)
+          if (_debugInfoWin == null || !_debugInfoWin.IsLoaded)
           {
             _debugInfoWin = new DebugInfoWin();
             _debugInfoWin.Show();
@@ -131,16 +155,24 @@ namespace BackTester
       });
     }
 
-    private async Task _runTicks(List<Tick> ticks, AlgoService algo)
+    private async Task _runTicks(List<Tick> ticks, AlgoService algo, TickProcessor tickPro, 
+      CancellationToken ct)
     {
-      await Task.Run(() =>
+      await Task.Factory.StartNew(() =>
       {
         for (int i = 0; i < ticks.Count; i++)
         {
-          algo.OnTick(ticks[i]);
+          if (ct.IsCancellationRequested == true)
+          {
+            ct.ThrowIfCancellationRequested();
+          } 
+
+          var signal = algo.OnTick(ticks[i]);
+          tickPro.OnTick(ticks[i], signal);
+
           _setProgress(i * 100 / ticks.Count);
         }
-      });
+      }, ct);
     }
   }
 }

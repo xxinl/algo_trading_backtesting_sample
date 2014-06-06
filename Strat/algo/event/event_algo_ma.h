@@ -32,7 +32,7 @@ namespace strat{
 
 		void _process_ma(const tick& crr_tick){
 		
-			_ma_lookback_q.push_back(_sma.push(crr_tick.close));
+			_ma_lookback_q.push_back(_sma.push(crr_tick.last));
 			if (_ma_lookback_q.size() > _ma_lookback)
 				_ma_lookback_q.pop_front();
 			
@@ -53,12 +53,12 @@ namespace strat{
 				tick front_tick = _obser_tick_q.front();
 				if (crr_tick.time_stamp >= front_tick.time_stamp + boost::posix_time::minutes(_obser_win)){
 
-					if (crr_tick.close >= front_tick.close + _run_sd && _trend_type == trend_type::DOWN){
+					if (crr_tick.last >= front_tick.last + _run_sd && _trend_type == trend_type::DOWN){
 
 						ret_sig = signal::SELL;
 						_add_position(crr_tick, ret_sig, front_tick);
 					}
-					else if (crr_tick.close <= front_tick.close - _run_sd && _trend_type == trend_type::UP){
+					else if (crr_tick.last <= front_tick.last - _run_sd && _trend_type == trend_type::UP){
 
 						ret_sig = signal::BUY;
 						_add_position(crr_tick, ret_sig, front_tick);
@@ -76,7 +76,7 @@ namespace strat{
 
 			for (std::list<position>::iterator it = _positions.begin(); it != _positions.end();){
 
-				bool is_stop_out = stop_loss != -1 && (it->open_tick.close - crr_tick.close) * it->type > stop_loss;
+				bool is_stop_out = stop_loss != -1 && (it->open_tick.last - crr_tick.last) * it->type > stop_loss;
 
 				if (is_stop_out ||
 					crr_tick.time_stamp >= it->open_tick.time_stamp + boost::posix_time::minutes(_hold_win))

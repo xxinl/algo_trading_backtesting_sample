@@ -90,7 +90,7 @@ public:
 				t = util::convert_to_dt((*it)[0] + (*it)[1], dt_format);
 			strat::tick tick1;
 			tick1.time_stamp = t;
-			tick1.close = boost::lexical_cast<double>((*it)[2]);
+			tick1.last = boost::lexical_cast<double>((*it)[2]);
 			tick_vec.push_back(tick1);
 		}
 

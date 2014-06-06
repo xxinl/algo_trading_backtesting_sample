@@ -1,0 +1,17 @@
+﻿<Window x:Class="BackTester.Views.SummaryWin"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="" Height="400" Width="600"
+        xmlns:oxy="http://oxyplot.codeplex.com"
+        DataContext="{Binding SummaryWin, Source={StaticResource Locator}}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition></RowDefinition>
+      <RowDefinition></RowDefinition>
+    </Grid.RowDefinitions>
+    <oxy:Plot Name="Plot1" Title="A" Model="{Binding PlotModelPer}" Grid.Row="0">
+    </oxy:Plot>
+    <oxy:Plot Name="Plot2" Title="B" Model="{Binding PlotModelTick}" Grid.Row="1">
+    </oxy:Plot>
+  </Grid>
+</Window>

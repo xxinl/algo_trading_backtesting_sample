@@ -10,18 +10,20 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace BackTester
+namespace BackTester.Views
 {
   /// <summary>
-  /// Interaction logic for MessageWin.xaml
+  /// Interaction logic for MainWindow.xaml
   /// </summary>
-  public partial class DebugInfoWin : Window
+  public partial class MainWindow : Window
   {
-    public DebugInfoWin()
+    public MainWindow()
     {
       InitializeComponent();
+      
     }
   }
 }

@@ -105,9 +105,9 @@ public:
 		std::stringstream s;
 
 		s << obser << "," << hold << ","
-			//<< position.obser_tick.time_stamp << "," << position.obser_tick.close
-			<< "," << position.open_tick.time_stamp << "," << position.open_tick.close
-			<< "," << position.close_tick.time_stamp << "," << position.close_tick.close 
+			//<< position.obser_tick.time_stamp << "," << position.obser_tick.last
+			<< "," << position.open_tick.time_stamp << "," << position.open_tick.last
+			<< "," << position.close_tick.time_stamp << "," << position.close_tick.last 
 			<< "," << position.type;
 
 		log_sev(s.str(), order);

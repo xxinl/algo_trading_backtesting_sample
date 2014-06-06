@@ -1,11 +1,11 @@
-﻿<Window x:Class="BackTester.MainWindow"
+﻿<Window x:Class="BackTester.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="" Height="200" Width="400"
         DataContext="{Binding BackTester, Source={StaticResource Locator}}">
   <Grid>
     <DockPanel>
-      <ProgressBar Height="25" DockPanel.Dock="Bottom" Value="{Binding ProgressValue, Mode=OneWay}"></ProgressBar>
+      <ProgressBar Height="25" DockPanel.Dock="Bottom" Value="{Binding ProgressValue, Mode=OneWay}" />
       <StackPanel Margin="2">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
           <Label Content="Tick File:"/>

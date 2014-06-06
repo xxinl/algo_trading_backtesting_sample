@@ -1,5 +1,5 @@
 
-#ifdef _DEBUG
+#ifdef _DEBUG1
 
 #include "stdafx.h"
 #include "CppUnitTest.h"
@@ -77,7 +77,7 @@ namespace Strat
 			boost::posix_time::ptime t =
 				boost::posix_time::time_from_string(std::string("2013-11-24 23:10:00.000"));
 			Assert::IsTrue(tick_vec[9].time_stamp == t);
-			Assert::AreEqual(tick_vec[9].close, 1.3549);
+			Assert::AreEqual(tick_vec[9].last, 1.3549);
 
 		}
 
@@ -120,7 +120,7 @@ namespace Strat
 			Assert::IsTrue(strat::signal::BUY == sig);
 			std::list<strat::position> pos = algo.get_positions();
 			Assert::IsTrue(pos.size() == size);
-			Assert::IsTrue(pos.front().open_tick.close == 1.3540);
+			Assert::IsTrue(pos.front().open_tick.last == 1.3540);
 
 			sig = algo.process_tick(tick_vec[319], close_pos);
 			obser_q = algo.get_obser_tick_queue();
@@ -149,7 +149,7 @@ namespace Strat
 			
 			strat::tick tick1;
 			tick1.time_stamp = now;
-			tick1.close = 1.006;
+			tick1.last = 1.006;
 
 			p.open_tick = tick1;
 			p.close_tick = tick1;
@@ -211,7 +211,7 @@ namespace Strat
 			Assert::IsTrue(strat::signal::BUY == sig);
 			std::list<strat::position> pos = algo.get_positions();
 			Assert::IsTrue(pos.size() == size);
-			Assert::IsTrue(pos.front().open_tick.close == 1.3540);
+			Assert::IsTrue(pos.front().open_tick.last == 1.3540);
 
 			sig = algo.process_tick(tick_vec[317], close_pos, 0.0003);
 			obser_q = algo.get_obser_tick_queue();
@@ -298,7 +298,7 @@ namespace Strat
 					Assert::IsTrue(strat::signal::BUY == sig);
 					std::list<strat::position> pos = algo.get_positions();
 					Assert::IsTrue(pos.size() == size);
-					Assert::IsTrue(pos.front().open_tick.close == 1.3540);
+					Assert::IsTrue(pos.front().open_tick.last == 1.3540);
 				}
 
 				if (i == 319){
@@ -334,14 +334,14 @@ namespace Strat
 			return ret_add;
 		}
 
-		int process_tick(size_t algo_add, wchar_t* time, double close, double stop_loss){
+		int process_tick(size_t algo_add, wchar_t* time, double last, double stop_loss){
 
 			std::wstring w_time_str = std::wstring(time);
 			strat::signal sig = strat::signal::NONE;
 
 			strat::tick tick;
 			tick.time_stamp = boost::posix_time::time_from_string(string(w_time_str.begin(), w_time_str.end()));
-			tick.close = close;
+			tick.last = last;
 
 			strat::position close_pos;
 			strat::event_algo_ma* algo_p = reinterpret_cast<strat::event_algo_ma*>(algo_add);

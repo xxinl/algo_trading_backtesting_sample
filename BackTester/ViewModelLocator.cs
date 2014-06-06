@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 using Microsoft.Practices.ServiceLocation;
-using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Ioc;
+using BackTester.ViewModels;
 
 namespace BackTester
 {
@@ -17,6 +12,7 @@ namespace BackTester
       ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
       SimpleIoc.Default.Register<BackTesterViewModel>();
       SimpleIoc.Default.Register<DebugInfoViewModel>();
+      SimpleIoc.Default.Register<SummaryViewModel>();
     }
 
     public BackTesterViewModel BackTester {
@@ -30,6 +26,14 @@ namespace BackTester
       get
       {
         return ServiceLocator.Current.GetInstance<DebugInfoViewModel>();
+      }
+    }
+
+    public SummaryViewModel SummaryWin
+    {
+      get
+      {
+        return ServiceLocator.Current.GetInstance<SummaryViewModel>();
       }
     }
   }

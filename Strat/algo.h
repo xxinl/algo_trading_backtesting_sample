@@ -9,6 +9,8 @@
 
 #include <string>
 
+#include <vld.h>
+
 using std::string;
 
 namespace strat{

@@ -24,7 +24,7 @@ logger::callback logger::on_callback = nullptr;
 
 #pragma region _private members
 
-string convert_wchar_to_string(wchar_t* wchar){
+string convert_wchar_to_string(const wchar_t* wchar){
 
 	std::wstring w_base_str = std::wstring(wchar);
 	return string(w_base_str.begin(), w_base_str.end());
@@ -55,10 +55,12 @@ void reset_algo_params(size_t algo_addr){
 
 #pragma endregion
 
+
 // todo free strings
 // base/quote has to be lower case
 extern "C"	__declspec(dllexport)
-size_t get_algo(wchar_t* base, wchar_t* quote, wchar_t* path, logger::callback callback_handler){
+size_t get_algo(const wchar_t* base, const wchar_t* quote, const wchar_t* path, 
+									logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
 	strat::event_algo* ret_p = nullptr;
@@ -67,7 +69,7 @@ size_t get_algo(wchar_t* base, wchar_t* quote, wchar_t* path, logger::callback c
 
 		ret_p = new strat::event_long_short(
 			convert_wchar_to_string(base), convert_wchar_to_string(quote), convert_wchar_to_string(path),
-			7, 45, 0.0003, callback_handler);
+			7, 45, 0.0003);
 	
 		//ret_p = new strat::event_algo_ma(
 		//	convert_wchar_to_string(base), convert_wchar_to_string(quote), convert_wchar_to_string(path),
@@ -96,7 +98,7 @@ int delete_algo(size_t algo_addr){
 
 //time eg.2013-11-25 23:50:00.000
 extern "C"	__declspec(dllexport)
-int process_tick(size_t algo_addr, wchar_t* time, double ask, double bid, double last, size_t volume, 
+int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, double last, size_t volume,
 									double stop_loss, logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
@@ -105,7 +107,7 @@ int process_tick(size_t algo_addr, wchar_t* time, double ask, double bid, double
 	strat::algo* algo_p = reinterpret_cast<strat::algo*>(algo_addr);
 
 	LOG_SEV("process_tick algo:" << algo_addr << " time:" << time_str
-		<< " close:" << last << " sl:" << stop_loss, logger::debug);
+		<< " last:" << last << " sl:" << stop_loss, logger::debug);
 	//LOG_TICK(time_str, bid, ask, last, volume);
 	
 	strat::signal sig = strat::signal::NONE;
@@ -115,7 +117,10 @@ int process_tick(size_t algo_addr, wchar_t* time, double ask, double bid, double
 
 		strat::tick tick;
 		tick.time_stamp = boost::posix_time::time_from_string(time_str);
-		tick.close = last; //TODO use ask/bid price
+		tick.last = last;
+		tick.ask = ask;
+		tick.bid = bid;
+		tick.volume = volume;
 
 		LOG_SEV("process_tick casted time:" << tick.time_stamp, logger::debug);
 		
@@ -137,7 +142,7 @@ int process_tick(size_t algo_addr, wchar_t* time, double ask, double bid, double
 }
 
 extern "C"	__declspec(dllexport)
-void optimize(size_t algo_addr, wchar_t* hist_tick_path){
+void optimize(size_t algo_addr, const wchar_t* hist_tick_path){
 
 	typedef strat::optimizable_algo_genetic<size_t, size_t, double> OPTIMIZER_TYPE;
 
@@ -151,7 +156,7 @@ void optimize(size_t algo_addr, wchar_t* hist_tick_path){
 }
 
 extern "C"	__declspec(dllexport)
-int process_end_day(size_t algo_addr, wchar_t* hist_tick_path, size_t keep_days_no){
+int process_end_day(size_t algo_addr, const wchar_t* hist_tick_path, size_t keep_days_no){
 
 	util::delete_hist_tick(convert_wchar_to_string(hist_tick_path), keep_days_no);
 

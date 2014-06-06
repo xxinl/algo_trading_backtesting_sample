@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BackTester
 {
@@ -17,5 +13,16 @@ namespace BackTester
     public double Last;
 
     public uint Volume;
+  }
+
+  public struct PerformanceTick
+  {
+    public DateTime Time;
+
+    public double Last;
+
+    public double Balance;
+
+    public double Equity;
   }
 }
