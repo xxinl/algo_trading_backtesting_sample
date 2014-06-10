@@ -75,7 +75,7 @@ private:
 
 			boost::log::add_file_log
 				(
-				file_name + "C:/strat_logs/tick.tk",
+				"C:/strat_logs/tick.tk",
 				boost::log::keywords::filter = boost::log::expressions::attr< severity_level >("Severity") == tick
 				);
 
@@ -97,34 +97,34 @@ public:
 
 		BOOST_LOG_SEV(slg, lev) << msg;
 
-		if (on_callback != nullptr && lev > debug)
+		if (on_callback != nullptr && lev > debug && lev != 7)
 			on_callback(msg.c_str(), lev);
 	}
 
-	static void log_position(const strat::position& position, size_t obser, size_t hold){
+	static void log_position(const strat::position& position){
 		std::stringstream s;
 
-		s << obser << "," << hold << ","
-			//<< position.obser_tick.time_stamp << "," << position.obser_tick.last
-			<< "," << position.open_tick.time_stamp << "," << position.open_tick.last
-			<< "," << position.close_tick.time_stamp << "," << position.close_tick.last 
+		double close_rate = position.type == strat::signal::SELL ? position.close_tick.ask : position.close_tick.bid;
+
+		s << position.open_tick.time_stamp << "," << position.open_tick.last
+			<< "," << position.close_tick.time_stamp << "," << close_rate
 			<< "," << position.type;
 
 		log_sev(s.str(), order);
 	}
 
-	static void log_positions(const std::list<strat::position>& positions, size_t obser, size_t hold){
+	static void log_positions(const std::list<strat::position>& positions){
 		
-		std::for_each(positions.begin(), positions.end(), [=, &obser, &hold](const strat::position p){
+		std::for_each(positions.begin(), positions.end(), [=](const strat::position p){
 
-			log_position(p, obser, hold);
+			log_position(p);
 		});
 	}
 
-	static void log_tick(string time, double bid, double ask, double lask, size_t volume){
+	static void log_tick(string time, double ask, double bid, double lask, size_t volume){
 		std::stringstream s;
 
-		s << time << "," << bid << "," << ask << "," << lask << "," << volume;
+		s << time << "," << ask << "," << bid << "," << lask << "," << volume;
 
 		log_sev(s.str(), tick);
 	}
@@ -134,12 +134,13 @@ public:
 																				std::ostringstream().flush() << msg \
 																				).str(), lev);
 
-#define LOG_POSITIONS(pos, obser, hold) logger::log_positions(pos, obser, hold);
+#define LOG_POSITION(pos) logger::log_position(pos);
+#define LOG_POSITIONS(pos) logger::log_positions(pos);
 
 #define LOG(msg) logger::log_sev(static_cast<std::ostringstream&>( \
 															std::ostringstream().flush() << msg  \
 															).str(), logger::normal);
 
-#define LOG_TICK(time, bid, ask, last, volume) logger::log_tick(time, bid, ask, last, volume);
+#define LOG_TICK(time, ask, bid, last, volume) logger::log_tick(time, ask, bid, last, volume);
 
 #endif

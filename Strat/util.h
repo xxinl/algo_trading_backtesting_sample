@@ -75,23 +75,67 @@ public:
 		return pt;
 	}
 
-	static int read_tick_csv(string path, std::vector<strat::tick>& tick_vec, 
+	static int read_tick_csv(const string path, std::vector<strat::tick>& tick_vec, 
+		boost::posix_time::ptime start_date = boost::posix_time::min_date_time, 
+		boost::posix_time::ptime end_date = boost::posix_time::max_date_time,
 		string dt_format = "%Y%m%d%H%M%S", const std::vector<int>& cols_v = { 1, 2, 6 }){
 		
-		std::vector<std::vector<std::string>> csv_vec;
-		util::read_csv(path, csv_vec, cols_v);
+		try {
 
-		boost::posix_time::ptime t;
-		for (std::vector<std::vector<std::string>>::iterator it = csv_vec.begin(); it != csv_vec.end(); ++it){
+			std::ifstream file(path);
+			std::string line;
+			size_t cols_len = cols_v.size();
 
-			if (cols_v.size() >= 3) // combine first two cols for date time
-				t = util::convert_to_dt((*it)[0] + (*it)[1], dt_format);
-			else // first single col for date time
-				t = util::convert_to_dt((*it)[0] + (*it)[1], dt_format);
-			strat::tick tick1;
-			tick1.time_stamp = t;
-			tick1.last = boost::lexical_cast<double>((*it)[2]);
-			tick_vec.push_back(tick1);
+			//header
+			std::getline(file, line);
+
+			boost::posix_time::ptime t;
+			while (std::getline(file, line)) {
+
+				boost::tokenizer<boost::escaped_list_separator<char> > tk(
+					line, boost::escaped_list_separator<char>('\\', ',', '\"'));
+				int cols_i = 0;
+				int i = 0;
+				std::vector<std::string> row_vec;
+
+				for (boost::tokenizer<boost::escaped_list_separator<char>>::iterator it(tk.begin());
+					it != tk.end(); ++it)
+				{
+					if (cols_i >= cols_len) break;
+
+					if (cols_v[cols_i] == i++){
+						row_vec.push_back(*it);
+						cols_i++;
+					}
+				}
+
+				//TODO used alpari format, don't need to compatible with old format here
+				if (cols_len >= 3) // combine first two cols for date time
+					t = util::convert_to_dt(row_vec[0] + row_vec[1], dt_format);
+				else // first single col for date time
+					t = util::convert_to_dt(row_vec[0], dt_format);
+
+				if (t < start_date) continue;
+				if (t > end_date) break;
+
+				strat::tick tick1;
+				tick1.time_stamp = t;
+				if (cols_len >= 3)
+					tick1.last = boost::lexical_cast<double>(row_vec[2]);
+				else
+					tick1.last = boost::lexical_cast<double>(row_vec[1]);
+
+				tick_vec.push_back(tick1);
+			}
+
+			return 1;
+		}
+		catch (std::ifstream::failure e) {
+			//std::cerr << "Exception opening/reading/closing file\n";
+			throw;
+		}
+		catch (...) {
+			throw;
 		}
 
 		return 1;
@@ -131,6 +175,8 @@ public:
 		boost::property_tree::ptree pt;
 		boost::property_tree::ini_parser::read_ini(path, pt);
 		pt.put(section, value);
+
+		boost::property_tree::ini_parser::write_ini(path, pt);
 	}
 
 	static int delete_hist_tick(string path, int keep_days_no){

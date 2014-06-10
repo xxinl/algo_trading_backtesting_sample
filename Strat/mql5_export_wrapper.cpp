@@ -42,15 +42,19 @@ T read_ini(string section){
 	return util::read_ini<T>("c:/strat_ini/strat.ini", section);
 }
 
-void reset_algo_params(size_t algo_addr){
+void optimize(size_t algo_addr, const wchar_t* hist_tick_path, 
+	boost::posix_time::ptime start_date, boost::posix_time::ptime end_date){
+
+	//typedef strat::optimizable_algo_genetic<size_t, size_t, double> OPTIMIZER_TYPE;
+	typedef strat::event_long_short OPTIMIZER_TYPE;
 
 	strat::event_long_short* algo_p = reinterpret_cast<strat::event_long_short*>(algo_addr);
+	strat::optimizer_genetic<size_t, size_t, double> optimizer(convert_wchar_to_string(hist_tick_path), algo_p);
+	std::pair<double, std::tuple<size_t, size_t, double>> opti_params = optimizer.optimize(start_date, end_date);
 
-	algo_p->reset_params(
-		read_ini<size_t>("OPTI_PARAM.OBSERV"),
-		read_ini<size_t>("OPTI_PARAM.HOLD"),
-		read_ini<size_t>("OPTI_PARAM.SD")
-		);
+	write_ini("OPTI_PARAM.OBSERV", std::get<0>(opti_params.second));
+	write_ini("OPTI_PARAM.HOLD", std::get<1>(opti_params.second));
+	write_ini("OPTI_PARAM.SD", std::get<2>(opti_params.second));
 }
 
 #pragma endregion
@@ -99,16 +103,18 @@ int delete_algo(size_t algo_addr){
 //time eg.2013-11-25 23:50:00.000
 extern "C"	__declspec(dllexport)
 int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, double last, size_t volume,
-									double stop_loss, logger::callback callback_handler){
+									double stop_loss, bool* is_close_pos, logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
+
+	*is_close_pos = false;
 
 	string time_str = convert_wchar_to_string(time);
 	strat::algo* algo_p = reinterpret_cast<strat::algo*>(algo_addr);
 
 	LOG_SEV("process_tick algo:" << algo_addr << " time:" << time_str
 		<< " last:" << last << " sl:" << stop_loss, logger::debug);
-	//LOG_TICK(time_str, bid, ask, last, volume);
+	//LOG_TICK(time_str, ask, bid, last, volume);
 	
 	strat::signal sig = strat::signal::NONE;
 	strat::position close_pos;
@@ -136,31 +142,60 @@ int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, 
 
 	//close position signal
 	if (close_pos.type != strat::signal::NONE)
-		return 2;
+	{
+		LOG_POSITION(close_pos);
+		*is_close_pos = true;
+	}
 
 	return sig;
 }
 
 extern "C"	__declspec(dllexport)
-void optimize(size_t algo_addr, const wchar_t* hist_tick_path){
+void optimize(size_t algo_addr, const wchar_t* hist_tick_path, const wchar_t* start_date, const wchar_t* end_date,
+								logger::callback callback_handler){
 
-	typedef strat::optimizable_algo_genetic<size_t, size_t, double> OPTIMIZER_TYPE;
+	logger::on_callback = callback_handler;
+	
+	string start_time_str = convert_wchar_to_string(start_date);
+	string end_time_str = convert_wchar_to_string(end_date);
 
-	OPTIMIZER_TYPE* algo_p =reinterpret_cast<OPTIMIZER_TYPE*>(algo_addr);
-	strat::optimizer_genetic<size_t, size_t, double> optimizer(convert_wchar_to_string(hist_tick_path), algo_p);
-	std::pair<double, std::tuple<size_t, size_t, double>> opti_params = optimizer.optimize();
+	boost::posix_time::ptime start_time = boost::posix_time::time_from_string(start_time_str);
+	boost::posix_time::ptime end_time = boost::posix_time::time_from_string(end_time_str);
 
-	write_ini("OPTI_PARAM.OBSERV", std::get<0>(opti_params.second));
-	write_ini("OPTI_PARAM.HOLD", std::get<1>(opti_params.second));
-	write_ini("OPTI_PARAM.SD", std::get<2>(opti_params.second));
+	try{
+
+		optimize(algo_addr, hist_tick_path, start_time, end_time);
+	}
+	catch (std::exception& e){
+
+		LOG_SEV("optimize error: " << e.what(), logger::error);
+	}
 }
 
 extern "C"	__declspec(dllexport)
-int process_end_day(size_t algo_addr, const wchar_t* hist_tick_path, size_t keep_days_no){
+void reset_algo_params(size_t algo_addr){
+
+	strat::event_long_short* algo_p = reinterpret_cast<strat::event_long_short*>(algo_addr);
+
+	algo_p->reset_params(
+		read_ini<size_t>("OPTI_PARAM.OBSERV"),
+		read_ini<size_t>("OPTI_PARAM.HOLD"),
+		read_ini<double>("OPTI_PARAM.SD")
+		);
+}
+
+extern "C"	__declspec(dllexport)
+int process_end_day(size_t algo_addr, const wchar_t* hist_tick_path, size_t keep_days_no,
+											logger::callback callback_handler){
+
+	logger::on_callback = callback_handler;
 
 	util::delete_hist_tick(convert_wchar_to_string(hist_tick_path), keep_days_no);
 
-	optimize(algo_addr, hist_tick_path);
+	boost::posix_time::ptime end_time = boost::posix_time::second_clock::local_time();
+	boost::posix_time::ptime start_time = end_time - boost::posix_time::hours(keep_days_no * 24);
+
+	optimize(algo_addr, hist_tick_path, start_time, end_time);
 
 	reset_algo_params(algo_addr);
 

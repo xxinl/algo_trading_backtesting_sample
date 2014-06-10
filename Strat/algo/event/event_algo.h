@@ -25,6 +25,7 @@ namespace strat{
 		std::queue<boost::posix_time::ptime> _event_q;
 
 		std::list<strat::position> _closed_pos_hist;
+		
 
 		///return size of the event_q
 		size_t _push_obser_queue_if_event(tick crr_tick){
@@ -41,7 +42,8 @@ namespace strat{
 
 				_obser_tick_q.push(crr_tick);
 
-				LOG("observed at tick " << crr_tick.time_stamp);
+				if (!_is_log_off)
+					LOG("observed at tick " << crr_tick.time_stamp);
 
 				_event_q.pop();
 			}
@@ -63,7 +65,8 @@ namespace strat{
 			pos.type = type;
 			_positions.push_back(pos);
 
-			LOG("opened position at tick " << t.time_stamp);
+			if (!_is_log_off)
+				LOG("opened position at tick " << t.time_stamp);
 
 			return _positions.size();
 		}
@@ -72,7 +75,9 @@ namespace strat{
 
 			if (!_obser_tick_q.empty()){
 
-				LOG("removing observe " << _obser_tick_q.front().time_stamp);
+				if (!_is_log_off)
+					LOG("removing observe " << _obser_tick_q.front().time_stamp);
+
 				_obser_tick_q.pop();
 			}
 		}
@@ -85,7 +90,7 @@ namespace strat{
 			
 			if (event_f_path.empty()){
 				
-				LOG_SEV("passed in empty event path.",	logger::warning);
+				//LOG_SEV("passed in empty event path.",	logger::warning);
 				return 0;
 			}
 
@@ -205,10 +210,12 @@ namespace strat{
 
 			_event_q = event_q;
 
-			LOG(_event_q.size() << " events enqueued");
+			if (!_is_log_off)
+				LOG(_event_q.size() << " events enqueued");
 
 			return _event_q.size();
 		}
+
 		
 #pragma region properties gets
 

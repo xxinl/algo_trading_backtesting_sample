@@ -16,11 +16,13 @@ using std::string;
 namespace strat{
 
 	class algo {
-
+		
 	protected:
 		string _name;
 		const string _s_base;
 		const string _s_quote;
+
+		bool _is_log_off = false;
 
 		std::list<position> _positions;
 
@@ -31,14 +33,17 @@ namespace strat{
 			pos.type = type;
 			_positions.push_back(pos);
 
-			LOG("opened position at tick " << t.time_stamp);
+			if (!_is_log_off)
+				LOG("opened position at tick " << t.time_stamp);
 
 			return _positions.size();
 		}
 
 		std::list<position>::iterator _delete_position(std::list<position>::iterator it){
 
-			LOG("closing position at tick " << it->open_tick.time_stamp);
+			if (!_is_log_off)
+				LOG("closing position at tick " << it->open_tick.time_stamp);
+
 			return _positions.erase(it);
 		}
 
@@ -57,6 +62,13 @@ namespace strat{
 		std::list<position> get_positions() const{
 
 			return _positions;
+		}
+
+		bool toggle_log_switch(){
+
+			_is_log_off = !_is_log_off;
+
+			return _is_log_off;
 		}
 	};
 }

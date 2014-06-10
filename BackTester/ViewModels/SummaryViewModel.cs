@@ -1,10 +1,9 @@
-﻿using System.Windows.Media;
+﻿
 using GalaSoft.MvvmLight.Messaging;
 using OxyPlot;
 using OxyPlot.Axes;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using DateTimeAxis = OxyPlot.Axes.DateTimeAxis;
 using LinearAxis = OxyPlot.Axes.LinearAxis;
 using LineSeries = OxyPlot.Series.LineSeries;
@@ -109,7 +108,7 @@ namespace BackTester.ViewModels
     {
       var ls = new LineSeries
       {
-        StrokeThickness = 2,
+        StrokeThickness = 1,
         MarkerType = MarkerType.None,
         CanTrackerInterpolatePoints = false,
         Title = string.Format(title, index),
@@ -119,10 +118,12 @@ namespace BackTester.ViewModels
       model.Series.Add(ls);
     }
 
+    private const int UPDATE_EVERY_X_HOUR = 4;
     private void _updateSeries(PerformanceTick t)
     {
-      //only update graph each 4 hours
-      if (t.Time.Minute != 0 || t.Time.Hour % 4 != 0) return;
+      //only update graph each x hours
+      if (!t.IsBalanceUpdated && 
+        (t.Time.Minute != 0 || t.Time.Hour % UPDATE_EVERY_X_HOUR != 0)) return;
 
       _addPoint(PlotModelPer, 0, t.Time, t.Balance);
       _addPoint(PlotModelPer, 1, t.Time, t.Equity);

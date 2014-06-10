@@ -31,6 +31,8 @@ namespace strat{
 
 		virtual std::tuple<Params...> mutate(std::tuple<Params...> params) = 0;
 
+		virtual string print_params(std::tuple<Params...> params) = 0;
+
 		double calculate_fitness(const std::vector<tick>& ticks, std::tuple<Params...> params){
 			
 			std::shared_ptr<algo> algo_p = get_optimizable_algo(params);
@@ -43,7 +45,7 @@ namespace strat{
 
 				if (close_pos.type != signal::NONE){
 					
-					ttl_ret += close_pos.close_tick.last - close_pos.open_tick.last;
+					ttl_ret += (close_pos.type == signal::BUY ? 1 : -1) * (close_pos.close_tick.last - close_pos.open_tick.last);
 				}
 			}
 

@@ -112,6 +112,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="DebugInfo.cs" />
+    <Compile Include="PerformanceSummary.cs" />
     <Compile Include="TickProcessor.cs" />
     <Compile Include="ViewModels\SummaryViewModel.cs" />
     <Compile Include="Views\DebugInfoWin.xaml.cs">

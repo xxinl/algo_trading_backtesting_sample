@@ -1,5 +1,5 @@
 
-#ifdef _DEBUG1
+#ifdef _DEBUG
 
 #include "stdafx.h"
 #include "CppUnitTest.h"
@@ -10,6 +10,7 @@
 #include "logger.h"
 #include "indicator\sma.h"
 #include "trend.h"
+#include "optimizer\optimizer_genetic.h"
 
 #include <vector>
 #include <string>
@@ -70,7 +71,7 @@ namespace Strat
 		TEST_METHOD(util_read_tick_csv)
 		{
 			std::vector<strat::tick> tick_vec;
-			util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
+			//util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
 
 			size_t size = 2938;
 			Assert::AreEqual(tick_vec.size(), size);
@@ -87,7 +88,7 @@ namespace Strat
 				, 5, 15, 0.0003, true);
 
 			std::vector<strat::tick> tick_vec;
-			util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
+			//util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
 
 			strat::position close_pos;
 			std::queue<strat::tick> obser_q;
@@ -157,7 +158,7 @@ namespace Strat
 			pos.push_back(p);
 			pos.push_back(p);
 
-			LOG_POSITIONS(pos, 3, 3);
+			LOG_POSITIONS(pos);
 		}
 
 		//https://github.com/boostorg/log/blob/master/example/basic_usage/main.cpp
@@ -178,7 +179,7 @@ namespace Strat
 				, 5, 15, 0.0003, true);
 
 			std::vector<strat::tick> tick_vec;
-			util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
+			//util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
 
 			strat::position close_pos;
 			std::queue<strat::tick> obser_q;
@@ -257,7 +258,7 @@ namespace Strat
 				 5, 15, 0.0003, 15, 60);
 
 			std::vector<strat::tick> tick_vec;
-			util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
+			//util::read_tick_csv("../../test_files/EURUSD_min_11-24-2013.csv", tick_vec);
 
 			strat::position close_pos;
 			std::queue<strat::tick> obser_q;
@@ -358,6 +359,41 @@ namespace Strat
 		}
 
 #pragma endregion
+
+#pragma region optimizer
+
+		TEST_METHOD(long_short_optimize){
+		
+			typedef strat::event_long_short OPTIMIZER_TYPE;
+
+			strat::event_long_short* algo_p = new strat::event_long_short("eur", "usd", 
+				"C:/workspace/Strat/test_files/Calendar-Jan2013.csv", 7, 45, 0.0003);
+			strat::optimizer_genetic<size_t, size_t, double> optimizer(
+				"C:/workspace/Strat/test_files/EURUSD_2013_1min_alpari-Jan.csv", algo_p,
+				0.20f, 0.40f, 10, 10);
+
+			boost::posix_time::ptime start =
+				boost::posix_time::time_from_string(std::string("2013-01-08 00:00:00.000"));
+			boost::posix_time::ptime end =
+				boost::posix_time::time_from_string(std::string("2013-01-09 00:00:00.000"));
+			std::pair<double, std::tuple<size_t, size_t, double>> opti_params = optimizer.optimize(
+				start, end);
+
+			delete(algo_p);
+		}
+
+#pragma endregion optimizer
+
+		TEST_METHOD(write_read_ini){
+		
+			int i1 = rand(), i2 = rand();
+			util::write_ini("c:/strat_ini/strat_test.ini", "TEST.TEST1", i1);
+			util::write_ini("c:/strat_ini/strat_test.ini", "TEST.TEST2", i2);
+
+			Assert::AreEqual(util::read_ini<int>("c:/strat_ini/strat_test.ini", "TEST.TEST1"), i1);
+			Assert::AreEqual(util::read_ini<int>("c:/strat_ini/strat_test.ini", "TEST.TEST2"), i2);
+		}
+
 	};
 }
 

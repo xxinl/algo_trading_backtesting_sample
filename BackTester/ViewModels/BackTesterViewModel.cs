@@ -13,9 +13,6 @@ namespace BackTester.ViewModels
 {
   public class BackTesterViewModel : GalaSoft.MvvmLight.ViewModelBase
   {
-    [DllImport("strat.dll", EntryPoint = "test", CallingConvention = CallingConvention.Cdecl)]
-    private static extern double test(double ask);
-
     private CancellationTokenSource _cts;
     private DebugInfoWin _debugInfoWin;
     private SummaryWin _summaryWin;
@@ -96,7 +93,7 @@ namespace BackTester.ViewModels
       try {
 
         _setProgress();
-        using (AlgoService algo = new AlgoService(_onMessage))
+        using (AlgoService algo = new AlgoService(_onMessage, StartDate, TickFilePath))
         {
           await algo.Init(EventFilePath);
 
@@ -165,10 +162,11 @@ namespace BackTester.ViewModels
           if (ct.IsCancellationRequested == true)
           {
             ct.ThrowIfCancellationRequested();
-          } 
+          }
 
-          var signal = algo.OnTick(ticks[i]);
-          tickPro.OnTick(ticks[i], signal);
+          bool isClosePos = false;
+          var signal = algo.OnTick(ticks[i], out isClosePos);
+          tickPro.OnTick(ticks[i], signal, isClosePos);
 
           _setProgress(i * 100 / ticks.Count);
         }

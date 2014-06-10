@@ -113,7 +113,7 @@ namespace strat{
 			return std::make_tuple(
 				obser,
 				_rand_from_range(obser, 360),
-				_rand_from_range(1, 3) * 0.0003
+				_rand_from_range(1, 5) * 0.00015
 				);
 		}
 
@@ -121,7 +121,15 @@ namespace strat{
 
 			std::vector<CITIZEN_TYPE> population;
 
-			for (int i = 0; i < population_size; i++){
+			//add current parameters
+			population.push_back(std::make_pair(0, 
+				std::make_tuple(
+					_obser_win,
+					_hold_win,
+					_run_sd
+				)));
+
+			for (int i = 0; i < population_size - 1; i++){
 
 				CITIZEN_TYPE citizen = 
 					std::make_pair<double, std::tuple<size_t, size_t, double>>(0, get_random_citizen());
@@ -136,7 +144,11 @@ namespace strat{
 			event_long_short* ret_algo = new event_long_short(_s_base, _s_quote,
 				"", std::get<0>(params), std::get<1>(params), std::get<2>(params));
 
-			std::queue<boost::posix_time::ptime> event_q(ret_algo->get_event_queue());
+			std::queue<boost::posix_time::ptime> event_q(get_event_queue());
+
+			//disable logging for open and close position/oberv
+			ret_algo->toggle_log_switch();
+			
 			ret_algo->load_event(event_q);
 
 			std::shared_ptr<algo> casted_ret = std::make_shared<event_long_short>(*ret_algo);
@@ -175,6 +187,13 @@ namespace strat{
 			}
 
 			return ret;
+		}
+
+		string print_params(std::tuple<size_t, size_t, double> params) override{
+			
+			return static_cast<std::ostringstream&>(std::ostringstream().flush() <<
+				"obser:" << std::get<0>(params) << " hold:" << std::get<1>(params) << " sd:" << std::get<2>(params)
+				).str();
 		}
 
 #pragma endregion

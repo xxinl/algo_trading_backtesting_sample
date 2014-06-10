@@ -1,6 +1,5 @@
 ﻿using GalaSoft.MvvmLight.Messaging;
 using System;
-using System.Collections.Generic;
 using GalaSoft.MvvmLight.Threading;
 
 namespace BackTester
@@ -13,65 +12,71 @@ namespace BackTester
 
     private double _posOpenRate = -1;
     private int? _currPosSignal = null;
-
-    private List<PerformanceTick> _perTicks;
+    
+    public PerformanceSummary _performanceSummary;
 
     public TickProcessor(int leverage, double startBalance) {
 
       _leverage = leverage;
       _balance = startBalance;
 
-      _perTicks = new List<PerformanceTick>();
+      _performanceSummary = new PerformanceSummary();
     }
 
-    public void OnTick(Tick tick, int signal) {
-
+    public void OnTick(Tick tick, int signal, bool isClosePos)
+    {
       PerformanceTick pTick = new PerformanceTick()
-      {
-        Time = tick.Time,
-        Last = tick.Last,
-        Balance = _balance,
-        Equity = _balance
-      };
+                              {
+                                Time = tick.Time,
+                                Last = tick.Last,
+                                Balance = _balance,
+                                Equity = _balance,
+                                IsBalanceUpdated = false
+                              };
 
-      if (Math.Abs(signal) == 1)
+      if (_currPosSignal.HasValue)
       {
-        _posOpenRate = signal == 1 ? tick.Ask : tick.Bid;
-        _currPosSignal = signal;
+        double profit = _calcProfit(_currPosSignal.Value, _lotSize, _posOpenRate,
+          _currPosSignal == -1 ? tick.Ask : tick.Bid);
+        double margin = _lotSize/(_currPosSignal == 1 ? _posOpenRate : 1)/_leverage;
 
-        var margin = _lotSize / (signal == 1 ? _posOpenRate : 1) / _leverage;
-        pTick.Equity = _balance;
-        _balance = _balance - margin;
-        pTick.Balance = _balance;
+        var equityOnTick = _balance + profit + margin;
+        pTick.Equity = equityOnTick;
+
+        //close current position
+        if (isClosePos)
+        {
+          _balance = equityOnTick;
+          pTick.Balance = _balance;
+          pTick.IsBalanceUpdated = true;
+          _currPosSignal = null;
+
+          _performanceSummary.Profit += profit;
+          if (profit >= 0) _performanceSummary.NoWinPos++;
+          else _performanceSummary.NoLossPos++;
+        }
       }
       else
       {
-        if(_currPosSignal != null)
+        //open new position
+        if (Math.Abs(signal) == 1)
         {
-          var profit = _calcProfit(_currPosSignal.Value, _lotSize, _posOpenRate, _currPosSignal == -1 ? tick.Ask : tick.Bid);
-          var margin = _lotSize / (_currPosSignal == 1 ? _posOpenRate : 1) / _leverage;
+          _posOpenRate = signal == 1 ? tick.Ask : tick.Bid;
+          _currPosSignal = signal;
 
-          if (signal == 2)
-          {
-            _balance = _balance + profit + margin;
-            pTick.Equity = _balance;
-            pTick.Balance = _balance;
-            _currPosSignal = null;
-          }
-          else
-            pTick.Equity = _balance + profit + margin;
+          double margin = _lotSize/(_currPosSignal == 1 ? _posOpenRate : 1)/_leverage;
+          _balance = _balance - margin;
+          pTick.Balance = _balance;
         }
       }
 
       DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(pTick));
-      
-      _perTicks.Add(pTick);
     }
 
     //assume home cuurency is quote currency
     private double _calcProfit(int signal, int lot, double openRate, double closeRate)
     {
-      return signal * (closeRate - openRate) * lot / (signal == 1 ? closeRate : 1);
+      return (signal * (closeRate - openRate) * lot) / (signal == 1 ? closeRate : 1);
     }
   }
 }

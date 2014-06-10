@@ -157,8 +157,7 @@
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;C:\Boost\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>copy $(SolutionDir)$(Platform)\$(Configuration)\*.* $(SolutionDir)$(Platform)\Debug\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
