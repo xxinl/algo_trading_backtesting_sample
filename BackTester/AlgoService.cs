@@ -25,6 +25,7 @@ namespace BackTester
     [DllImport("strat.dll", EntryPoint = "optimize", CallingConvention = CallingConvention.Cdecl,
       CharSet = CharSet.Unicode)]
     private static extern void _optimize(IntPtr algo_addr, string path, string start_date, string end_date,
+      IntPtr max_iteration, IntPtr population_size,
       _callback _callbackInstance);
 
     //[DllImport("strat.dll", EntryPoint = "process_end_day", CallingConvention = CallingConvention.Cdecl,
@@ -49,17 +50,22 @@ namespace BackTester
     private string _eventFilePath;
     private DateTime _lastOptimizeDate;
     private string _tickFilePath;
+    //private DateTime _startDate;
+    private bool _withOptimizer;
 
     public AlgoService(Action<DebugInfo> callbackInstance, string tickFilePath)
-      : this(callbackInstance, DateTime.MinValue, tickFilePath)
+      : this(callbackInstance, DateTime.MinValue, tickFilePath, false)
     {
     }
 
-    public AlgoService(Action<DebugInfo> callbackInstance, DateTime startDate, string tickFilePath)
+    public AlgoService(Action<DebugInfo> callbackInstance, DateTime startDate, string tickFilePath,
+      bool withOptimizer)
     {
       _uiCallbackAction = callbackInstance;
       _lastOptimizeDate = startDate.Date;
       _tickFilePath = tickFilePath;
+      //_startDate = startDate.Date;
+      _withOptimizer = withOptimizer;
 
       _callbackInstance = (msg, sev) =>
       {
@@ -80,7 +86,7 @@ namespace BackTester
     //todo stop loss
     public int OnTick(Tick t, out bool isClosePos)
     {
-      if (t.Time.Date.AddDays(0 - OPTIMIZE_INTERVAL) > _lastOptimizeDate)
+      if (_withOptimizer && t.Time.Date.AddDays(0 - OPTIMIZE_INTERVAL) > _lastOptimizeDate)
       {
         Optimize(t.Time.Date).Wait();
 
@@ -93,23 +99,25 @@ namespace BackTester
         _callbackInstance);
     }
 
-    public async Task Optimize(DateTime tickDate)
+    public async Task Optimize(DateTime tickDate, int backNoofDays = 30, 
+      int maxIteration = 8, int populationSize = 32)
     {
       using (AlgoService optiAlgo = new AlgoService(_uiCallbackAction, _tickFilePath))
       {
         await optiAlgo.Init(_eventFilePath);
 
-        await optiAlgo.OptimizeExecute(tickDate);
+        await optiAlgo.OptimizeExecute(tickDate, backNoofDays, maxIteration, populationSize);
       }
     }
 
-    public async Task OptimizeExecute(DateTime tickDate)
+    public async Task OptimizeExecute(DateTime tickDate, int backNoofDays, int maxIteration, int populationSize)
     {
       await Task.Run(() =>
                      {
-                       string startDateStr = tickDate.AddDays(-5).ToString("yyyy.MM.dd HH:mm");
+                       string startDateStr = tickDate.AddDays(0-backNoofDays).ToString("yyyy.MM.dd HH:mm");
                        string endDateStr = tickDate.ToString("yyyy.MM.dd HH:mm");
-                       _optimize(_algo_p, _tickFilePath, startDateStr, endDateStr, _callbackInstance);
+                       _optimize(_algo_p, _tickFilePath, startDateStr, endDateStr,
+                         (IntPtr)maxIteration, (IntPtr)populationSize, _callbackInstance);
                      });
     }
 

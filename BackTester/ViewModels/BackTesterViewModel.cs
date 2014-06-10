@@ -27,6 +27,7 @@ namespace BackTester.ViewModels
     public string EventFilePath { get; set; }
     public int Leverage { get; set; }
     public double StartBalance { get; set; }
+    public bool RunTestWithOptimizer { get; set; }
 
     #endregion input properties
 
@@ -53,6 +54,7 @@ namespace BackTester.ViewModels
     }
 
     public RelayCommand RunTestCommand { get; private set; }
+    public RelayCommand RunOptimizeCommand { get; private set; }
 
     #endregion properties
     
@@ -66,6 +68,7 @@ namespace BackTester.ViewModels
       RunState = "Run";
       Leverage = 500;
       StartBalance = 500;
+      RunTestWithOptimizer = true;
 
       RunTestCommand = new RelayCommand(async () => {
         if (IsBusy)
@@ -75,6 +78,12 @@ namespace BackTester.ViewModels
           _cts = new CancellationTokenSource();
           await _runTest(_cts.Token);
         }
+      });
+
+      RunOptimizeCommand = new RelayCommand(async () =>
+      {
+        _cts = new CancellationTokenSource();
+        await _runOptimize(_cts.Token);
       });
     }
 
@@ -93,7 +102,7 @@ namespace BackTester.ViewModels
       try {
 
         _setProgress();
-        using (AlgoService algo = new AlgoService(_onMessage, StartDate, TickFilePath))
+        using (AlgoService algo = new AlgoService(_onMessage, StartDate, TickFilePath, RunTestWithOptimizer))
         {
           await algo.Init(EventFilePath);
 
@@ -171,6 +180,43 @@ namespace BackTester.ViewModels
           _setProgress(i * 100 / ticks.Count);
         }
       }, ct);
+    }
+
+    private async Task _runOptimize(CancellationToken ct)
+    {
+      IsBusy = true;
+
+      if (_summaryWin == null || !_summaryWin.IsLoaded)
+      {
+        _summaryWin = new SummaryWin();
+        _summaryWin.Show();
+      }
+
+      try
+      {
+        _setProgress();
+        using (AlgoService algo = new AlgoService(_onMessage, StartDate, TickFilePath, RunTestWithOptimizer))
+        {
+          await algo.Init(EventFilePath);
+
+          int backNoDays = Convert.ToInt32((EndDate.Date - StartDate.Date).TotalDays);
+          await algo.Optimize(EndDate, backNoDays, 32, 128);
+        }
+      }
+      catch (OperationCanceledException)
+      {
+        //
+      }
+      catch (Exception e)
+      {
+
+        throw;
+      }
+      finally
+      {
+
+        IsBusy = false;
+      }
     }
   }
 }

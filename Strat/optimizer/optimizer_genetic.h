@@ -97,7 +97,7 @@ namespace strat{
 
 	public:
 		optimizer_genetic(string hist_ticks_f_path, optimizable_algo_genetic<Params...>* opti_algo,
-			double elit_rate = 0.20f, double mutation_rate = 0.40f, int max_iteration = 128, int population_size = 128) :
+			double elit_rate = 0.20f, double mutation_rate = 0.40f, int max_iteration = 16, int population_size = 64) :
 			_opti_algo(opti_algo), _elit_size(elit_rate * population_size), _mutation_rate(mutation_rate * 100), 
 			_max_iteration(max_iteration), _population_size(population_size), _hist_ticks_f_path(hist_ticks_f_path){}
 

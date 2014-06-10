@@ -100,6 +100,8 @@ namespace strat{
 			_obser_win = obser_win;
 			_hold_win = hold_win;
 			_run_sd = run_sd;
+
+			LOG("reset param obser:" << _obser_win << " hold:" << _hold_win << " sd:" << _run_sd);
 		}
 		
 

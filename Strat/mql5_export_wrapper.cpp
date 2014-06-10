@@ -43,13 +43,17 @@ T read_ini(string section){
 }
 
 void optimize(size_t algo_addr, const wchar_t* hist_tick_path, 
-	boost::posix_time::ptime start_date, boost::posix_time::ptime end_date){
+	boost::posix_time::ptime start_date, boost::posix_time::ptime end_date,
+	size_t max_iteration, size_t population_size){
+
+	srand((unsigned int)time(NULL));
 
 	//typedef strat::optimizable_algo_genetic<size_t, size_t, double> OPTIMIZER_TYPE;
 	typedef strat::event_long_short OPTIMIZER_TYPE;
 
 	strat::event_long_short* algo_p = reinterpret_cast<strat::event_long_short*>(algo_addr);
-	strat::optimizer_genetic<size_t, size_t, double> optimizer(convert_wchar_to_string(hist_tick_path), algo_p);
+	strat::optimizer_genetic<size_t, size_t, double> optimizer(
+		convert_wchar_to_string(hist_tick_path), algo_p, 0.2f, 0.4f, max_iteration, population_size);
 	std::pair<double, std::tuple<size_t, size_t, double>> opti_params = optimizer.optimize(start_date, end_date);
 
 	write_ini("OPTI_PARAM.OBSERV", std::get<0>(opti_params.second));
@@ -152,6 +156,7 @@ int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, 
 
 extern "C"	__declspec(dllexport)
 void optimize(size_t algo_addr, const wchar_t* hist_tick_path, const wchar_t* start_date, const wchar_t* end_date,
+								size_t max_iteration, size_t population_size,
 								logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
@@ -164,7 +169,7 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path, const wchar_t* st
 
 	try{
 
-		optimize(algo_addr, hist_tick_path, start_time, end_time);
+		optimize(algo_addr, hist_tick_path, start_time, end_time, max_iteration, population_size);
 	}
 	catch (std::exception& e){
 
@@ -186,7 +191,7 @@ void reset_algo_params(size_t algo_addr){
 
 extern "C"	__declspec(dllexport)
 int process_end_day(size_t algo_addr, const wchar_t* hist_tick_path, size_t keep_days_no,
-											logger::callback callback_handler){
+		logger::callback callback_handler, size_t max_iteration, size_t population_size){
 
 	logger::on_callback = callback_handler;
 
@@ -195,7 +200,7 @@ int process_end_day(size_t algo_addr, const wchar_t* hist_tick_path, size_t keep
 	boost::posix_time::ptime end_time = boost::posix_time::second_clock::local_time();
 	boost::posix_time::ptime start_time = end_time - boost::posix_time::hours(keep_days_no * 24);
 
-	optimize(algo_addr, hist_tick_path, start_time, end_time);
+	optimize(algo_addr, hist_tick_path, start_time, end_time, max_iteration, population_size);
 
 	reset_algo_params(algo_addr);
 
