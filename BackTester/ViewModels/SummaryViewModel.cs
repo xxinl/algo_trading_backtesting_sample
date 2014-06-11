@@ -4,6 +4,7 @@ using OxyPlot;
 using OxyPlot.Axes;
 using System;
 using System.Collections.Generic;
+using OxyPlot.Series;
 using DateTimeAxis = OxyPlot.Axes.DateTimeAxis;
 using LinearAxis = OxyPlot.Axes.LinearAxis;
 using LineSeries = OxyPlot.Series.LineSeries;
@@ -12,15 +13,6 @@ namespace BackTester.ViewModels
 {
   public class SummaryViewModel : GalaSoft.MvvmLight.ViewModelBase
   {
-    private readonly List<OxyColor> _colors = new List<OxyColor>
-                                            {
-                                                OxyColors.Green,
-                                                OxyColors.IndianRed,
-                                                OxyColors.Coral,
-                                                OxyColors.Chartreuse,
-                                                OxyColors.Azure
-                                            };
-
     private PlotModel _plotModelPer;
     public PlotModel PlotModelPer
     {
@@ -33,18 +25,30 @@ namespace BackTester.ViewModels
     }
 
     private PlotModel _plotModelTick;
+    private PerformanceSummary _performanceSummary;
+
     public PlotModel PlotModelTick
     {
       get { return _plotModelTick; }
       set { _plotModelTick = value; RaisePropertyChanged(() => this.PlotModelTick); }
     }
-    
+
+    public PerformanceSummary PerformanceSummary
+    {
+      get { return _performanceSummary; }
+      set
+      {
+        _performanceSummary = value;
+        this.RaisePropertyChanged(()=>this.PerformanceSummary);
+      }
+    }
 
     public SummaryViewModel() {
       
       _setUpModel();
 
       Messenger.Default.Register<PerformanceTick>(this, _updateSeries);
+      Messenger.Default.Register<PerformanceSummary>(this, (summary) => PerformanceSummary = summary);
     }
 
     private void _setUpModel()
@@ -64,7 +68,7 @@ namespace BackTester.ViewModels
                                MinorGridlineStyle = LineStyle.Dot,
                                IntervalLength = 30,
                                Position = AxisPosition.Bottom,
-                               StringFormat = "MM/dd"
+                               StringFormat = "dd/MM"
                              });
 
       _plotModelPer.Axes.Add(new LinearAxis()
@@ -102,6 +106,9 @@ namespace BackTester.ViewModels
       AddLineSeries(_plotModelPer, 0, "bal");
       AddLineSeries(_plotModelPer, 1, "eq");
       AddLineSeries(_plotModelTick, 0, "t");
+
+      var ss = new ScatterSeries {MarkerSize = 3};
+      _plotModelTick.Series.Add(ss);
     }
 
     private void AddLineSeries(PlotModel model, int index, string title)
@@ -128,6 +135,16 @@ namespace BackTester.ViewModels
       _addPoint(PlotModelPer, 0, t.Time, t.Balance);
       _addPoint(PlotModelPer, 1, t.Time, t.Equity);
       _addPoint(PlotModelTick, 0, t.Time, t.Last);
+
+      if (Math.Abs(t.Signal) == 1)
+      {
+        var ss = PlotModelTick.Series[1] as ScatterSeries;
+        if (ss != null)
+        {
+          var dp = new ScatterPoint(DateTimeAxis.ToDouble(t.Time), t.Last, 3, t.Signal);
+          ss.Points.Add(dp);
+        }
+      }
     }
 
     private void _addPoint(PlotModel model, int index, DateTime time, double value)

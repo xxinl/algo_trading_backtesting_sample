@@ -16,6 +16,8 @@ implementation: fixed observe period to observe the volatitly and fixed hold per
 
 #include <boost/date_time.hpp>
 
+#include <concurrent_vector.h>
+
 using std::string;
 
 namespace strat{
@@ -36,6 +38,9 @@ namespace strat{
 			//assumption: only one event exist at any particular time(min), 
 			//	therefore only one signal will be returned here. ie. not signal conflict
 			if (!_obser_tick_q.empty()){
+
+				//only one position allow to open at anytime i.e. no hedging
+				if (_positions.size() > 0) return signal::NONE;
 
 				tick front_tick = _obser_tick_q.front();
 				if (crr_tick.time_stamp >= front_tick.time_stamp + boost::posix_time::minutes(_obser_win)){
@@ -119,9 +124,9 @@ namespace strat{
 				);
 		}
 
-		std::vector<CITIZEN_TYPE>	init_optimization_population(int population_size) override{
+		concurrency::concurrent_vector<CITIZEN_TYPE> init_optimization_population(int population_size) override{
 
-			std::vector<CITIZEN_TYPE> population;
+			concurrency::concurrent_vector<CITIZEN_TYPE> population;
 
 			//add current parameters
 			population.push_back(std::make_pair(0, 
@@ -196,6 +201,40 @@ namespace strat{
 			return static_cast<std::ostringstream&>(std::ostringstream().flush() <<
 				"obser:" << std::get<0>(params) << " hold:" << std::get<1>(params) << " sd:" << std::get<2>(params)
 				).str();
+		}
+
+		void remove_non_important_ticks(std::vector<tick>& ticks) override{
+
+			LOG("optimizer deleting non important sample ticks");
+
+			std::queue<boost::posix_time::ptime> temp_event_q(get_event_queue());
+			boost::posix_time::ptime next_event_t = temp_event_q.front();
+			boost::posix_time::ptime last_event_t = temp_event_q.front();
+
+			for (std::vector<tick>::iterator it = ticks.begin(); it != ticks.end();){
+
+				if (next_event_t > it->time_stamp &&
+					last_event_t + boost::posix_time::hours(7) < it->time_stamp){
+
+					it = ticks.erase(it);
+				}
+				else {
+					
+					if (next_event_t < it->time_stamp){
+
+						last_event_t = next_event_t;
+						if (!temp_event_q.empty()){
+
+							temp_event_q.pop();
+
+							if(!temp_event_q.empty())
+								next_event_t = temp_event_q.front();
+						}
+					}
+
+					++it;
+				}
+			}
 		}
 
 #pragma endregion

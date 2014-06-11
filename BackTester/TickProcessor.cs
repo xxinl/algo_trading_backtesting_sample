@@ -1,4 +1,7 @@
-﻿using GalaSoft.MvvmLight.Messaging;
+﻿
+using System.Collections.Generic;
+using System.Linq;
+using GalaSoft.MvvmLight.Messaging;
 using System;
 using GalaSoft.MvvmLight.Threading;
 
@@ -12,8 +15,10 @@ namespace BackTester
 
     private double _posOpenRate = -1;
     private int? _currPosSignal = null;
-    
+
+    private List<double> _profits;
     public PerformanceSummary _performanceSummary;
+
 
     public TickProcessor(int leverage, double startBalance) {
 
@@ -21,6 +26,7 @@ namespace BackTester
       _balance = startBalance;
 
       _performanceSummary = new PerformanceSummary();
+      _profits = new List<double>();
     }
 
     public void OnTick(Tick tick, int signal, bool isClosePos)
@@ -31,7 +37,8 @@ namespace BackTester
                                 Last = tick.Last,
                                 Balance = _balance,
                                 Equity = _balance,
-                                IsBalanceUpdated = false
+                                IsBalanceUpdated = false,
+                                Signal = signal
                               };
 
       if (_currPosSignal.HasValue)
@@ -49,11 +56,12 @@ namespace BackTester
           _balance = equityOnTick;
           pTick.Balance = _balance;
           pTick.IsBalanceUpdated = true;
-          _currPosSignal = null;
 
-          _performanceSummary.Profit += profit;
-          if (profit >= 0) _performanceSummary.NoWinPos++;
-          else _performanceSummary.NoLossPos++;
+          _profits.Add(profit);
+          _updatePerformanceSummary(profit);
+          DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(_performanceSummary));
+
+          _currPosSignal = null;
         }
       }
       else
@@ -67,6 +75,7 @@ namespace BackTester
           double margin = _lotSize/(_currPosSignal == 1 ? _posOpenRate : 1)/_leverage;
           _balance = _balance - margin;
           pTick.Balance = _balance;
+          pTick.IsBalanceUpdated = true;
         }
       }
 
@@ -77,6 +86,30 @@ namespace BackTester
     private double _calcProfit(int signal, int lot, double openRate, double closeRate)
     {
       return (signal * (closeRate - openRate) * lot) / (signal == 1 ? closeRate : 1);
+    }
+
+    private void _updatePerformanceSummary(double profit)
+    {
+      _performanceSummary.Profit += profit;
+      if (profit >= 0)
+      {
+        _performanceSummary.NoWinPos++;
+        if (_currPosSignal.Value == 1)
+          _performanceSummary.NoWinLong++;
+        else
+          _performanceSummary.NoWinShort++;
+      }
+      else
+        _performanceSummary.NoLossPos++;
+
+      _performanceSummary.SharpeR = _calcSharpe();
+    }
+
+    private double _calcSharpe()
+    {
+      double avg = _profits.Average();
+      double sum = _profits.Sum(d => Math.Pow(d - avg, 2));
+      return avg / Math.Sqrt(sum / _profits.Count());
     }
   }
 }

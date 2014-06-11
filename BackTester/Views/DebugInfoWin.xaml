@@ -5,9 +5,6 @@
         DataContext="{Binding MessageWin, Source={StaticResource Locator}}">
     <Grid>
     <DockPanel>
-      <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right">
-        <CheckBox Content="debug" Margin="0,0,5,0" IsChecked="{Binding IsDisplayDebug, Mode=TwoWay}" />
-      </StackPanel>
       <ScrollViewer>
         <TextBlock Text="{Binding Message, Mode=OneWay}" />
       </ScrollViewer>

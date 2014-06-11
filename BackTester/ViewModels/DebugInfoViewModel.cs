@@ -5,8 +5,6 @@ namespace BackTester.ViewModels
 {
   public class DebugInfoViewModel : GalaSoft.MvvmLight.ViewModelBase
   {
-    public bool IsDisplayDebug { get; set; }
-
     private string _message;
     public string Message {
       get { return _message; }
@@ -15,7 +13,6 @@ namespace BackTester.ViewModels
 
     public DebugInfoViewModel() {
 
-      IsDisplayDebug = false;
 
       Messenger.Default.Register<DebugInfo>(this, (info) =>
       {

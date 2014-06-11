@@ -26,5 +26,7 @@ namespace BackTester
     public double Equity;
 
     public bool IsBalanceUpdated;
+
+    public int Signal;
   }
 }

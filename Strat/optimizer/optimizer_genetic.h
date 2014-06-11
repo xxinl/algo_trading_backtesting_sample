@@ -12,6 +12,7 @@
 #include <algorithm>
 
 #include <ppl.h>
+#include <concurrent_vector.h>
 
 #include <boost/date_time.hpp>
 
@@ -32,12 +33,14 @@ namespace strat{
 
 		typedef std::pair<double, std::tuple<Params...>> CITIZEN_TYPE;
 
-		std::vector<CITIZEN_TYPE> _population;
-		std::vector<CITIZEN_TYPE> _next_generation;
+		concurrency::concurrent_vector<CITIZEN_TYPE> _population;
+		concurrency::concurrent_vector<CITIZEN_TYPE> _next_generation;
 
 		std::vector<tick> read_sample_ticks(string hist_ticks_f_path, 
 			boost::posix_time::ptime start_date, boost::posix_time::ptime end_date){
 		
+			LOG("optimizer reading sample ticks");
+
 			std::vector<tick> ticks;
 			std::vector<int> cols_v{ 0, 3 };
 
@@ -60,7 +63,7 @@ namespace strat{
 		}
 
 		void calc_population_fitness(size_t start_i, const std::vector<tick>& ticks,
-			std::vector<CITIZEN_TYPE>& population, optimizable_algo_genetic<Params...>* opti_algo){
+			concurrency::concurrent_vector<CITIZEN_TYPE>& population, optimizable_algo_genetic<Params...>* opti_algo){
 			
 			concurrency::parallel_for(size_t(start_i), size_t(_population_size) - 1,
 				[&ticks, &population, &opti_algo](int i){
@@ -99,11 +102,15 @@ namespace strat{
 		optimizer_genetic(string hist_ticks_f_path, optimizable_algo_genetic<Params...>* opti_algo,
 			double elit_rate = 0.20f, double mutation_rate = 0.40f, int max_iteration = 16, int population_size = 64) :
 			_opti_algo(opti_algo), _elit_size(elit_rate * population_size), _mutation_rate(mutation_rate * 100), 
-			_max_iteration(max_iteration), _population_size(population_size), _hist_ticks_f_path(hist_ticks_f_path){}
+			_max_iteration(max_iteration), _population_size(population_size), _hist_ticks_f_path(hist_ticks_f_path){
+		
+			LOG("optimizer starting iteration:" << max_iteration << " population:" << population_size);
+		}
 
 		CITIZEN_TYPE optimize(boost::posix_time::ptime start_date, boost::posix_time::ptime end_date){
 
 			std::vector<tick> ticks = read_sample_ticks(_hist_ticks_f_path, start_date, end_date);
+			_opti_algo->remove_non_important_ticks(ticks);
 
 			init_population();
 			calc_population_fitness(0, ticks, _population, _opti_algo);

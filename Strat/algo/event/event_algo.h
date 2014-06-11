@@ -42,8 +42,7 @@ namespace strat{
 
 				_obser_tick_q.push(crr_tick);
 
-				if (!_is_log_off)
-					LOG("observed at tick " << crr_tick.time_stamp);
+				LOG_SEV("observed at tick " << crr_tick.time_stamp, logger::debug);
 
 				_event_q.pop();
 			}
@@ -75,8 +74,7 @@ namespace strat{
 
 			if (!_obser_tick_q.empty()){
 
-				if (!_is_log_off)
-					LOG("removing observe " << _obser_tick_q.front().time_stamp);
+				LOG_SEV("removing observe " << _obser_tick_q.front().time_stamp, logger::debug);
 
 				_obser_tick_q.pop();
 			}
@@ -158,8 +156,8 @@ namespace strat{
 			string event_f_path, size_t obser_win, size_t hold_win, double run_sd = 0.0003) :
 			algo(s_base, s_quote), _obser_win(obser_win), _hold_win(hold_win), _run_sd(run_sd){
 			
-			LOG("constructing event_algo. base:" << s_base << " quote:" << s_quote << 
-				" obser: " << obser_win << " hold : " << hold_win << " sd : " << run_sd);
+			LOG_SEV("constructing event_algo. base:" << s_base << " quote:" << s_quote << 
+				" obser: " << obser_win << " hold : " << hold_win << " sd : " << run_sd, logger::debug);
 
 			_load_event(event_f_path, std::vector<int>{ 0, 1, 3, 5 });
 		};

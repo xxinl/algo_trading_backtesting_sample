@@ -6,6 +6,8 @@
 #include <vector>
 #include <tuple>  
 
+#include <concurrent_vector.h>
+
 using std::string;
 
 namespace strat{
@@ -23,7 +25,7 @@ namespace strat{
 		optimizable_algo_genetic(){}
 		virtual ~optimizable_algo_genetic(){};
 
-		virtual std::vector<std::pair<double, std::tuple<Params...>>> init_optimization_population(int population_size) = 0;
+		virtual concurrency::concurrent_vector<std::pair<double, std::tuple<Params...>>> init_optimization_population(int population_size) = 0;
 
 		virtual std::shared_ptr<algo> get_optimizable_algo(std::tuple<Params...>) = 0;
 
@@ -32,6 +34,8 @@ namespace strat{
 		virtual std::tuple<Params...> mutate(std::tuple<Params...> params) = 0;
 
 		virtual string print_params(std::tuple<Params...> params) = 0;
+
+		virtual void remove_non_important_ticks(std::vector<tick>& ticks) = 0;
 
 		double calculate_fitness(const std::vector<tick>& ticks, std::tuple<Params...> params){
 			

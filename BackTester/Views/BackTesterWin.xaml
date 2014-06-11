@@ -1,7 +1,7 @@
 ﻿<Window x:Class="BackTester.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="" Height="250" Width="400"
+        Title="" Height="260" Width="400"
         DataContext="{Binding BackTester, Source={StaticResource Locator}}">
   <Grid>
     <DockPanel>
@@ -26,7 +26,14 @@
           <DatePicker SelectedDate="{Binding EndDate, Mode=TwoWay}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-          <CheckBox Content="with optimizer" IsChecked="{Binding RunTestWithOptimizer, Mode=TwoWay}" />
+          <Label Content="obser:" /><TextBox Text="{Binding ObserWin, Mode=TwoWay}" />
+          <Label Content="hold:" /><TextBox Text="{Binding HoldWin, Mode=TwoWay}" />
+          <Label Content="sd:" /><TextBox Text="{Binding Sd, Mode=TwoWay}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+          <CheckBox Content="with optimizer" VerticalAlignment="Center"
+                    IsChecked="{Binding RunTestWithOptimizer, Mode=TwoWay}" />
+          <Label Content="optimize interval(days):" /><TextBox Text="{Binding OptimizeInterval, Mode=TwoWay}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,5,10,0" HorizontalAlignment="Right">
           <Button Content="{Binding RunState, Mode=OneWay}" Command="{Binding RunTestCommand}" />

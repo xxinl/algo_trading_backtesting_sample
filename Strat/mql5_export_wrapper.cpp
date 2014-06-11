@@ -68,16 +68,20 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path,
 // base/quote has to be lower case
 extern "C"	__declspec(dllexport)
 size_t get_algo(const wchar_t* base, const wchar_t* quote, const wchar_t* path, 
+									size_t obser_win, size_t hold_win, double run_sd,
 									logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
 	strat::event_algo* ret_p = nullptr;
 
+	string base_str = convert_wchar_to_string(base);
+	string quote_str = convert_wchar_to_string(quote);
+
 	try{
 
 		ret_p = new strat::event_long_short(
-			convert_wchar_to_string(base), convert_wchar_to_string(quote), convert_wchar_to_string(path),
-			7, 45, 0.0003);
+			base_str, quote_str, convert_wchar_to_string(path),
+			obser_win, hold_win, run_sd);
 	
 		//ret_p = new strat::event_algo_ma(
 		//	convert_wchar_to_string(base), convert_wchar_to_string(quote), convert_wchar_to_string(path),
@@ -88,11 +92,13 @@ size_t get_algo(const wchar_t* base, const wchar_t* quote, const wchar_t* path,
 		LOG_SEV("get_algo error: " << e.what(), logger::error);
 	}
 
-	size_t ret_add = reinterpret_cast<size_t>(ret_p);
+	size_t ret_addr = reinterpret_cast<size_t>(ret_p);
 
-	LOG_SEV("get_algo return pointer adreess:" << ret_add, logger::debug);
+	LOG("get_algo constructing event_algo. base:" << base_str << " quote:" << quote_str <<
+		" obser: " << obser_win << " hold : " << hold_win << " sd : " << run_sd << 
+		". return pointer adreess:" << ret_addr);
 
-	return ret_add;
+	return ret_addr;
 }
 
 extern "C"	__declspec(dllexport)

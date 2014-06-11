@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using System.Windows;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Threading;
 using GalaSoft.MvvmLight.Messaging;
@@ -28,6 +26,10 @@ namespace BackTester.ViewModels
     public int Leverage { get; set; }
     public double StartBalance { get; set; }
     public bool RunTestWithOptimizer { get; set; }
+    public int ObserWin { get; set; }
+    public int HoldWin { get; set; }
+    public double Sd { get; set; }
+    public int OptimizeInterval { get; set; }
 
     #endregion input properties
 
@@ -53,6 +55,7 @@ namespace BackTester.ViewModels
       }
     }
 
+
     public RelayCommand RunTestCommand { get; private set; }
     public RelayCommand RunOptimizeCommand { get; private set; }
 
@@ -61,14 +64,18 @@ namespace BackTester.ViewModels
     public BackTesterViewModel() {
 
       StartDate = new DateTime(2013,01,01);
-      EndDate = new DateTime(2013, 01, 31);
+      EndDate = new DateTime(2013, 12, 31);
 
       TickFilePath = @"C:\workspace\Strat\back_test_files\EURUSD_2013_1min_alpari.csv";
-      EventFilePath = @"C:\workspace\Strat\back_test_files\Calendar-Jan2013.csv";
+      EventFilePath = @"C:\workspace\Strat\back_test_files\Calendar-2013.csv";
       RunState = "Run";
       Leverage = 500;
       StartBalance = 500;
-      RunTestWithOptimizer = true;
+      RunTestWithOptimizer = false;
+      ObserWin = 57;
+      HoldWin = 299;
+      Sd = 0.0006;
+      OptimizeInterval = 7;
 
       RunTestCommand = new RelayCommand(async () => {
         if (IsBusy)
@@ -102,9 +109,9 @@ namespace BackTester.ViewModels
       try {
 
         _setProgress();
-        using (AlgoService algo = new AlgoService(_onMessage, StartDate, TickFilePath, RunTestWithOptimizer))
+        using (AlgoService algo = new AlgoService(_onMessage, TickFilePath))
         {
-          await algo.Init(EventFilePath);
+          await algo.Init(EventFilePath, ObserWin, HoldWin, Sd);
 
           _setProgress();
           List<Tick> ticks = await Util.ReadTickCsv(TickFilePath, StartDate, EndDate, ct);
@@ -165,21 +172,35 @@ namespace BackTester.ViewModels
       CancellationToken ct)
     {
       await Task.Factory.StartNew(() =>
-      {
-        for (int i = 0; i < ticks.Count; i++)
-        {
-          if (ct.IsCancellationRequested == true)
-          {
-            ct.ThrowIfCancellationRequested();
-          }
+                                  {
+                                    var lastOptimizeDate = StartDate;
 
-          bool isClosePos = false;
-          var signal = algo.OnTick(ticks[i], out isClosePos);
-          tickPro.OnTick(ticks[i], signal, isClosePos);
+                                    for (int i = 0; i < ticks.Count; i++)
+                                    {
+                                      if (ct.IsCancellationRequested == true)
+                                      {
+                                        ct.ThrowIfCancellationRequested();
+                                      }
 
-          _setProgress(i * 100 / ticks.Count);
-        }
-      }, ct);
+                                      Tick tick = ticks[i];
+
+                                      if (RunTestWithOptimizer &&
+                                          tick.Time.Date.AddDays(0 - OptimizeInterval) > lastOptimizeDate &&
+                                          tick.Time.Date.AddDays(-30) > StartDate)
+                                      {
+                                        algo.Optimize(tick.Time.Date, ObserWin, HoldWin, Sd).Wait(ct);
+
+                                        algo.ResetAlgoParams();
+                                        lastOptimizeDate = tick.Time.Date;
+                                      }
+
+                                      bool isClosePos = false;
+                                      var signal = algo.OnTick(tick, out isClosePos);
+                                      tickPro.OnTick(tick, signal, isClosePos);
+
+                                      _setProgress(i*100/ticks.Count);
+                                    }
+                                  }, ct);
     }
 
     private async Task _runOptimize(CancellationToken ct)
@@ -195,9 +216,9 @@ namespace BackTester.ViewModels
       try
       {
         _setProgress();
-        using (AlgoService algo = new AlgoService(_onMessage, StartDate, TickFilePath, RunTestWithOptimizer))
+        using (AlgoService algo = new AlgoService(_onMessage, TickFilePath))
         {
-          await algo.Init(EventFilePath);
+          await algo.Init(EventFilePath, ObserWin, HoldWin, Sd);
 
           int backNoDays = Convert.ToInt32((EndDate.Date - StartDate.Date).TotalDays);
           await algo.Optimize(EndDate, backNoDays, 32, 128);
