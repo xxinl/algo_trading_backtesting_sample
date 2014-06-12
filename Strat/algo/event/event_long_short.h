@@ -203,6 +203,7 @@ namespace strat{
 				).str();
 		}
 
+		//obosolete due to expensive implementation
 		void remove_non_important_ticks(std::vector<tick>& ticks) override{
 
 			LOG("optimizer deleting non important sample ticks");
@@ -216,6 +217,7 @@ namespace strat{
 				if (next_event_t > it->time_stamp &&
 					last_event_t + boost::posix_time::hours(7) < it->time_stamp){
 
+					//TODO extremly expensive there
 					it = ticks.erase(it);
 				}
 				else {

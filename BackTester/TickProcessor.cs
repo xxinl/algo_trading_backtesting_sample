@@ -11,13 +11,14 @@ namespace BackTester
   {
     private readonly int _leverage;
     private double _balance;
-    private const int _lotSize = 1000; //0.01
+    private const int _lotSize = 5000; //0.01
 
     private double _posOpenRate = -1;
     private int? _currPosSignal = null;
+    private DateTime? _posOpenTime = null;
 
     private List<double> _profits;
-    public PerformanceSummary _performanceSummary;
+    private PerformanceSummary _performanceSummary;
 
 
     public TickProcessor(int leverage, double startBalance) {
@@ -38,7 +39,10 @@ namespace BackTester
                                 Balance = _balance,
                                 Equity = _balance,
                                 IsBalanceUpdated = false,
-                                Signal = signal
+                                CurrentSignal = _currPosSignal,
+                                CurrentPosOpenRate = _posOpenRate,
+                                CurrentPosOpenTime = _posOpenTime,
+                                IsPosClosed = false
                               };
 
       if (_currPosSignal.HasValue)
@@ -56,12 +60,15 @@ namespace BackTester
           _balance = equityOnTick;
           pTick.Balance = _balance;
           pTick.IsBalanceUpdated = true;
+          pTick.IsPosClosed = true;
 
           _profits.Add(profit);
           _updatePerformanceSummary(profit);
           DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(_performanceSummary));
 
           _currPosSignal = null;
+          _posOpenRate = -1;
+          _posOpenTime = null;
         }
       }
       else
@@ -70,6 +77,7 @@ namespace BackTester
         if (Math.Abs(signal) == 1)
         {
           _posOpenRate = signal == 1 ? tick.Ask : tick.Bid;
+          _posOpenTime = tick.Time;
           _currPosSignal = signal;
 
           double margin = _lotSize/(_currPosSignal == 1 ? _posOpenRate : 1)/_leverage;
@@ -93,6 +101,10 @@ namespace BackTester
       _performanceSummary.Profit += profit;
       if (profit >= 0)
       {
+        _performanceSummary.TotalWin += profit;
+        if (profit > _performanceSummary.MaxWin)
+          _performanceSummary.MaxWin = profit;
+
         _performanceSummary.NoWinPos++;
         if (_currPosSignal.Value == 1)
           _performanceSummary.NoWinLong++;
@@ -100,7 +112,12 @@ namespace BackTester
           _performanceSummary.NoWinShort++;
       }
       else
+      {
         _performanceSummary.NoLossPos++;
+        _performanceSummary.TotalLoss += profit;
+        if (profit < _performanceSummary.MaxLoss)
+          _performanceSummary.MaxLoss = profit;
+      }
 
       _performanceSummary.SharpeR = _calcSharpe();
     }

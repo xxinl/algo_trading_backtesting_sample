@@ -56,7 +56,8 @@ namespace BackTester
 
       _callbackInstance = (msg, sev) =>
       {
-        if (callbackInstance != null) callbackInstance(new DebugInfo(msg, sev));
+        if (callbackInstance != null) callbackInstance(
+          new DebugInfo(string.Format("{0} {1}", DateTime.Now.ToString("T"), msg), sev));
       };
     }
 
@@ -80,7 +81,7 @@ namespace BackTester
     }
 
     public async Task Optimize(DateTime tickDate, int obserWin, int holdWin, double sd,
-      int backNoofDays = 30, int maxIteration = 8, int populationSize = 32)
+      int backNoofDays = 30, int maxIteration = 8, int populationSize = 16)
     {
       using (AlgoService optiAlgo = new AlgoService(_uiCallbackAction, _tickFilePath))
       {

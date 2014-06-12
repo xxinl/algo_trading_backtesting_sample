@@ -3,7 +3,6 @@ using GalaSoft.MvvmLight.Messaging;
 using OxyPlot;
 using OxyPlot.Axes;
 using System;
-using System.Collections.Generic;
 using OxyPlot.Series;
 using DateTimeAxis = OxyPlot.Axes.DateTimeAxis;
 using LinearAxis = OxyPlot.Axes.LinearAxis;
@@ -53,22 +52,14 @@ namespace BackTester.ViewModels
 
     private void _setUpModel()
     {
-      _plotModelPer = new PlotModel
-                      {
-                        LegendOrientation = LegendOrientation.Horizontal,
-                        LegendPlacement = LegendPlacement.Outside,
-                        LegendPosition = LegendPosition.TopRight,
-                        LegendBackground = OxyColor.FromAColor(200, OxyColors.White),
-                        LegendBorder = OxyColors.Black
-                      };
+      _plotModelPer = new PlotModel();
 
       _plotModelPer.Axes.Add(new DateTimeAxis()
                              {
                                MajorGridlineStyle = LineStyle.Solid,
                                MinorGridlineStyle = LineStyle.Dot,
-                               IntervalLength = 30,
                                Position = AxisPosition.Bottom,
-                               StringFormat = "dd/MM/yy"
+                               StringFormat = "dd/MM"
                              });
 
       _plotModelPer.Axes.Add(new LinearAxis()
@@ -78,22 +69,14 @@ namespace BackTester.ViewModels
                                Position = AxisPosition.Left
                              });
 
-      _plotModelTick = new PlotModel
-                       {
-                         LegendOrientation = LegendOrientation.Horizontal,
-                         LegendPlacement = LegendPlacement.Outside,
-                         LegendPosition = LegendPosition.TopRight,
-                         LegendBackground = OxyColor.FromAColor(200, OxyColors.White),
-                         LegendBorder = OxyColors.Black
-                       };
+      _plotModelTick = new PlotModel();
 
       _plotModelTick.Axes.Add(new DateTimeAxis()
                              {
                                MajorGridlineStyle = LineStyle.Solid,
                                MinorGridlineStyle = LineStyle.Dot,
-                               IntervalLength = 30,
                                Position = AxisPosition.Bottom,
-                               StringFormat = "MM/dd"
+                               StringFormat = "dd/MM"
                              });
 
       _plotModelTick.Axes.Add(new LinearAxis()
@@ -107,10 +90,21 @@ namespace BackTester.ViewModels
       AddLineSeries(_plotModelPer, 1, "eq");
       AddLineSeries(_plotModelTick, 0, "t");
 
-      var ss = new ScatterSeries {MarkerSize = 3, MarkerType = MarkerType.Circle };
-      _plotModelTick.Series.Add(ss);
-      ss = new ScatterSeries { MarkerSize = 3, MarkerType = MarkerType.Square };
-      _plotModelTick.Series.Add(ss);
+      var hls = new HighLowSeries
+               {
+                 StrokeThickness = 1.5,
+                 Color = OxyColors.DarkGreen,
+                 TrackerFormatString = "X: {1:yy.MM.dd HHmm}\nOpen: {2:0.00}\nClose: {3:0.00}"
+               };
+      _plotModelTick.Series.Add(hls);
+
+      hls = new HighLowSeries
+      {
+        StrokeThickness = 1.5,
+        Color = OxyColors.Red,
+        TrackerFormatString = "X: {1:yy.MM.dd HHmm}\nOpen: {2:0.00}\nClose: {3:0.00}"
+      };
+      _plotModelTick.Series.Add(hls);
     }
 
     private void AddLineSeries(PlotModel model, int index, string title)
@@ -122,6 +116,7 @@ namespace BackTester.ViewModels
         CanTrackerInterpolatePoints = false,
         Title = string.Format(title, index),
         Smooth = false,
+        Color = index == 0 ? OxyColors.Orange : OxyColors.LightBlue
       };
       
       model.Series.Add(ls);
@@ -138,14 +133,20 @@ namespace BackTester.ViewModels
       _addPoint(PlotModelPer, 1, t.Time, t.Equity);
       _addPoint(PlotModelTick, 0, t.Time, t.Last);
 
-      if (Math.Abs(t.Signal) == 1)
+      if (t.IsPosClosed)
       {
-        int index = t.Signal == 1 ? 1 : 2;
-        var ss = PlotModelTick.Series[index] as ScatterSeries;
-        if (ss != null)
+        bool isProfit = t.CurrentSignal * (t.Last - t.CurrentPosOpenRate) > 0;
+        int index = isProfit ? 1 : 2;
+
+        var hls = PlotModelTick.Series[index] as HighLowSeries;
+        if (hls != null)
         {
-          var dp = new ScatterPoint(DateTimeAxis.ToDouble(t.Time), t.Last, 3, t.Signal);
-          ss.Points.Add(dp);
+          var dp = new HighLowItem(
+            DateTimeAxis.ToDouble(t.CurrentPosOpenTime), 
+            Math.Max(t.Last, t.CurrentPosOpenRate.Value),
+            Math.Min(t.Last, t.CurrentPosOpenRate.Value),
+            t.CurrentPosOpenRate.Value, t.Last);
+          hls.Items.Add(dp);
         }
       }
 

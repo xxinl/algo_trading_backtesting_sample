@@ -63,7 +63,7 @@ namespace BackTester.ViewModels
     
     public BackTesterViewModel() {
 
-      StartDate = new DateTime(2013,01,01);
+      StartDate = new DateTime(2013,01,05);
       EndDate = new DateTime(2013, 12, 31);
 
       TickFilePath = @"C:\workspace\Strat\back_test_files\EURUSD_2013_1min_alpari.csv";
@@ -186,7 +186,7 @@ namespace BackTester.ViewModels
 
                                       if (RunTestWithOptimizer &&
                                           tick.Time.Date.AddDays(0 - OptimizeInterval) > lastOptimizeDate &&
-                                          tick.Time.Date.AddDays(-30) > StartDate)
+                                          tick.Time.Date.AddDays(-7) > StartDate)
                                       {
                                         algo.Optimize(tick.Time.Date, ObserWin, HoldWin, Sd).Wait(ct);
 

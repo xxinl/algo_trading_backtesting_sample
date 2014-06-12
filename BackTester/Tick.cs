@@ -25,8 +25,14 @@ namespace BackTester
 
     public double Equity;
 
-    public bool IsBalanceUpdated;
+    public bool IsPosClosed;
 
-    public int Signal;
+    public int? CurrentSignal;
+
+    public DateTime? CurrentPosOpenTime;
+
+    public double? CurrentPosOpenRate;
+
+    public bool IsBalanceUpdated;
   }
 }

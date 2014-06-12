@@ -1,14 +1,14 @@
 ﻿<Window x:Class="BackTester.Views.SummaryWin"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="" Height="400" Width="650"
+        Title="" Height="500" Width="650"
         xmlns:oxy="http://oxyplot.codeplex.com"
         DataContext="{Binding SummaryWin, Source={StaticResource Locator}}">
   <Grid>
     <Grid.RowDefinitions>
-      <RowDefinition Height="60"></RowDefinition>
-      <RowDefinition></RowDefinition>
-      <RowDefinition></RowDefinition>
+      <RowDefinition Height="90"></RowDefinition>
+      <RowDefinition Height="4*"></RowDefinition>
+      <RowDefinition Height="6*"></RowDefinition>
     </Grid.RowDefinitions>
     <StackPanel>
       <StackPanel Orientation="Horizontal">
@@ -16,6 +16,8 @@
         <TextBlock Text="{Binding PerformanceSummary.Profit,Mode=OneWay, StringFormat=F2}" Height="16" />
         <Label Content="sharpe" Margin="5,0,0,0" />
         <TextBlock Text="{Binding PerformanceSummary.SharpeR,Mode=OneWay,StringFormat=F2}" Height="16" />
+        <Label Content="max dd" Margin="5,0,0,0" />
+        <TextBlock Text="{Binding PerformanceSummary.MaxDrawDown,Mode=OneWay,StringFormat=F2}" Height="16" />
       </StackPanel>
       <StackPanel Orientation="Horizontal">
         <Label Content="total no. pos" />
@@ -28,6 +30,16 @@
         <TextBlock Text="{Binding PerformanceSummary.NoWinLongDisp,Mode=OneWay}" Height="16" />
         <Label Content="no. win short" Margin="5,0,0,0" />
         <TextBlock Text="{Binding PerformanceSummary.NoWinShortDisp,Mode=OneWay}" Height="16" />
+      </StackPanel>
+      <StackPanel Orientation="Horizontal">
+        <Label Content="max win" />
+        <TextBlock Text="{Binding PerformanceSummary.MaxWin,Mode=OneWay,StringFormat=F2}" Height="16" />
+        <Label Content="avg win" Margin="5,0,0,0" />
+        <TextBlock Text="{Binding PerformanceSummary.AvgWin,Mode=OneWay,StringFormat=F2}" Height="16" />
+        <Label Content="max loss" Margin="5,0,0,0" />
+        <TextBlock Text="{Binding PerformanceSummary.MaxLoss,Mode=OneWay,StringFormat=F2}" Height="16" />
+        <Label Content="avg loss" Margin="5,0,0,0" />
+        <TextBlock Text="{Binding PerformanceSummary.AvgLoss,Mode=OneWay,StringFormat=F2}" Height="16" />
       </StackPanel>
     </StackPanel>
     <oxy:Plot Name="Plot1" Title="A" Model="{Binding PlotModelPer}" Grid.Row="1">

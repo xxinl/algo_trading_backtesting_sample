@@ -102,8 +102,7 @@ namespace strat{
 		
 			for (int i = 0; i < _elite_size; ++i){
 
-				LOG("elit...");
-				_opti_algo->print_params(_population[i].second);
+				LOG("elit..." << _opti_algo->print_params(_population[i].second) << " fitness:" << _population[i].first);
 			}
 		}
 
@@ -119,7 +118,7 @@ namespace strat{
 		CITIZEN_TYPE optimize(boost::posix_time::ptime start_date, boost::posix_time::ptime end_date){
 
 			std::vector<tick> ticks = _read_sample_ticks(_hist_ticks_f_path, start_date, end_date);
-			_opti_algo->remove_non_important_ticks(ticks);
+			//_opti_algo->remove_non_important_ticks(ticks);
 
 			LOG("initialising population");
 			_init_population();
