@@ -68,7 +68,7 @@ namespace BackTester.ViewModels
                                MinorGridlineStyle = LineStyle.Dot,
                                IntervalLength = 30,
                                Position = AxisPosition.Bottom,
-                               StringFormat = "dd/MM"
+                               StringFormat = "dd/MM/yy"
                              });
 
       _plotModelPer.Axes.Add(new LinearAxis()
@@ -107,7 +107,9 @@ namespace BackTester.ViewModels
       AddLineSeries(_plotModelPer, 1, "eq");
       AddLineSeries(_plotModelTick, 0, "t");
 
-      var ss = new ScatterSeries {MarkerSize = 3};
+      var ss = new ScatterSeries {MarkerSize = 3, MarkerType = MarkerType.Circle };
+      _plotModelTick.Series.Add(ss);
+      ss = new ScatterSeries { MarkerSize = 3, MarkerType = MarkerType.Square };
       _plotModelTick.Series.Add(ss);
     }
 
@@ -138,13 +140,15 @@ namespace BackTester.ViewModels
 
       if (Math.Abs(t.Signal) == 1)
       {
-        var ss = PlotModelTick.Series[1] as ScatterSeries;
+        int index = t.Signal == 1 ? 1 : 2;
+        var ss = PlotModelTick.Series[index] as ScatterSeries;
         if (ss != null)
         {
           var dp = new ScatterPoint(DateTimeAxis.ToDouble(t.Time), t.Last, 3, t.Signal);
           ss.Points.Add(dp);
         }
       }
+
     }
 
     private void _addPoint(PlotModel model, int index, DateTime time, double value)

@@ -53,7 +53,7 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path,
 
 	strat::event_long_short* algo_p = reinterpret_cast<strat::event_long_short*>(algo_addr);
 	strat::optimizer_genetic<size_t, size_t, double> optimizer(
-		convert_wchar_to_string(hist_tick_path), algo_p, 0.2f, 0.4f, max_iteration, population_size);
+		convert_wchar_to_string(hist_tick_path), algo_p, 0.2f, 0.3f, max_iteration, population_size);
 	std::pair<double, std::tuple<size_t, size_t, double>> opti_params = optimizer.optimize(start_date, end_date);
 
 	write_ini("OPTI_PARAM.OBSERV", std::get<0>(opti_params.second));

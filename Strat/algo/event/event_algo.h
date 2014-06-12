@@ -140,9 +140,6 @@ namespace strat{
 						_event_q.push(t);
 					}
 				}
-
-				if (t.time_of_day().hours() == 0 && t.time_of_day().minutes() == 0)
-					LOG("process events file on date: " << t);
 			}
 
 			LOG(_event_q.size() << " events enqueued");

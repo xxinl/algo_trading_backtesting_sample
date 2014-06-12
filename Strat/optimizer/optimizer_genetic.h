@@ -25,7 +25,7 @@ namespace strat{
 	
 	private:
 		optimizable_algo_genetic<Params...>* _opti_algo;
-		const int _elit_size;
+		const int _elite_size;
 		const double _mutation_rate;
 		const int _max_iteration;
 		const int _population_size;
@@ -36,7 +36,7 @@ namespace strat{
 		concurrency::concurrent_vector<CITIZEN_TYPE> _population;
 		concurrency::concurrent_vector<CITIZEN_TYPE> _next_generation;
 
-		std::vector<tick> read_sample_ticks(string hist_ticks_f_path, 
+		std::vector<tick> _read_sample_ticks(string hist_ticks_f_path, 
 			boost::posix_time::ptime start_date, boost::posix_time::ptime end_date){
 		
 			LOG("optimizer reading sample ticks");
@@ -48,13 +48,13 @@ namespace strat{
 			return ticks;
 		}
 
-		void init_population(){
+		void _init_population(){
 			
 			_population = _opti_algo->init_optimization_population(_population_size);
 			_next_generation = _population;
 		}
 
-		void sort_population(){
+		void _sort_population(){
 
 			std::sort(_population.begin(), _population.end(),
 				[](CITIZEN_TYPE i, CITIZEN_TYPE j){
@@ -62,7 +62,7 @@ namespace strat{
 			});
 		}
 
-		void calc_population_fitness(size_t start_i, const std::vector<tick>& ticks,
+		void _calc_population_fitness(size_t start_i, const std::vector<tick>& ticks,
 			concurrency::concurrent_vector<CITIZEN_TYPE>& population, optimizable_algo_genetic<Params...>* opti_algo){
 			
 			concurrency::parallel_for(size_t(start_i), size_t(_population_size) - 1,
@@ -72,16 +72,16 @@ namespace strat{
 			});
 		}
 
-		void mate(){
+		void _mate(){
 
 			//keep elit
-			for (int i = 0; i < _elit_size; ++i){
+			for (int i = 0; i < _elite_size; ++i){
 			
 				_next_generation[i] = _population[i];
 			}
 
 			//mate/mutate the rest
-			for (int i = _elit_size; i < _population_size; ++i){
+			for (int i = _elite_size; i < _population_size; ++i){
 
 				int i1 = rand() % _population_size;
 				int i2 = rand() % _population_size;
@@ -98,10 +98,19 @@ namespace strat{
 			}
 		}
 
+		void _print_elite(){
+		
+			for (int i = 0; i < _elite_size; ++i){
+
+				LOG("elit...");
+				_opti_algo->print_params(_population[i].second);
+			}
+		}
+
 	public:
 		optimizer_genetic(string hist_ticks_f_path, optimizable_algo_genetic<Params...>* opti_algo,
-			double elit_rate = 0.20f, double mutation_rate = 0.40f, int max_iteration = 16, int population_size = 64) :
-			_opti_algo(opti_algo), _elit_size(elit_rate * population_size), _mutation_rate(mutation_rate * 100), 
+			double elite_rate = 0.20f, double mutation_rate = 0.40f, int max_iteration = 16, int population_size = 64) :
+			_opti_algo(opti_algo), _elite_size(elite_rate * population_size), _mutation_rate(mutation_rate * 100), 
 			_max_iteration(max_iteration), _population_size(population_size), _hist_ticks_f_path(hist_ticks_f_path){
 		
 			LOG("optimizer starting iteration:" << max_iteration << " population:" << population_size);
@@ -109,29 +118,32 @@ namespace strat{
 
 		CITIZEN_TYPE optimize(boost::posix_time::ptime start_date, boost::posix_time::ptime end_date){
 
-			std::vector<tick> ticks = read_sample_ticks(_hist_ticks_f_path, start_date, end_date);
+			std::vector<tick> ticks = _read_sample_ticks(_hist_ticks_f_path, start_date, end_date);
 			_opti_algo->remove_non_important_ticks(ticks);
 
-			init_population();
-			calc_population_fitness(0, ticks, _population, _opti_algo);
-			sort_population();
+			LOG("initialising population");
+			_init_population();
+			_calc_population_fitness(0, ticks, _population, _opti_algo);
+			_sort_population();
 
 			LOG("initialised population with top fitness " 
 				<< _population.front().first << " params: " << _opti_algo->print_params(_population.front().second));
+			_print_elite();
 
 			for (int i = 0; i < _max_iteration; i++){
 
 				LOG("starting optimization iteration " << i);
 
-				mate();
+				_mate();
 
 				_population.swap(_next_generation);
 
-				calc_population_fitness(_elit_size, ticks, _population, _opti_algo);
-				sort_population();
+				_calc_population_fitness(_elite_size, ticks, _population, _opti_algo);
+				_sort_population();
 
 				LOG("completed optimization iteration " << i << " with top fitness " 
 					<< _population.front().first << " params: " << _opti_algo->print_params(_population.front().second));
+				_print_elite();
 			}
 
 			return _population[0];

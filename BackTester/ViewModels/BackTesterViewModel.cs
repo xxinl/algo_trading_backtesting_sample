@@ -207,12 +207,6 @@ namespace BackTester.ViewModels
     {
       IsBusy = true;
 
-      if (_summaryWin == null || !_summaryWin.IsLoaded)
-      {
-        _summaryWin = new SummaryWin();
-        _summaryWin.Show();
-      }
-
       try
       {
         _setProgress();
@@ -221,7 +215,7 @@ namespace BackTester.ViewModels
           await algo.Init(EventFilePath, ObserWin, HoldWin, Sd);
 
           int backNoDays = Convert.ToInt32((EndDate.Date - StartDate.Date).TotalDays);
-          await algo.Optimize(EndDate, backNoDays, 32, 128);
+          await algo.Optimize(EndDate, ObserWin, HoldWin, Sd, backNoDays, 16, 16);
         }
       }
       catch (OperationCanceledException)

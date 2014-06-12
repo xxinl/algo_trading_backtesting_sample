@@ -80,7 +80,7 @@ namespace BackTester
     }
 
     public async Task Optimize(DateTime tickDate, int obserWin, int holdWin, double sd,
-      int backNoofDays = 30, int maxIteration = 8, int populationSize = 16)
+      int backNoofDays = 30, int maxIteration = 8, int populationSize = 32)
     {
       using (AlgoService optiAlgo = new AlgoService(_uiCallbackAction, _tickFilePath))
       {
