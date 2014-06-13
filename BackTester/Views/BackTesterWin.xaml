@@ -28,7 +28,8 @@
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
           <Label Content="obser:" /><TextBox Text="{Binding ObserWin, Mode=TwoWay}" />
           <Label Content="hold:" /><TextBox Text="{Binding HoldWin, Mode=TwoWay}" />
-          <Label Content="sd:" /><TextBox Text="{Binding Sd, Mode=TwoWay}" />
+          <Label Content="t1:" /><TextBox Text="{Binding Threshold1, Mode=TwoWay}" />
+          <Label Content="t2:" /><TextBox Text="{Binding Threshold2, Mode=TwoWay}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
           <CheckBox Content="with optimizer" VerticalAlignment="Center"

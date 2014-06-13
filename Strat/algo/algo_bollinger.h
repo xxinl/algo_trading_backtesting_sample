@@ -26,7 +26,7 @@ using std::string;
 namespace strat{
 
 	class algo_bollinger : public algo,
-		public optimizable_algo_genetic<size_t, size_t, double>{
+		public optimizable_algo_genetic<size_t, size_t, double, double>{
 
 	private:
 
@@ -114,17 +114,23 @@ namespace strat{
 
 				return signal::NONE;
 			}
-			
-			signal ret_sig = _get_signal_algo(crr_tick);
-			_close_position_algo(crr_tick, close_pos, stop_loss);
+			else {
 
-			if (close_pos.type != signal::NONE)	{
+				if (has_open_position()){
 
-				_can_obser = true;
-				_last_tick = crr_tick;
+					if (_close_position_algo(crr_tick, close_pos, stop_loss))	{
+
+						_can_obser = true;
+						_last_tick = crr_tick;
+					}
+
+					return signal::NONE;
+				}
+				else{
+
+					return _get_signal_algo(crr_tick);
+				}
 			}
-
-			return ret_sig;
 		}
 
 		void reset_params(size_t obser_win, size_t hold_win, double initial_threshold, double obser_threshold){
@@ -164,7 +170,7 @@ namespace strat{
 				_obser_win,
 				_hold_win,
 				_initial_threshold,
-				_obser_threshold,
+				_obser_threshold
 				)));
 
 			for (int i = 0; i < population_size - 1; i++){
@@ -177,10 +183,10 @@ namespace strat{
 			return population;
 		}
 
-		std::shared_ptr<algo> get_optimizable_algo(std::tuple<size_t, size_t, double> params) override{
+		std::shared_ptr<algo> get_optimizable_algo(std::tuple<size_t, size_t, double, double> params) override{
 
 			algo_bollinger* ret_algo = new algo_bollinger(_s_base, _s_quote,
-				std::get<0>(params), std::get<1>(params), std::get<2>(params));
+				std::get<0>(params), std::get<1>(params), std::get<2>(params), std::get<3>(params));
 			
 			//disable logging for open and close position/oberv
 			ret_algo->toggle_log_switch();

@@ -28,7 +28,8 @@ namespace BackTester.ViewModels
     public bool RunTestWithOptimizer { get; set; }
     public int ObserWin { get; set; }
     public int HoldWin { get; set; }
-    public double Sd { get; set; }
+    public double Threshold1 { get; set; }
+    public double Threshold2 { get; set; }
     public int OptimizeInterval { get; set; } //days
     public int OptimizeLookback { get; set; } //days
 
@@ -75,7 +76,8 @@ namespace BackTester.ViewModels
       RunTestWithOptimizer = false;
       ObserWin = 47;
       HoldWin = 172;
-      Sd = 0.00015;
+      Threshold1 = 0.0003;
+      Threshold2 = 0.0003;
       OptimizeInterval = 30;
       OptimizeLookback = 60;
 
@@ -113,7 +115,7 @@ namespace BackTester.ViewModels
         _setProgress();
         using (AlgoService algo = new AlgoService(_onMessage, TickFilePath))
         {
-          await algo.Init(EventFilePath, ObserWin, HoldWin, Sd);
+          await algo.Init(ObserWin, HoldWin, Threshold1, Threshold2);
 
           _setProgress();
           List<Tick> ticks = await Util.ReadTickCsv(TickFilePath, StartDate, EndDate, ct);
@@ -190,7 +192,7 @@ namespace BackTester.ViewModels
                                           tick.Time.Date.AddDays(0 - OptimizeInterval) > lastOptimizeDate &&
                                           tick.Time.Date.AddDays(0 - OptimizeLookback) > StartDate)
                                       {
-                                        algo.Optimize(tick.Time.Date, ObserWin, HoldWin, Sd, OptimizeLookback).Wait(ct);
+                                        algo.Optimize(tick.Time.Date, ObserWin, HoldWin, Threshold1, Threshold2, OptimizeLookback).Wait(ct);
 
                                         algo.ResetAlgoParams();
                                         lastOptimizeDate = tick.Time.Date;
@@ -214,10 +216,10 @@ namespace BackTester.ViewModels
         _setProgress();
         using (AlgoService algo = new AlgoService(_onMessage, TickFilePath))
         {
-          await algo.Init(EventFilePath, ObserWin, HoldWin, Sd);
+          await algo.Init(ObserWin, HoldWin, Threshold1, Threshold2);
 
           int backNoDays = Convert.ToInt32((EndDate.Date - StartDate.Date).TotalDays);
-          await algo.Optimize(EndDate, ObserWin, HoldWin, Sd, backNoDays, 16, 64);
+          await algo.Optimize(EndDate, ObserWin, HoldWin, Threshold1, Threshold2, backNoDays, 16, 64);
         }
       }
       catch (OperationCanceledException)

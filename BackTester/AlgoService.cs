@@ -11,8 +11,9 @@ namespace BackTester
     [DllImport("strat.dll", EntryPoint = "get_algo", CallingConvention = CallingConvention.Cdecl,
       CharSet = CharSet.Unicode)]
     private static extern IntPtr _get_algo(
-      string base_c, string quote, string path,
-      IntPtr obser_win, IntPtr hold_win, double run_sd,
+      string base_c, string quote, 
+      //string path,
+      IntPtr obser_win, IntPtr hold_win, double ini_t, double obser_t,
       _callback _callbackInstance);
 
     [DllImport("strat.dll", EntryPoint = "delete_algo", CallingConvention = CallingConvention.Cdecl)]
@@ -42,7 +43,8 @@ namespace BackTester
 
     private bool _disposed = false;
     private IntPtr _algo_p;
-    private string _eventFilePath, _tickFilePath;
+    //private string _eventFilePath;
+    private string _tickFilePath;
 
     private Action<DebugInfo> _uiCallbackAction;
     private _callback _callbackInstance;
@@ -61,14 +63,16 @@ namespace BackTester
       };
     }
 
-    public async Task Init(string eventFilePath, int obserWin, int holdWin, double sd)
+    public async Task Init(//string eventFilePath, 
+      int obserWin, int holdWin, double t1, double t2)
     {
-      _eventFilePath = eventFilePath;
+      //_eventFilePath = eventFilePath;
 
       await Task.Run(() =>
       {
-        _algo_p = _get_algo("eur", "usd", eventFilePath, 
-          (IntPtr)obserWin, (IntPtr)holdWin, sd, _callbackInstance);
+        _algo_p = _get_algo("eur", "usd", 
+          //eventFilePath,
+          (IntPtr)obserWin, (IntPtr)holdWin, t1, t2, _callbackInstance);
       });
     }
 
@@ -80,12 +84,14 @@ namespace BackTester
         _callbackInstance);
     }
 
-    public async Task Optimize(DateTime tickDate, int obserWin, int holdWin, double sd,
+    public async Task Optimize(DateTime tickDate, int obserWin, int holdWin, double t1, double t2,
       int backNoofDays, int maxIteration = 8, int populationSize = 32)
     {
       using (AlgoService optiAlgo = new AlgoService(_uiCallbackAction, _tickFilePath))
       {
-        await optiAlgo.Init(_eventFilePath, obserWin, holdWin, sd);
+        await optiAlgo.Init(
+          //_eventFilePath, 
+          obserWin, holdWin, t1, t2);
 
         await optiAlgo.OptimizeExecute(tickDate, backNoofDays, maxIteration, populationSize);
       }

@@ -6,8 +6,9 @@
 #include <comutil.h>
 
 #include "algo.h"
-#include "algo\event\event_algo_ma.h"
-#include "algo\event\event_long_short.h"
+//#include "algo\event\event_algo_ma.h"
+//#include "algo\event\event_long_short.h"
+#include "algo\algo_bollinger.h"
 #include "logger.h"
 #include "optimizer\optimizable_algo_genetic.h"
 #include "optimizer\optimizer_genetic.h"
@@ -23,6 +24,8 @@ using std::string;
 
 logger::callback logger::on_callback = nullptr;
 
+typedef strat::algo_bollinger ALGO_TYPE;
+#define OPTIMIZER_PARAMS size_t, size_t, double, double
 
 #pragma region _private members
 
@@ -49,18 +52,17 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path,
 	size_t max_iteration, size_t population_size){
 
 	srand((unsigned int)time(NULL));
+	
+	ALGO_TYPE* algo_p = reinterpret_cast<ALGO_TYPE*>(algo_addr);
 
-	//typedef strat::optimizable_algo_genetic<size_t, size_t, double> OPTIMIZER_TYPE;
-	typedef strat::event_long_short OPTIMIZER_TYPE;
-
-	strat::event_long_short* algo_p = reinterpret_cast<strat::event_long_short*>(algo_addr);
-	strat::optimizer_genetic<size_t, size_t, double> optimizer(
+	strat::optimizer_genetic<OPTIMIZER_PARAMS> optimizer(
 		convert_wchar_to_string(hist_tick_path), algo_p, 0.2f, 0.3f, max_iteration, population_size);
-	std::pair<double, std::tuple<size_t, size_t, double>> opti_params = optimizer.optimize(start_date, end_date);
+	std::pair<double, std::tuple<OPTIMIZER_PARAMS>> opti_params = optimizer.optimize(start_date, end_date);
 
 	write_ini("OPTI_PARAM.OBSERV", std::get<0>(opti_params.second));
 	write_ini("OPTI_PARAM.HOLD", std::get<1>(opti_params.second));
-	write_ini("OPTI_PARAM.SD", std::get<2>(opti_params.second));
+	write_ini("OPTI_PARAM.INI_T", std::get<2>(opti_params.second));
+	write_ini("OPTI_PARAM.OBSER_T", std::get<2>(opti_params.second));
 }
 
 #pragma endregion
@@ -69,21 +71,25 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path,
 // todo free strings
 // base/quote has to be lower case
 extern "C"	__declspec(dllexport)
-size_t get_algo(const wchar_t* base, const wchar_t* quote, const wchar_t* path, 
-									size_t obser_win, size_t hold_win, double run_sd,
+size_t get_algo(const wchar_t* base, const wchar_t* quote, //const wchar_t* path, 
+									size_t obser_win, size_t hold_win, double ini_t, double obser_t,
 									logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
-	strat::event_algo* ret_p = nullptr;
+	ALGO_TYPE* ret_p = nullptr;
 
 	string base_str = convert_wchar_to_string(base);
 	string quote_str = convert_wchar_to_string(quote);
 
 	try{
 
-		ret_p = new strat::event_long_short(
-			base_str, quote_str, convert_wchar_to_string(path),
-			obser_win, hold_win, run_sd);
+		ret_p = new strat::algo_bollinger(
+			base_str, quote_str,
+			obser_win, hold_win, ini_t, obser_t);
+
+		//ret_p = new strat::event_long_short(
+		//	base_str, quote_str, convert_wchar_to_string(path),
+		//	obser_win, hold_win, run_sd);
 	
 		//ret_p = new strat::event_algo_ma(
 		//	convert_wchar_to_string(base), convert_wchar_to_string(quote), convert_wchar_to_string(path),
@@ -96,8 +102,12 @@ size_t get_algo(const wchar_t* base, const wchar_t* quote, const wchar_t* path,
 
 	size_t ret_addr = reinterpret_cast<size_t>(ret_p);
 
+	//LOG("get_algo constructing event_algo. base:" << base_str << " quote:" << quote_str <<
+	//	" obser: " << obser_win << " hold : " << hold_win << " sd : " << ini_t <<
+	//	". return pointer adreess:" << ret_addr);
+
 	LOG("get_algo constructing event_algo. base:" << base_str << " quote:" << quote_str <<
-		" obser: " << obser_win << " hold : " << hold_win << " sd : " << run_sd << 
+		" obser: " << obser_win << " hold: " << hold_win << " ini_t: " << ini_t << " obser_t:" << obser_t <<
 		". return pointer adreess:" << ret_addr);
 
 	return ret_addr;
@@ -106,7 +116,7 @@ size_t get_algo(const wchar_t* base, const wchar_t* quote, const wchar_t* path,
 extern "C"	__declspec(dllexport)
 int delete_algo(size_t algo_addr){
 
-	strat::algo* algo_p = reinterpret_cast<strat::algo*>(algo_addr);
+	ALGO_TYPE* algo_p = reinterpret_cast<ALGO_TYPE*>(algo_addr);
 	delete(algo_p);
 
 	return 1;
@@ -122,7 +132,7 @@ int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, 
 	*is_close_pos = false;
 
 	string time_str = convert_wchar_to_string(time);
-	strat::algo* algo_p = reinterpret_cast<strat::algo*>(algo_addr);
+	ALGO_TYPE* algo_p = reinterpret_cast<ALGO_TYPE*>(algo_addr);
 
 	LOG_SEV("process_tick algo:" << algo_addr << " time:" << time_str
 		<< " last:" << last << " sl:" << stop_loss, logger::debug);
@@ -188,31 +198,32 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path, const wchar_t* st
 extern "C"	__declspec(dllexport)
 void reset_algo_params(size_t algo_addr){
 
-	strat::event_long_short* algo_p = reinterpret_cast<strat::event_long_short*>(algo_addr);
+	ALGO_TYPE* algo_p = reinterpret_cast<ALGO_TYPE*>(algo_addr);
 
 	algo_p->reset_params(
 		read_ini<size_t>("OPTI_PARAM.OBSERV"),
 		read_ini<size_t>("OPTI_PARAM.HOLD"),
-		read_ini<double>("OPTI_PARAM.SD")
+		read_ini<double>("OPTI_PARAM.INI_T"),
+		read_ini<double>("OPTI_PARAM.OBSER_T")
 		);
 }
 
-extern "C"	__declspec(dllexport)
-int process_end_day(size_t algo_addr, const wchar_t* hist_tick_path, size_t keep_days_no,
-		logger::callback callback_handler, size_t max_iteration, size_t population_size){
-
-	logger::on_callback = callback_handler;
-
-	util::delete_hist_tick(convert_wchar_to_string(hist_tick_path), keep_days_no);
-
-	boost::posix_time::ptime end_time = boost::posix_time::second_clock::local_time();
-	boost::posix_time::ptime start_time = end_time - boost::posix_time::hours(keep_days_no * 24);
-
-	optimize(algo_addr, hist_tick_path, start_time, end_time, max_iteration, population_size);
-
-	reset_algo_params(algo_addr);
-
-	return 1;
-}
+//extern "C"	__declspec(dllexport)
+//int process_end_day(size_t algo_addr, const wchar_t* hist_tick_path, size_t keep_days_no,
+//		logger::callback callback_handler, size_t max_iteration, size_t population_size){
+//
+//	logger::on_callback = callback_handler;
+//
+//	util::delete_hist_tick(convert_wchar_to_string(hist_tick_path), keep_days_no);
+//
+//	boost::posix_time::ptime end_time = boost::posix_time::second_clock::local_time();
+//	boost::posix_time::ptime start_time = end_time - boost::posix_time::hours(keep_days_no * 24);
+//
+//	optimize(algo_addr, hist_tick_path, start_time, end_time, max_iteration, population_size);
+//
+//	reset_algo_params(algo_addr);
+//
+//	return 1;
+//}
 
 #endif

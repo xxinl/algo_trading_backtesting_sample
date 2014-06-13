@@ -1,5 +1,4 @@
 
-#ifdef _DEBUG
 
 #ifndef _STRAT_EVENT_ALGO
 #define _STRAT_EVENT_ALGO
@@ -221,7 +220,5 @@ namespace strat{
 #pragma endregion
 	};
 }
-
-#endif
 
 #endif

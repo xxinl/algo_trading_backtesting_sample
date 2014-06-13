@@ -3,7 +3,6 @@ idea principle: price tend to move dramatically after a ecnomic event and revert
 implementation: fixed observe period to observe the volatitly and fixed hold period to exit
 */
 
-#ifdef _DEBUG
 
 #ifndef _STRAT_EVENT_LONG_SHORT
 #define _STRAT_EVENT_LONG_SHORT
@@ -240,7 +239,5 @@ namespace strat{
 #pragma endregion
 	};
 }
-
-#endif
 
 #endif

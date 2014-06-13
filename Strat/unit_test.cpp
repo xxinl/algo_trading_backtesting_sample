@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#ifdef _DEBUG
+#ifdef _DEBUG1
 
 #include "CppUnitTest.h"
 
