@@ -29,7 +29,8 @@ namespace BackTester.ViewModels
     public int ObserWin { get; set; }
     public int HoldWin { get; set; }
     public double Sd { get; set; }
-    public int OptimizeInterval { get; set; }
+    public int OptimizeInterval { get; set; } //days
+    public int OptimizeLookback { get; set; } //days
 
     #endregion input properties
 
@@ -63,7 +64,7 @@ namespace BackTester.ViewModels
     
     public BackTesterViewModel() {
 
-      StartDate = new DateTime(2013,01,05);
+      StartDate = new DateTime(2013,01,01);
       EndDate = new DateTime(2013, 12, 31);
 
       TickFilePath = @"C:\workspace\Strat\back_test_files\EURUSD_2013_1min_alpari.csv";
@@ -72,10 +73,11 @@ namespace BackTester.ViewModels
       Leverage = 500;
       StartBalance = 500;
       RunTestWithOptimizer = false;
-      ObserWin = 57;
-      HoldWin = 299;
-      Sd = 0.0006;
-      OptimizeInterval = 7;
+      ObserWin = 47;
+      HoldWin = 172;
+      Sd = 0.00015;
+      OptimizeInterval = 30;
+      OptimizeLookback = 60;
 
       RunTestCommand = new RelayCommand(async () => {
         if (IsBusy)
@@ -186,9 +188,9 @@ namespace BackTester.ViewModels
 
                                       if (RunTestWithOptimizer &&
                                           tick.Time.Date.AddDays(0 - OptimizeInterval) > lastOptimizeDate &&
-                                          tick.Time.Date.AddDays(-7) > StartDate)
+                                          tick.Time.Date.AddDays(0 - OptimizeLookback) > StartDate)
                                       {
-                                        algo.Optimize(tick.Time.Date, ObserWin, HoldWin, Sd).Wait(ct);
+                                        algo.Optimize(tick.Time.Date, ObserWin, HoldWin, Sd, OptimizeLookback).Wait(ct);
 
                                         algo.ResetAlgoParams();
                                         lastOptimizeDate = tick.Time.Date;
@@ -215,7 +217,7 @@ namespace BackTester.ViewModels
           await algo.Init(EventFilePath, ObserWin, HoldWin, Sd);
 
           int backNoDays = Convert.ToInt32((EndDate.Date - StartDate.Date).TotalDays);
-          await algo.Optimize(EndDate, ObserWin, HoldWin, Sd, backNoDays, 16, 16);
+          await algo.Optimize(EndDate, ObserWin, HoldWin, Sd, backNoDays, 16, 64);
         }
       }
       catch (OperationCanceledException)

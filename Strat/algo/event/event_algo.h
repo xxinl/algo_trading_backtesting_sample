@@ -1,4 +1,5 @@
 
+#ifdef _DEBUG
 
 #ifndef _STRAT_EVENT_ALGO
 #define _STRAT_EVENT_ALGO
@@ -22,10 +23,7 @@ namespace strat{
 	class event_algo : public algo {
 
 	private:
-		std::queue<boost::posix_time::ptime> _event_q;
-
-		std::list<strat::position> _closed_pos_hist;
-		
+		std::queue<boost::posix_time::ptime> _event_q;		
 
 		///return size of the event_q
 		size_t _push_obser_queue_if_event(tick crr_tick){
@@ -56,18 +54,16 @@ namespace strat{
 		double _run_sd;		
 		std::queue<tick> _obser_tick_q;
 		
-		size_t _add_position(tick t, signal type, tick obser_t) {
+		void _add_position(tick t, signal type, tick obser_t) {
 
 			event_position pos;
 			pos.open_tick = t;
 			pos.obser_tick = obser_t;
 			pos.type = type;
-			_positions.push_back(pos);
+			_position = pos;
 
 			if (!_is_log_off)
 				LOG("opened position at tick " << t.time_stamp);
-
-			return _positions.size();
 		}
 
 		void _pop_obser_tick_queue(){
@@ -163,7 +159,7 @@ namespace strat{
 			
 			_push_obser_queue_if_event(crr_tick);
 
-			if (_obser_tick_q.empty() && _positions.empty()){
+			if (_obser_tick_q.empty() && !has_open_position()){
 			
 				LOG_SEV("empty obser and position queue, abort process tick at tick " << crr_tick.time_stamp, logger::debug);
 				return signal::NONE;
@@ -191,9 +187,7 @@ namespace strat{
 			}
 
 			if (close_pos.type != signal::NONE)	{
-
-				_closed_pos_hist.push_back(close_pos);
-
+				
 				LOG_SEV(" position(" << close_pos.open_tick.time_stamp << ") closed at tick "
 					<< crr_tick.time_stamp, logger::debug);
 			}
@@ -224,18 +218,10 @@ namespace strat{
 			return _obser_tick_q;
 		}
 
-		std::list<position> get_closed_position_history() const{
-
-			return _closed_pos_hist;
-		}
-
-		void clear_closed_position_history() {
-
-			_closed_pos_hist.clear();
-		}
-
 #pragma endregion
 	};
 }
+
+#endif
 
 #endif

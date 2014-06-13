@@ -3,6 +3,8 @@ idea principle: price tend to move dramatically after a ecnomic event and revert
 implementation: fixed observe period to observe the volatitly and fixed hold period to exit
 */
 
+#ifdef _DEBUG
+
 #ifndef _STRAT_EVENT_LONG_SHORT
 #define _STRAT_EVENT_LONG_SHORT
 
@@ -40,7 +42,7 @@ namespace strat{
 			if (!_obser_tick_q.empty()){
 
 				//only one position allow to open at anytime i.e. no hedging
-				if (_positions.size() > 0) return signal::NONE;
+				if (has_open_position()) return signal::NONE;
 
 				tick front_tick = _obser_tick_q.front();
 				if (crr_tick.time_stamp >= front_tick.time_stamp + boost::posix_time::minutes(_obser_win)){
@@ -66,22 +68,18 @@ namespace strat{
 		//duplicate code as event_algo_ma
 		int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) override{
 
-			for (std::list<position>::iterator it = _positions.begin(); it != _positions.end();){
-
-				bool is_stop_out = stop_loss != -1 && (it->open_tick.last - crr_tick.last) * it->type > stop_loss;
+			bool is_stop_out = stop_loss != -1 && (_position.open_tick.last - crr_tick.last) * _position.type > stop_loss;
 
 				if (is_stop_out || 
-					crr_tick.time_stamp >= it->open_tick.time_stamp + boost::posix_time::minutes(_hold_win))
+					crr_tick.time_stamp >= _position.open_tick.time_stamp + boost::posix_time::minutes(_hold_win))
 				{
-					it->close_tick = crr_tick;
-					close_pos = *it;
-					it = _delete_position(it);
-				}
-				else
-					++it;
-			}
+					_position.close_tick = crr_tick;
+					close_pos = _position;
+					_delete_position();
+					return 1;
+				}			
 
-			return 1;
+			return 0;
 		}
 
 	public:
@@ -203,44 +201,46 @@ namespace strat{
 				).str();
 		}
 
-		//obosolete due to expensive implementation
-		void remove_non_important_ticks(std::vector<tick>& ticks) override{
+		////obosolete due to expensive implementation
+		//void remove_non_important_ticks(std::vector<tick>& ticks) override{
 
-			LOG("optimizer deleting non important sample ticks");
+		//	LOG("optimizer deleting non important sample ticks");
 
-			std::queue<boost::posix_time::ptime> temp_event_q(get_event_queue());
-			boost::posix_time::ptime next_event_t = temp_event_q.front();
-			boost::posix_time::ptime last_event_t = temp_event_q.front();
+		//	std::queue<boost::posix_time::ptime> temp_event_q(get_event_queue());
+		//	boost::posix_time::ptime next_event_t = temp_event_q.front();
+		//	boost::posix_time::ptime last_event_t = temp_event_q.front();
 
-			for (std::vector<tick>::iterator it = ticks.begin(); it != ticks.end();){
+		//	for (std::vector<tick>::iterator it = ticks.begin(); it != ticks.end();){
 
-				if (next_event_t > it->time_stamp &&
-					last_event_t + boost::posix_time::hours(7) < it->time_stamp){
+		//		if (next_event_t > it->time_stamp &&
+		//			last_event_t + boost::posix_time::hours(7) < it->time_stamp){
 
-					//TODO extremly expensive there
-					it = ticks.erase(it);
-				}
-				else {
-					
-					if (next_event_t < it->time_stamp){
+		//			//TODO extremly expensive there
+		//			it = ticks.erase(it);
+		//		}
+		//		else {
+		//			
+		//			if (next_event_t < it->time_stamp){
 
-						last_event_t = next_event_t;
-						if (!temp_event_q.empty()){
+		//				last_event_t = next_event_t;
+		//				if (!temp_event_q.empty()){
 
-							temp_event_q.pop();
+		//					temp_event_q.pop();
 
-							if(!temp_event_q.empty())
-								next_event_t = temp_event_q.front();
-						}
-					}
+		//					if(!temp_event_q.empty())
+		//						next_event_t = temp_event_q.front();
+		//				}
+		//			}
 
-					++it;
-				}
-			}
-		}
+		//			++it;
+		//		}
+		//	}
+		//}
 
 #pragma endregion
 	};
 }
+
+#endif
 
 #endif

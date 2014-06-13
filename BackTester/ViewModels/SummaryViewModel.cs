@@ -92,7 +92,7 @@ namespace BackTester.ViewModels
 
       var hls = new HighLowSeries
                {
-                 StrokeThickness = 1.5,
+                 StrokeThickness = 1,
                  Color = OxyColors.DarkGreen,
                  TrackerFormatString = "X: {1:yy.MM.dd HHmm}\nOpen: {2:0.00}\nClose: {3:0.00}"
                };
@@ -100,7 +100,7 @@ namespace BackTester.ViewModels
 
       hls = new HighLowSeries
       {
-        StrokeThickness = 1.5,
+        StrokeThickness = 1,
         Color = OxyColors.Red,
         TrackerFormatString = "X: {1:yy.MM.dd HHmm}\nOpen: {2:0.00}\nClose: {3:0.00}"
       };

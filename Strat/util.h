@@ -4,14 +4,13 @@
 
 #include "tick.h"
 
-#include<vector>
-#include<list>
-#include<string>
-#include<fstream>
-#include<sstream>
+#include <string>
+#include <vector>
+#include <list>
+#include <fstream>
+#include <sstream>
 
 #include <boost/tokenizer.hpp>
-#include <boost/date_time.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>

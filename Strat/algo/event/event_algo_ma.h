@@ -72,24 +72,20 @@ namespace strat{
 		}
 
 		//duplicate code as event_algo
-		int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) override		{
+		int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) override {
 
-			for (std::list<position>::iterator it = _positions.begin(); it != _positions.end();){
+			bool is_stop_out = stop_loss != -1 && (_position.open_tick.last - crr_tick.last) * _position.type > stop_loss;
 
-				bool is_stop_out = stop_loss != -1 && (it->open_tick.last - crr_tick.last) * it->type > stop_loss;
-
-				if (is_stop_out ||
-					crr_tick.time_stamp >= it->open_tick.time_stamp + boost::posix_time::minutes(_hold_win))
-				{
-					it->close_tick = crr_tick;
-					close_pos = *it;
-					it = _delete_position(it);
-				}
-				else
-					++it;
+			if (is_stop_out ||
+				crr_tick.time_stamp >= _position.open_tick.time_stamp + boost::posix_time::minutes(_hold_win))
+			{
+				_position.close_tick = crr_tick;
+				close_pos = _position;
+				_delete_position();
+				return 1;
 			}
 
-			return 1;
+			return 0;
 		}
 
 	public:

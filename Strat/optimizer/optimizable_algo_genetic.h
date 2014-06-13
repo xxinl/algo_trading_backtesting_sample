@@ -35,13 +35,15 @@ namespace strat{
 
 		virtual string print_params(std::tuple<Params...> params) = 0;
 
-		virtual void remove_non_important_ticks(std::vector<tick>& ticks) = 0;
+		//virtual void remove_non_important_ticks(std::vector<tick>& ticks) = 0;
 
 		double calculate_fitness(const std::vector<tick>& ticks, std::tuple<Params...> params){
 			
 			std::shared_ptr<algo> algo_p = get_optimizable_algo(params);
 
 			double ttl_ret = 0;
+			int no_win = 0;
+			int no_loss = 0;
 			for (tick t : ticks){
 				
 				position close_pos;
@@ -49,11 +51,16 @@ namespace strat{
 
 				if (close_pos.type != signal::NONE){
 					
-					ttl_ret += (close_pos.type == signal::BUY ? 1 : -1) * (close_pos.close_tick.last - close_pos.open_tick.last);
+					double ret = (close_pos.type == signal::BUY ? 1 : -1) * (close_pos.close_tick.last - close_pos.open_tick.last);
+
+					if (ret >= 0) no_win++;
+					else no_loss++;
+
+					ttl_ret += ret;
 				}
 			}
 
-			return ttl_ret;
+			return ttl_ret * no_win / no_loss;
 		}
 	};
 }

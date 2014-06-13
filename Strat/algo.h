@@ -1,5 +1,4 @@
 
-
 #ifndef _STRAT_ALGO
 #define _STRAT_ALGO
 
@@ -8,8 +7,6 @@
 #include "logger.h"
 
 #include <string>
-
-#include <vld.h>
 
 using std::string;
 
@@ -24,27 +21,23 @@ namespace strat{
 
 		bool _is_log_off = false;
 
-		std::list<position> _positions;
+		position _position;
 
-		virtual size_t _add_position(tick t, signal type){
+		virtual void _add_position(tick t, signal type){
 
-			position pos;
-			pos.open_tick = t;
-			pos.type = type;
-			_positions.push_back(pos);
+			_position.open_tick = t;
+			_position.type = type;
 
 			if (!_is_log_off)
-				LOG("opened position at tick " << t.time_stamp);
-
-			return _positions.size();
+				LOG("opened position at tick " << t.time_stamp);			
 		}
 
-		std::list<position>::iterator _delete_position(std::list<position>::iterator it){
+		void _delete_position(){
 
 			if (!_is_log_off)
-				LOG("closing position at tick " << it->open_tick.time_stamp);
+				LOG("closing position at tick " << _position.open_tick.time_stamp);
 
-			return _positions.erase(it);
+			_position.type = signal::NONE;
 		}
 
 		virtual signal _get_signal_algo(const tick& crr_tick) = 0;
@@ -55,13 +48,16 @@ namespace strat{
 		virtual ~algo() {}
 
 		algo(string s_base, string s_quote) :
-			_s_base(s_base), _s_quote(s_quote){};
+			_s_base(s_base), _s_quote(s_quote){
+		
+			_position.type = signal::NONE;
+		};
 
 		virtual signal process_tick(const tick&, position& close_pos, double stop_loss = -1) = 0;
 
-		std::list<position> get_positions() const{
+		position get_position() const{
 
-			return _positions;
+			return _position;
 		}
 
 		bool toggle_log_switch(){
@@ -69,6 +65,11 @@ namespace strat{
 			_is_log_off = !_is_log_off;
 
 			return _is_log_off;
+		}
+
+		bool has_open_position(){
+
+			return _position.type != signal::NONE;
 		}
 	};
 }

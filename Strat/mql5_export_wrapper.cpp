@@ -1,3 +1,4 @@
+#include "stdafx.h"
 
 #ifdef STRAT_EXPORTS
 
@@ -21,6 +22,7 @@
 using std::string;
 
 logger::callback logger::on_callback = nullptr;
+
 
 #pragma region _private members
 

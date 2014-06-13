@@ -102,7 +102,7 @@ namespace strat{
 		
 			for (int i = 0; i < _elite_size; ++i){
 
-				LOG("elit..." << _opti_algo->print_params(_population[i].second) << " fitness:" << _population[i].first);
+				LOG("elite..." << _opti_algo->print_params(_population[i].second) << " fitness:" << _population[i].first);
 			}
 		}
 
@@ -110,12 +110,12 @@ namespace strat{
 		optimizer_genetic(string hist_ticks_f_path, optimizable_algo_genetic<Params...>* opti_algo,
 			double elite_rate = 0.20f, double mutation_rate = 0.40f, int max_iteration = 16, int population_size = 64) :
 			_opti_algo(opti_algo), _elite_size(elite_rate * population_size), _mutation_rate(mutation_rate * 100), 
-			_max_iteration(max_iteration), _population_size(population_size), _hist_ticks_f_path(hist_ticks_f_path){
-		
-			LOG("optimizer starting iteration:" << max_iteration << " population:" << population_size);
-		}
+			_max_iteration(max_iteration), _population_size(population_size), _hist_ticks_f_path(hist_ticks_f_path){		}
 
 		CITIZEN_TYPE optimize(boost::posix_time::ptime start_date, boost::posix_time::ptime end_date){
+
+			LOG("optimizer starting iteration:" << _max_iteration << " population:" << _population_size <<
+				" start:" << start_date << " end:" << end_date);
 
 			std::vector<tick> ticks = _read_sample_ticks(_hist_ticks_f_path, start_date, end_date);
 			//_opti_algo->remove_non_important_ticks(ticks);

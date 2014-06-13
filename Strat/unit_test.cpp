@@ -1,7 +1,7 @@
+#include "stdafx.h"
 
 #ifdef _DEBUG
 
-#include "stdafx.h"
 #include "CppUnitTest.h"
 
 #include "util.h"
@@ -12,13 +12,8 @@
 #include "trend.h"
 #include "optimizer\optimizer_genetic.h"
 
-#include <vector>
-#include <string>
 #include <iostream>
 #include <thread>
-
-#include "boost\date_time.hpp"
-
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -119,17 +114,16 @@ namespace Strat
 			obser_q = algo.get_obser_tick_queue();
 			Assert::IsTrue(close_pos.type == strat::signal::NONE);
 			Assert::IsTrue(strat::signal::BUY == sig);
-			std::list<strat::position> pos = algo.get_positions();
-			Assert::IsTrue(pos.size() == size);
-			Assert::IsTrue(pos.front().open_tick.last == 1.3540);
+			Assert::IsTrue(algo.has_open_position());
+			strat::position pos = algo.get_position();
+			Assert::IsTrue(pos.open_tick.last == 1.3540);
 
 			sig = algo.process_tick(tick_vec[319], close_pos);
 			obser_q = algo.get_obser_tick_queue();
 			Assert::IsTrue(obser_q.empty());
 			Assert::IsTrue(strat::signal::NONE == sig);
 			Assert::IsTrue(close_pos.type != strat::signal::NONE);
-			pos = algo.get_positions();
-			Assert::IsTrue(pos.empty());
+			Assert::IsTrue(!algo.has_open_position());
 		}
 
 #pragma region test log
@@ -210,17 +204,16 @@ namespace Strat
 			obser_q = algo.get_obser_tick_queue();
 			Assert::IsTrue(close_pos.type == strat::signal::NONE);
 			Assert::IsTrue(strat::signal::BUY == sig);
-			std::list<strat::position> pos = algo.get_positions();
-			Assert::IsTrue(pos.size() == size);
-			Assert::IsTrue(pos.front().open_tick.last == 1.3540);
+			Assert::IsTrue(algo.has_open_position());
+			strat::position pos = algo.get_position();
+			Assert::IsTrue(pos.open_tick.last == 1.3540);
 
 			sig = algo.process_tick(tick_vec[317], close_pos, 0.0003);
 			obser_q = algo.get_obser_tick_queue();
 			Assert::IsTrue(obser_q.empty());
 			Assert::IsTrue(strat::signal::NONE == sig);
 			Assert::IsTrue(close_pos.type != strat::signal::NONE);
-			pos = algo.get_positions();
-			Assert::IsTrue(pos.empty());
+			Assert::IsTrue(!algo.has_open_position());
 		}
 
 		TEST_METHOD(sma){ 
@@ -297,9 +290,9 @@ namespace Strat
 					obser_q = algo.get_obser_tick_queue();
 					Assert::IsTrue(close_pos.type == strat::signal::NONE);
 					Assert::IsTrue(strat::signal::BUY == sig);
-					std::list<strat::position> pos = algo.get_positions();
-					Assert::IsTrue(pos.size() == size);
-					Assert::IsTrue(pos.front().open_tick.last == 1.3540);
+					Assert::IsTrue(algo.has_open_position());
+					strat::position pos = algo.get_position();
+					Assert::IsTrue(pos.open_tick.last == 1.3540);
 				}
 
 				if (i == 319){
@@ -307,10 +300,8 @@ namespace Strat
 					obser_q = algo.get_obser_tick_queue();
 					Assert::IsTrue(obser_q.empty());
 					Assert::IsTrue(strat::signal::NONE == sig);
-					std::list<strat::position> pos = algo.get_positions();
 					Assert::IsTrue(close_pos.type != strat::signal::NONE);
-					pos = algo.get_positions();
-					Assert::IsTrue(pos.empty());
+					Assert::IsTrue(!algo.has_open_position());
 				}
 			}
 		}

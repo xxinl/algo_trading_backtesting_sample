@@ -33,7 +33,10 @@
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
           <CheckBox Content="with optimizer" VerticalAlignment="Center"
                     IsChecked="{Binding RunTestWithOptimizer, Mode=TwoWay}" />
-          <Label Content="optimize interval(days):" /><TextBox Text="{Binding OptimizeInterval, Mode=TwoWay}" />
+          <Label Content="interval(days):" />
+          <TextBox Text="{Binding OptimizeInterval, Mode=TwoWay}" />
+          <Label Content="lookback(days):" />
+          <TextBox Text="{Binding OptimizeLookback, Mode=TwoWay}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,5,10,0" HorizontalAlignment="Right">
           <Button Content="{Binding RunState, Mode=OneWay}" Command="{Binding RunTestCommand}" />
