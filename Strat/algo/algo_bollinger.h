@@ -94,7 +94,10 @@ namespace strat{
 			double obser_threshold, bool is_anti_trend = true) :
 			algo(s_base, s_quote), _obser_win(obser_win), _hold_win(hold_win),
 			_initial_threshold(initial_threshold), _obser_threshold(obser_threshold),
-			_can_obser(true), _is_anti_trend(is_anti_trend){		};
+			_can_obser(true), _is_anti_trend(is_anti_trend){
+		
+			_last_tick.last = -1;
+		};
 
 
 		/// Destructor
@@ -103,6 +106,10 @@ namespace strat{
 #pragma endregion
 
 		signal process_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1) override{
+
+			//first tick
+			if (_last_tick.last == -1)
+				_last_tick = crr_tick;
 
 			if (_can_obser){
 

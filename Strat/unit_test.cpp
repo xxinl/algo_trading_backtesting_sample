@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#ifdef _DEBUG1
+#ifdef _DEBUG
 
 #include "CppUnitTest.h"
 
@@ -11,6 +11,7 @@
 #include "indicator\sma.h"
 #include "trend.h"
 #include "optimizer\optimizer_genetic.h"
+#include "algo\algo_bollinger.h"
 
 #include <iostream>
 #include <thread>
@@ -385,6 +386,77 @@ namespace Strat
 			Assert::AreEqual(util::read_ini<int>("c:/strat_ini/strat_test.ini", "TEST.TEST2"), i2);
 		}
 
+		TEST_METHOD(algo_bollinger_process_tick){
+
+			strat::algo_bollinger algo("eur", "usd", 1, 9, 0.0003, 0.0009);
+
+			std::vector<strat::tick> tick_vec;
+
+			std::vector<int> cols_v{ 0, 3 };
+			auto start_date = util::convert_to_dt("20130108", "%Y%m%d");
+			auto end_date = util::convert_to_dt("20130110", "%Y%m%d");
+			util::read_tick_csv("../../test_files/EURUSD_2013_1min_alpari-Jan.csv", 
+				tick_vec, start_date, end_date, "%Y.%m.%d %H:%M", cols_v);
+
+			strat::position close_pos;
+			strat::signal sig = strat::signal::NONE;
+
+			size_t size = 1;
+			for (int i = 0; i < 45; i++){
+
+				sig = algo.process_tick(tick_vec[i], close_pos);
+
+				if (i == 5){
+
+					Assert::IsTrue(strat::signal::NONE == sig);
+					Assert::IsTrue(!algo.has_open_position());
+				}
+
+				if (i == 9){
+
+					Assert::IsTrue(strat::signal::SELL == sig);
+					Assert::IsTrue(algo.has_open_position());
+				}
+
+				if (i == 45){
+
+					Assert::IsTrue(close_pos.type == strat::signal::SELL);
+					Assert::IsTrue(strat::signal::NONE == sig);
+					Assert::IsTrue(!algo.has_open_position());
+				}
+
+				if (i == 46){
+
+					Assert::IsTrue(strat::signal::NONE == sig);
+					Assert::IsTrue(!algo.has_open_position());
+				}
+
+				if (i == 47){
+
+					Assert::IsTrue(strat::signal::NONE == sig);
+					Assert::IsTrue(!algo.has_open_position());
+				}
+
+				if (i == 49){
+
+					Assert::IsTrue(strat::signal::NONE == sig);
+					Assert::IsTrue(!algo.has_open_position());
+				}
+
+				if (i == 53){
+
+					Assert::IsTrue(strat::signal::SELL == sig);
+					Assert::IsTrue(algo.has_open_position());
+				}
+
+				if (i == 89){
+
+					Assert::IsTrue(close_pos.type == strat::signal::SELL);
+					Assert::IsTrue(strat::signal::NONE == sig);
+					Assert::IsTrue(!algo.has_open_position());
+				}
+			}
+		}
 	};
 }
 
