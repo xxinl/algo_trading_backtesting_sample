@@ -126,7 +126,7 @@ namespace BackTester.ViewModels
     private void _updateSeries(PerformanceTick t)
     {
       //only update graph each x hours
-      if (!t.IsBalanceUpdated && 
+      if (//!t.IsBalanceUpdated && 
         (t.Time.Minute != 0 || t.Time.Hour % UPDATE_EVERY_X_HOUR != 0)) return;
 
       _addPoint(PlotModelPer, 0, t.Time, t.Balance);

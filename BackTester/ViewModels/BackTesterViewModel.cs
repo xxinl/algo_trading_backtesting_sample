@@ -74,12 +74,12 @@ namespace BackTester.ViewModels
       Leverage = 500;
       StartBalance = 500;
       RunTestWithOptimizer = false;
-      ObserWin = 47;
-      HoldWin = 172;
+      ObserWin = 1;
+      HoldWin = 9;
       Threshold1 = 0.0003;
-      Threshold2 = 0.0003;
+      Threshold2 = 0.0009;
       OptimizeInterval = 30;
-      OptimizeLookback = 60;
+      OptimizeLookback = 90;
 
       RunTestCommand = new RelayCommand(async () => {
         if (IsBusy)
@@ -219,7 +219,7 @@ namespace BackTester.ViewModels
           await algo.Init(ObserWin, HoldWin, Threshold1, Threshold2);
 
           int backNoDays = Convert.ToInt32((EndDate.Date - StartDate.Date).TotalDays);
-          await algo.Optimize(EndDate, ObserWin, HoldWin, Threshold1, Threshold2, backNoDays, 16, 64);
+          await algo.Optimize(EndDate, ObserWin, HoldWin, Threshold1, Threshold2, backNoDays, 64, 256);
         }
       }
       catch (OperationCanceledException)

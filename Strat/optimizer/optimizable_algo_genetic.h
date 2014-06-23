@@ -44,6 +44,10 @@ namespace strat{
 			double ttl_ret = 0;
 			int no_win = 0;
 			int no_loss = 0;
+			double max_dd = 0;
+			double crr_dd = 0;
+			double crr_max_ttl_ret = 0;
+
 			for (tick t : ticks){
 				
 				position close_pos;
@@ -53,14 +57,35 @@ namespace strat{
 					
 					double ret = (close_pos.type == signal::BUY ? 1 : -1) * (close_pos.close_tick.last - close_pos.open_tick.last);
 
-					if (ret >= 0) no_win++;
-					else no_loss++;
+					if (ret >= 0){
+
+						no_win++;
+					}
+					else {
+						
+						no_loss++;
+					}
 
 					ttl_ret += ret;
+
+					if (ttl_ret >= crr_max_ttl_ret){
+					
+						crr_max_ttl_ret = ttl_ret;
+						crr_dd = 0;
+					}
+					else{
+					
+						crr_dd = crr_max_ttl_ret - ttl_ret;
+						if (crr_dd > max_dd)
+							max_dd = crr_dd;
+					}
 				}
 			}
 
-			return ttl_ret * no_win / no_loss;
+			if (max_dd < 1) max_dd = 1;
+			if (no_loss < 1) no_loss = 1;
+
+			return (ttl_ret * no_win / no_loss) / max_dd;
 		}
 	};
 }

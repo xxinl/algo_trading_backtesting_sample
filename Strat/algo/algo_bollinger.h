@@ -151,12 +151,11 @@ namespace strat{
 
 		std::tuple<size_t, size_t, double, double> get_random_citizen(){
 
-			size_t obser = _rand_from_range(0, 60);
 			return std::make_tuple(
-				obser,
-				_rand_from_range(obser, 360),
-				_rand_from_range(1, 10) * 0.00015,
-				_rand_from_range(1, 10) * 0.00015
+				_rand_from_range(1, 60),
+				_rand_from_range(1, 360),
+				_rand_from_range(3, 50) * 0.00010,
+				_rand_from_range(3, 50) * 0.00010
 				);
 		}
 

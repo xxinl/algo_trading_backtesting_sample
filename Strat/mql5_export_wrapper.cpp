@@ -106,7 +106,7 @@ size_t get_algo(const wchar_t* base, const wchar_t* quote, //const wchar_t* path
 	//	" obser: " << obser_win << " hold : " << hold_win << " sd : " << ini_t <<
 	//	". return pointer adreess:" << ret_addr);
 
-	LOG("get_algo constructing event_algo. base:" << base_str << " quote:" << quote_str <<
+	LOG("get_algo constructing. base:" << base_str << " quote:" << quote_str <<
 		" obser: " << obser_win << " hold: " << hold_win << " ini_t: " << ini_t << " obser_t:" << obser_t <<
 		". return pointer adreess:" << ret_addr);
 
