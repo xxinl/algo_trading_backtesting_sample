@@ -1,56 +1,46 @@
 
 #include <Trade\Trade.mqh>
 
-#import "Strat.dll"
-ulong get_algo(string base, string quote, string path);
-int process_tick(ulong algo_p, string time, double ask, double bid, double close, double stop_loss);
+#import "strat.dll"
+ulong get_algo(string base, string quote, ulong obser_win, ulong hold_win, double ini_t, double obser_t,
+									ulong callback_handler);
+int process_tick(ulong algo_p, string time, double ask, double bid, double last, ulong volume, 
+									double stop_loss, bool &is_close_pos, ulong callback_handler);
 int delete_algo(ulong algo_p);
 #import
 
-ulong algo_p = -1;
+//--- input parameters
+input ulong OBSER_WIN = 1;
+input ulong HOLD_WIN = 1;
+input double INI_T = 0.00075;
+input double OBSER_T = 0.001;
 
-const int NO_PRE_PROCESS_TICKS = 25 + 270;
-const int HOLD_W = 45;
+ulong algo_p = -1;
 
 int OnInit(void){
    
-   algo_p = get_algo("eur", "usd", "C:\\workspace\\Strat\\back_test_files\\Calendar-2013.csv");
-   //algo_p = get_algo("eur", "usd", "C:\\workspace\\Strat\\back_test_files\\Calendar-04-27-2014.csv");
+   algo_p = get_algo("eur", "usd", OBSER_WIN, HOLD_WIN, INI_T, OBSER_T, 0);
    
    if(algo_p == -1){
    
       Print("Failed to create algo object");
       return(INIT_FAILED);
    }
-   
-//   MqlRates rt[295];
-//   if(CopyRates(_Symbol,_Period,0,NO_PRE_PROCESS_TICKS,rt)!= NO_PRE_PROCESS_TICKS){
-//   
-//      Print("CopyRates of ",_Symbol," failed, no history");
-//      return(INIT_FAILED);
-//   }
-//   
-//   for(int i = 0; i < NO_PRE_PROCESS_TICKS; i++){
-//   
-//      //dt_str format yyyy.mm.dd hh:mi
-//      //todo check dt_str convert correctly in algo obejct
-//      string dt_str =  TimeToString(rt[i].time, TIME_DATE|TIME_MINUTES);
-//      process_tick(algo_p, dt_str, rt[i].close, rt[i].close, rt[i].close, 0.01);
-//   }
      
    return(INIT_SUCCEEDED);
  }
 
 void OnTick(void){
-   //calculate stop
-   //calculate size
      
    MqlTick last_tick;
    int signal = 0;
+   bool is_close_pos = false;
+   
    if(SymbolInfoTick(_Symbol,last_tick)){
    
       string dt_str =  TimeToString(last_tick.time, TIME_DATE|TIME_MINUTES);
-      signal = process_tick(algo_p, dt_str, last_tick.ask, last_tick.bid, last_tick.last, 0.01);     
+      signal = process_tick(algo_p, dt_str, last_tick.ask, last_tick.bid, last_tick.last, last_tick.volume, 
+                              0.01, is_close_pos, 0);     
    }
    else{
    
@@ -59,6 +49,14 @@ void OnTick(void){
    }   
    
    if(signal != 0 && !PositionSelect(_Symbol)){
+      
+      MqlDateTime stm;
+      TimeToStruct(last_tick.time,stm);
+      
+      if(stm.hour >= 22 || stm.hour <=7){
+      
+         return;
+      }
       
       double size = 0.05;
    
@@ -69,21 +67,17 @@ void OnTick(void){
                          price, price - signal * 0.01, price + signal * 0.05);
    }
    
-   if(PositionSelect(_Symbol)){
-   
-      datetime pos_open_dt = PositionGetInteger(POSITION_TIME);
+   if(PositionSelect(_Symbol) && is_close_pos){
       
-      if(pos_open_dt != 0 && last_tick.time >= pos_open_dt + HOLD_W * 60){
-      
-         Print("Closing position at ", last_tick.time);      
-         CTrade trade;
-         trade.PositionClose(_Symbol,100);
-         //todo check close result
-      }
+      Print("Closing position at ", last_tick.time);      
+      CTrade trade;
+      trade.PositionClose(_Symbol,100);
+      //todo check close result
    }
 }
 
 
 void OnDeinit(const int reason){
 
+   delete_algo(algo_p);
 }

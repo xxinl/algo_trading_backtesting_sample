@@ -26,10 +26,13 @@ namespace strat{
 	private:
 		optimizable_algo_genetic<Params...>* _opti_algo;
 		const int _elite_size;
-		const double _mutation_rate;
+		double _mutation_rate;
 		const int _max_iteration;
 		const int _population_size;
 		const string _hist_ticks_f_path;
+
+		int _no_iter_no_change = 0; //no of iteration that top fitness hasnot change
+		const int _max_iter_no_change = 10; //max no of iteration that fitness doesnt change
 
 		typedef std::pair<double, std::tuple<Params...>> CITIZEN_TYPE;
 
@@ -108,7 +111,7 @@ namespace strat{
 
 	public:
 		optimizer_genetic(string hist_ticks_f_path, optimizable_algo_genetic<Params...>* opti_algo,
-			double elite_rate = 0.20f, double mutation_rate = 0.40f, int max_iteration = 16, int population_size = 64) :
+			double elite_rate = 0.20f, double mutation_rate = 0.30f, int max_iteration = 16, int population_size = 64) :
 			_opti_algo(opti_algo), _elite_size(elite_rate * population_size), _mutation_rate(mutation_rate * 100), 
 			_max_iteration(max_iteration), _population_size(population_size), _hist_ticks_f_path(hist_ticks_f_path){		}
 
@@ -129,16 +132,35 @@ namespace strat{
 				<< _population.front().first << " params: " << _opti_algo->print_params(_population.front().second));
 			_print_elite();
 
+			//TODO stop when max doesn't change for N iteration
 			for (int i = 0; i < _max_iteration; i++){
 
 				LOG("starting optimization iteration " << i);
 
 				_mate();
 
+				double top_fit = _population.front().first;
 				_population.swap(_next_generation);
 
 				_calc_population_fitness(_elite_size, ticks, _population, _opti_algo);
 				_sort_population();
+
+				if (top_fit == _population.front().first){
+				
+					_no_iter_no_change++;
+					if (_no_iter_no_change >= _max_iter_no_change){
+					
+						LOG("max no of iteration that top fitness hasnot change reached:" << _max_iter_no_change);
+						break;
+					}
+
+					//increase mutate rate when fitness not change
+					_mutation_rate = _mutation_rate * 0.9 + 0.1;
+				}
+				else{
+				
+					_no_iter_no_change = 0;
+				}
 
 				LOG("completed optimization iteration " << i << " with top fitness " 
 					<< _population.front().first << " params: " << _opti_algo->print_params(_population.front().second));

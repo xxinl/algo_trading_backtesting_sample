@@ -208,6 +208,13 @@ void reset_algo_params(size_t algo_addr){
 		);
 }
 
+extern "C"	__declspec(dllexport)
+void log_tick(const wchar_t* time, double ask, double bid, double last, size_t volume){
+
+	string time_str = convert_wchar_to_string(time);
+	LOG_TICK(time_str, ask, bid, last, volume);
+}
+
 //extern "C"	__declspec(dllexport)
 //int process_end_day(size_t algo_addr, const wchar_t* hist_tick_path, size_t keep_days_no,
 //		logger::callback callback_handler, size_t max_iteration, size_t population_size){

@@ -75,9 +75,9 @@ namespace BackTester.ViewModels
       StartBalance = 500;
       RunTestWithOptimizer = false;
       ObserWin = 1;
-      HoldWin = 9;
-      Threshold1 = 0.0003;
-      Threshold2 = 0.0009;
+      HoldWin = 1;
+      Threshold1 = 0.001;
+      Threshold2 = 0.001;
       OptimizeInterval = 30;
       OptimizeLookback = 90;
 
