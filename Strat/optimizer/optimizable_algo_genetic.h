@@ -86,7 +86,13 @@ namespace strat{
 			if (no_loss < 1) no_loss = 1;
 			if (no_win < 1) no_win = 1;
 
+			if (ttl_ret <= 0) return 0;
+
 			return (ttl_ret * no_win / no_loss) / max_dd;
+
+			//if (no_win + no_loss < 1000) return 0;
+
+			//return (double)no_win / no_loss;
 		}
 	};
 }

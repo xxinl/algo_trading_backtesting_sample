@@ -32,7 +32,7 @@ namespace strat{
 		const string _hist_ticks_f_path;
 
 		int _no_iter_no_change = 0; //no of iteration that top fitness hasnot change
-		const int _max_iter_no_change = 10; //max no of iteration that fitness doesnt change
+		const int _max_iter_no_change = 20; //max no of iteration that fitness doesnt change
 
 		typedef std::pair<double, std::tuple<Params...>> CITIZEN_TYPE;
 
@@ -145,26 +145,27 @@ namespace strat{
 				_calc_population_fitness(_elite_size, ticks, _population, _opti_algo);
 				_sort_population();
 
+				LOG("completed optimization iteration " << i << " with top fitness " 
+					<< _population.front().first << " params: " << _opti_algo->print_params(_population.front().second));
+
+				_print_elite();
+
 				if (top_fit == _population.front().first){
-				
+
 					_no_iter_no_change++;
 					if (_no_iter_no_change >= _max_iter_no_change){
-					
+
 						LOG("max no of iteration that top fitness hasnot change reached:" << _max_iter_no_change);
 						break;
 					}
 
 					//increase mutate rate when fitness not change
-					_mutation_rate = _mutation_rate * 0.9 + 0.1;
+					_mutation_rate = _mutation_rate * 0.95 + 0.05;
 				}
 				else{
-				
+
 					_no_iter_no_change = 0;
 				}
-
-				LOG("completed optimization iteration " << i << " with top fitness " 
-					<< _population.front().first << " params: " << _opti_algo->print_params(_population.front().second));
-				_print_elite();
 			}
 
 			return _population[0];

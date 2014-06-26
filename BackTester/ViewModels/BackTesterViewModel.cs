@@ -22,7 +22,7 @@ namespace BackTester.ViewModels
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public string TickFilePath { get; set; }
-    public string EventFilePath { get; set; }
+    //public string EventFilePath { get; set; }
     public int Leverage { get; set; }
     public double StartBalance { get; set; }
     public bool RunTestWithOptimizer { get; set; }
@@ -68,15 +68,15 @@ namespace BackTester.ViewModels
       StartDate = new DateTime(2013,01,01);
       EndDate = new DateTime(2013, 12, 31);
 
-      TickFilePath = @"C:\workspace\Strat\back_test_files\EURUSD_2013_1min_alpari.csv";
-      EventFilePath = @"C:\workspace\Strat\back_test_files\Calendar-2013.csv";
+      TickFilePath = @"C:\workspace\Strat\back_test_files\EURUSD2013.csv";
+      //EventFilePath = @"C:\workspace\Strat\back_test_files\Calendar-2013.csv";
       RunState = "Run";
       Leverage = 500;
       StartBalance = 500;
       RunTestWithOptimizer = false;
       ObserWin = 1;
       HoldWin = 1;
-      Threshold1 = 0.001;
+      Threshold1 = 0.00075;
       Threshold2 = 0.001;
       OptimizeInterval = 30;
       OptimizeLookback = 90;
@@ -104,11 +104,11 @@ namespace BackTester.ViewModels
 
       TickProcessor tickPro = new TickProcessor(Leverage, StartBalance);
 
-      if (_summaryWin == null || !_summaryWin.IsLoaded)
-      {
-        _summaryWin = new SummaryWin();
-        _summaryWin.Show();
-      }
+      if (_summaryWin != null)
+        _summaryWin.Close();
+
+      _summaryWin = new SummaryWin();
+      _summaryWin.Show();
 
       try {
 
@@ -219,7 +219,7 @@ namespace BackTester.ViewModels
           await algo.Init(ObserWin, HoldWin, Threshold1, Threshold2);
 
           int backNoDays = Convert.ToInt32((EndDate.Date - StartDate.Date).TotalDays);
-          await algo.Optimize(EndDate, ObserWin, HoldWin, Threshold1, Threshold2, backNoDays, 64, 256);
+          await algo.Optimize(EndDate, ObserWin, HoldWin, Threshold1, Threshold2, backNoDays, 128, 512);
         }
       }
       catch (OperationCanceledException)

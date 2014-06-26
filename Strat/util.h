@@ -74,6 +74,16 @@ public:
 		return pt;
 	}
 
+	static boost::posix_time::ptime convert_to_dt(const std::string s, const std::locale f)	{
+
+		boost::posix_time::ptime pt;
+		std::istringstream is(s);
+		is.imbue(f);
+		is >> pt;
+
+		return pt;
+	}
+
 	static int read_tick_csv(const string path, std::vector<strat::tick>& tick_vec, 
 		boost::posix_time::ptime start_date = boost::posix_time::min_date_time, 
 		boost::posix_time::ptime end_date = boost::posix_time::max_date_time,
@@ -84,6 +94,8 @@ public:
 			std::ifstream file(path);
 			std::string line;
 			size_t cols_len = cols_v.size();
+
+			const std::locale f = std::locale(std::locale::classic(), new  boost::posix_time::time_input_facet(dt_format));
 
 			//header
 			std::getline(file, line);
@@ -108,21 +120,21 @@ public:
 					}
 				}
 
-				//TODO used alpari format, don't need to compatible with old format here
-				if (cols_len >= 3) // combine first two cols for date time
-					t = util::convert_to_dt(row_vec[0] + row_vec[1], dt_format);
-				else // first single col for date time
-					t = util::convert_to_dt(row_vec[0], dt_format);
+				////TODO used alpari format, don't need to compatible with old format here
+				//if (cols_len >= 3) // combine first two cols for date time
+				//	t = util::convert_to_dt(row_vec[0] + row_vec[1], dt_format);
+				//else // first single col for date time
+				t = util::convert_to_dt(row_vec[0], f);
 
 				if (t < start_date) continue;
 				if (t > end_date) break;
 
 				strat::tick tick1;
 				tick1.time_stamp = t;
-				if (cols_len >= 3)
-					tick1.last = boost::lexical_cast<double>(row_vec[2]);
-				else
-					tick1.last = boost::lexical_cast<double>(row_vec[1]);
+				//if (cols_len >= 3)
+				//	tick1.last = boost::lexical_cast<double>(row_vec[2]);
+				//else
+				tick1.last = boost::lexical_cast<double>(row_vec[1]); //std::strtod(row_vec[1].c_str(), NULL); //
 
 				tick_vec.push_back(tick1);
 			}

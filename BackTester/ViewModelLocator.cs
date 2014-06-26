@@ -1,4 +1,5 @@
 ﻿
+using System;
 using Microsoft.Practices.ServiceLocation;
 using GalaSoft.MvvmLight.Ioc;
 using BackTester.ViewModels;
@@ -33,7 +34,7 @@ namespace BackTester
     {
       get
       {
-        return ServiceLocator.Current.GetInstance<SummaryViewModel>();
+        return ServiceLocator.Current.GetInstance<SummaryViewModel>(Guid.NewGuid().ToString());
       }
     }
   }

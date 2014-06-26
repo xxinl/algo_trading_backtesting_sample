@@ -35,13 +35,13 @@ namespace strat{
 		double _initial_threshold;
 		double _obser_threshold;
 
-		bool _is_anti_trend;
-
 		tick _last_tick;
 		bool _can_obser;
+		bool _obser_up;
 
 		bool _check_if_obser(const tick& crr_tick){
 
+			_obser_up = crr_tick.last - _last_tick.last > 0;
 			return std::abs(crr_tick.last - _last_tick.last) > _initial_threshold;
 		}
 
@@ -53,15 +53,20 @@ namespace strat{
 			
 			if (crr_tick.time_stamp >= _last_tick.time_stamp + boost::posix_time::minutes(_obser_win)){
 
-				if (crr_tick.last >= _last_tick.last + _obser_threshold){
+				if (_obser_up && crr_tick.last >= _last_tick.last + _obser_threshold){
 
-					ret_sig = _is_anti_trend ? signal::SELL : signal::BUY;
+					ret_sig = signal::SELL;
 					_add_position(crr_tick, ret_sig);
 				}
-				else if (crr_tick.last <= _last_tick.last - _obser_threshold){
+				else if (!_obser_up && crr_tick.last <= _last_tick.last - _obser_threshold){
 
-					ret_sig = _is_anti_trend ? signal::BUY : signal::SELL;
+					ret_sig = signal::BUY;
 					_add_position(crr_tick, ret_sig);
+				}
+				else if (crr_tick.time_stamp >= _last_tick.time_stamp + boost::posix_time::minutes(60)){
+
+					_can_obser = true;
+					_last_tick = crr_tick;
 				}
 			}
 
@@ -94,7 +99,7 @@ namespace strat{
 			double obser_threshold, bool is_anti_trend = true) :
 			algo(s_base, s_quote), _obser_win(obser_win), _hold_win(hold_win),
 			_initial_threshold(initial_threshold), _obser_threshold(obser_threshold),
-			_can_obser(true), _is_anti_trend(is_anti_trend){
+			_can_obser(true){
 		
 			_last_tick.last = -1;
 		};
@@ -113,9 +118,8 @@ namespace strat{
 
 			if (_can_obser){
 
-				if(_check_if_obser(crr_tick)){
+				if(_check_if_obser(crr_tick))
 					_can_obser = false;
-				}
 
 				_last_tick = crr_tick;
 
@@ -161,8 +165,8 @@ namespace strat{
 			return std::make_tuple(
 				_rand_from_range(1, 60),
 				_rand_from_range(1, 360),
-				_rand_from_range(3, 50) * 0.00010,
-				_rand_from_range(3, 50) * 0.00010
+				_rand_from_range(1, 50) * 0.00010,
+				_rand_from_range(1, 50) * 0.00010
 				);
 		}
 
@@ -217,25 +221,25 @@ namespace strat{
 
 			std::tuple<size_t, size_t, double, double> ret = get_random_citizen();
 
-			int keep = rand() % 4;
-			switch (keep){
+			//int keep = rand() % 4;
+			//switch (keep){
 
-			case 0:
-				std::get<0>(ret) = std::get<0>(params);
-				break;
+			//case 0:
+			//	std::get<0>(ret) = std::get<0>(params);
+			//	break;
 
-			case 1:
-				std::get<1>(ret) = std::get<1>(params);
-				break;
+			//case 1:
+			//	std::get<1>(ret) = std::get<1>(params);
+			//	break;
 
-			case 2:
-				std::get<2>(ret) = std::get<2>(params);
-				break;
+			//case 2:
+			//	std::get<2>(ret) = std::get<2>(params);
+			//	break;
 
-			case 3:
-				std::get<3>(ret) = std::get<3>(params);
-				break;
-			}
+			//case 3:
+			//	std::get<3>(ret) = std::get<3>(params);
+			//	break;
+			//}
 
 			return ret;
 		}
