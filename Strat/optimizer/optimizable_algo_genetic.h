@@ -55,7 +55,11 @@ namespace strat{
 
 				if (close_pos.type != signal::NONE){
 					
-					double ret = (close_pos.type == signal::BUY ? 1 : -1) * (close_pos.close_tick.last - close_pos.open_tick.last);
+					bool is_buy = close_pos.type == signal::BUY;
+
+					double openRate = is_buy ? close_pos.open_tick.ask : close_pos.open_tick.bid;
+					double closeRate = !is_buy ? close_pos.close_tick.ask : close_pos.close_tick.bid;
+					double ret = (is_buy ? 1 : -1) * (closeRate - openRate);
 
 					if (ret >= 0){
 
@@ -82,17 +86,10 @@ namespace strat{
 				}
 			}
 
-			if (max_dd < 1) max_dd = 1;
 			if (no_loss < 1) no_loss = 1;
 			if (no_win < 1) no_win = 1;
-
-			if (ttl_ret <= 0) return 0;
-
-			return (ttl_ret * no_win / no_loss) / max_dd;
-
-			//if (no_win + no_loss < 1000) return 0;
-
-			//return (double)no_win / no_loss;
+			
+			return (ttl_ret * no_win / no_loss) - max_dd;
 		}
 	};
 }

@@ -221,25 +221,25 @@ namespace strat{
 
 			std::tuple<size_t, size_t, double, double> ret = get_random_citizen();
 
-			//int keep = rand() % 4;
-			//switch (keep){
+			int keep = rand() % 4;
+			switch (keep){
 
-			//case 0:
-			//	std::get<0>(ret) = std::get<0>(params);
-			//	break;
+			case 0:
+				std::get<0>(ret) = std::get<0>(params);
+				break;
 
-			//case 1:
-			//	std::get<1>(ret) = std::get<1>(params);
-			//	break;
+			case 1:
+				std::get<1>(ret) = std::get<1>(params);
+				break;
 
-			//case 2:
-			//	std::get<2>(ret) = std::get<2>(params);
-			//	break;
+			case 2:
+				std::get<2>(ret) = std::get<2>(params);
+				break;
 
-			//case 3:
-			//	std::get<3>(ret) = std::get<3>(params);
-			//	break;
-			//}
+			case 3:
+				std::get<3>(ret) = std::get<3>(params);
+				break;
+			}
 
 			return ret;
 		}

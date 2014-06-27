@@ -354,21 +354,18 @@ namespace Strat
 
 #pragma region optimizer
 
-		TEST_METHOD(long_short_optimize){
+		TEST_METHOD(algo_bollinger_optimize){
 		
-			typedef strat::event_long_short OPTIMIZER_TYPE;
-
-			strat::event_long_short* algo_p = new strat::event_long_short("eur", "usd", 
-				"C:/workspace/Strat/test_files/Calendar-Jan2013.csv", 7, 45, 0.0003);
-			strat::optimizer_genetic<size_t, size_t, double> optimizer(
-				"C:/workspace/Strat/test_files/EURUSD_2013_1min_alpari-Jan.csv", algo_p,
-				0.20f, 0.40f, 10, 10);
+			strat::algo_bollinger* algo_p = new strat::algo_bollinger("eur", "usd", 4, 1, 0.0001, 0.0003);
+			strat::optimizer_genetic<size_t, size_t, double, double> optimizer(
+				"C:/workspace/Strat/test_files/GBPUSD2013.csv", algo_p,
+				0.20f, 0.40f, 1, 1);
 
 			boost::posix_time::ptime start =
-				boost::posix_time::time_from_string(std::string("2013-01-08 00:00:00.000"));
+				boost::posix_time::time_from_string(std::string("2013-01-02 00:00:00.000"));
 			boost::posix_time::ptime end =
-				boost::posix_time::time_from_string(std::string("2013-01-09 00:00:00.000"));
-			std::pair<double, std::tuple<size_t, size_t, double>> opti_params = optimizer.optimize(
+				boost::posix_time::time_from_string(std::string("2013-01-03 00:00:00.000"));
+			std::pair<double, std::tuple<size_t, size_t, double, double>> opti_params = optimizer.optimize(
 				start, end);
 
 			delete(algo_p);

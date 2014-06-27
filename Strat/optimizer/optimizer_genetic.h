@@ -45,7 +45,7 @@ namespace strat{
 			LOG("optimizer reading sample ticks");
 
 			std::vector<tick> ticks;
-			std::vector<int> cols_v{ 0, 3 };
+			std::vector<int> cols_v{ 0, 1, 2, 3 };
 
 			util::read_tick_csv(hist_ticks_f_path, ticks, start_date, end_date, "%Y.%m.%d %H:%M", cols_v);
 			return ticks;
@@ -68,6 +68,8 @@ namespace strat{
 		void _calc_population_fitness(size_t start_i, const std::vector<tick>& ticks,
 			concurrency::concurrent_vector<CITIZEN_TYPE>& population, optimizable_algo_genetic<Params...>* opti_algo){
 			
+			//population[0].first = opti_algo->calculate_fitness(ticks, population[0].second);
+
 			concurrency::parallel_for(size_t(start_i), size_t(_population_size) - 1,
 				[&ticks, &population, &opti_algo](int i){
 				
@@ -160,7 +162,7 @@ namespace strat{
 					}
 
 					//increase mutate rate when fitness not change
-					_mutation_rate = _mutation_rate * 0.95 + 0.05;
+					_mutation_rate = _mutation_rate * 0.9 + 10;
 				}
 				else{
 

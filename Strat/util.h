@@ -134,7 +134,9 @@ public:
 				//if (cols_len >= 3)
 				//	tick1.last = boost::lexical_cast<double>(row_vec[2]);
 				//else
-				tick1.last = boost::lexical_cast<double>(row_vec[1]); //std::strtod(row_vec[1].c_str(), NULL); //
+				tick1.ask = boost::lexical_cast<double>(row_vec[1]); //std::strtod(row_vec[1].c_str(), NULL);
+				tick1.bid = boost::lexical_cast<double>(row_vec[2]);
+				tick1.last = boost::lexical_cast<double>(row_vec[3]);
 
 				tick_vec.push_back(tick1);
 			}
