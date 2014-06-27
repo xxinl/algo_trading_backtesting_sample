@@ -72,7 +72,7 @@ namespace BackTester.ViewModels
       //EventFilePath = @"C:\workspace\Strat\back_test_files\Calendar-2013.csv";
       RunState = "Run";
       Leverage = 500;
-      StartBalance = 500;
+      StartBalance = 0;
       RunTestWithOptimizer = false;
       ObserWin = 1;
       HoldWin = 1;

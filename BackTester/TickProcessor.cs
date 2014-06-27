@@ -90,10 +90,9 @@ namespace BackTester
       DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(pTick));
     }
 
-    //assume home cuurency is quote currency
     private double _calcProfit(int signal, int lot, double openRate, double closeRate)
     {
-      return (signal * (closeRate - openRate) * lot) / (signal == 1 ? closeRate : 1);
+      return signal * (closeRate - openRate) * lot;
     }
 
     private void _updatePerformanceSummary(double profit)

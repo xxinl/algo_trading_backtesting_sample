@@ -55,6 +55,8 @@ namespace strat{
 
 				if (close_pos.type != signal::NONE){
 					
+					//LOG_POSITION(close_pos);
+
 					bool is_buy = close_pos.type == signal::BUY;
 
 					double openRate = is_buy ? close_pos.open_tick.ask : close_pos.open_tick.bid;

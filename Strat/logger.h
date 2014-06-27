@@ -104,9 +104,10 @@ public:
 	static void log_position(const strat::position& position){
 		std::stringstream s;
 
+		double open_rate = position.type == strat::signal::BUY ? position.open_tick.ask : position.open_tick.bid;
 		double close_rate = position.type == strat::signal::SELL ? position.close_tick.ask : position.close_tick.bid;
 
-		s << position.open_tick.time_stamp << "," << position.open_tick.last
+		s << position.open_tick.time_stamp << "," << open_rate
 			<< "," << position.close_tick.time_stamp << "," << close_rate
 			<< "," << position.type;
 
