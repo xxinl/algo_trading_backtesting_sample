@@ -45,6 +45,14 @@ namespace strat{
 			return std::abs(crr_tick.last - _last_tick.last) > _initial_threshold;
 		}
 
+		void _update_last_tick(const tick& crr_tick){
+
+			if (crr_tick.time_stamp >= _last_tick.time_stamp + boost::posix_time::minutes(1)){
+			
+				_last_tick = crr_tick;
+			}
+		}
+
 	protected:
 
 		signal _get_signal_algo(const tick& crr_tick) override {
@@ -66,7 +74,12 @@ namespace strat{
 				else if (crr_tick.time_stamp >= _last_tick.time_stamp + boost::posix_time::minutes(60)){
 
 					_can_obser = true;
-					_last_tick = crr_tick;
+					_update_last_tick(crr_tick);
+
+#ifdef MQL5_RELEASE
+					if (!_is_log_off)
+						LOG("canceled observe, no singal for the last 60 minutes, at tick " << crr_tick.time_stamp);
+#endif MQL5_RELEASE
 				}
 			}
 
@@ -118,10 +131,17 @@ namespace strat{
 
 			if (_can_obser){
 
-				if(_check_if_obser(crr_tick))
+				if (_check_if_obser(crr_tick)){
+
 					_can_obser = false;
 
-				_last_tick = crr_tick;
+#ifdef MQL5_RELEASE
+					if (!_is_log_off)
+						LOG("observed at tick " << crr_tick.time_stamp << " " << crr_tick.last << "; last tick " << _last_tick.last);
+#endif MQL5_RELEASE
+				}
+
+				_update_last_tick(crr_tick);
 
 				return signal::NONE;
 			}
@@ -132,7 +152,7 @@ namespace strat{
 					if (_close_position_algo(crr_tick, close_pos, stop_loss))	{
 
 						_can_obser = true;
-						_last_tick = crr_tick;
+						_update_last_tick(crr_tick);
 					}
 
 					return signal::NONE;
@@ -163,10 +183,10 @@ namespace strat{
 		std::tuple<size_t, size_t, double, double> get_random_citizen(){
 
 			return std::make_tuple(
-				_rand_from_range(1, 60),
+				_rand_from_range(1, 10),
 				_rand_from_range(1, 360),
-				_rand_from_range(1, 50) * 0.00010,
-				_rand_from_range(1, 50) * 0.00010
+				_rand_from_range(1, 100) * 0.00010,
+				_rand_from_range(1, 100) * 0.00010
 				);
 		}
 

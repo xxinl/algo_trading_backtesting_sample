@@ -28,14 +28,18 @@ namespace strat{
 			_position.open_tick = t;
 			_position.type = type;
 
+#ifdef MQL5_RELEASE
 			if (!_is_log_off)
 				LOG("opened position at tick " << t.time_stamp);			
+#endif MQL5_RELEASE
 		}
 
 		void _delete_position(){
 
+#ifdef MQL5_RELEASE
 			if (!_is_log_off)
 				LOG("closing position at tick " << _position.open_tick.time_stamp);
+#endif MQL5_RELEASE
 
 			_position.type = signal::NONE;
 		}

@@ -389,7 +389,7 @@ namespace Strat
 
 			std::vector<strat::tick> tick_vec;
 
-			std::vector<int> cols_v{ 0, 3 };
+			std::vector<int> cols_v{ 0, 1, 2, 3 };
 			auto start_date = util::convert_to_dt("20130108", "%Y%m%d");
 			auto end_date = util::convert_to_dt("20130110", "%Y%m%d");
 			util::read_tick_csv("../../test_files/EURUSD_2013_1min_alpari-Jan.csv", 

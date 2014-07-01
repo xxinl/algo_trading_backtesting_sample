@@ -8,6 +8,9 @@ del . /F /Q
 cd "%path%\x64\Release"
 del . /F /Q
 
+cd "%path%\x64\MQL5Release"
+del . /F /Q
+
 cd "%path%\Debug"
 del . /F /Q
 
@@ -15,6 +18,9 @@ cd "%path%\Strat\x64\Debug"
 del . /F /Q
 
 cd "%path%\Strat\x64\Release"
+del . /F /Q
+
+cd "%path%\Strat\x64\MQL5Release"
 del . /F /Q
 
 cd "%path%\Strat\Debug"
