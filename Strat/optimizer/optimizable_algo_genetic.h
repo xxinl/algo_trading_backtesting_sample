@@ -54,8 +54,6 @@ namespace strat{
 				algo_p->process_tick(t, close_pos);
 
 				if (close_pos.type != signal::NONE){
-					
-					//LOG_POSITION(close_pos);
 
 					bool is_buy = close_pos.type == signal::BUY;
 

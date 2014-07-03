@@ -137,9 +137,9 @@ int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, 
 	LOG_SEV("process_tick algo:" << algo_addr << " time:" << time_str
 		<< " last:" << last << " sl:" << stop_loss, logger::debug);
 
-#ifdef MQL5_RELEASE
-	LOG_TICK(time_str, ask, bid, last, volume);
-#endif MQL5_RELEASE
+//#ifdef MQL5_RELEASE
+//	LOG_TICK(time_str, ask, bid, last, volume);
+//#endif MQL5_RELEASE
 	
 	strat::signal sig = strat::signal::NONE;
 	strat::position close_pos;
@@ -216,6 +216,12 @@ void log_tick(const wchar_t* time, double ask, double bid, double last, size_t v
 
 	string time_str = convert_wchar_to_string(time);
 	LOG_TICK(time_str, ask, bid, last, volume);
+}
+
+extern "C"	__declspec(dllexport)
+void run_day_opti(){
+
+	
 }
 
 //extern "C"	__declspec(dllexport)
