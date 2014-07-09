@@ -27,6 +27,7 @@
           <Label Content="hold:" /><TextBox Text="{Binding HoldWin, Mode=TwoWay}" />
           <Label Content="t1:" /><TextBox Text="{Binding Threshold1, Mode=TwoWay}" />
           <Label Content="t2:" /><TextBox Text="{Binding Threshold2, Mode=TwoWay}" />
+          <Label Content="sl:" /><TextBox Text="{Binding SL, Mode=TwoWay}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
           <CheckBox Content="with optimizer" VerticalAlignment="Center"

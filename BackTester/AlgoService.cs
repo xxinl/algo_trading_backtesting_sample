@@ -77,10 +77,10 @@ namespace BackTester
     }
 
     //todo stop loss
-    public int OnTick(Tick t, out bool isClosePos)
+    public int OnTick(Tick t, out bool isClosePos, double sl)
     {
-      return _process_tick(_algo_p, t.Time.ToString("yyyy.MM.dd HH:mm"), t.Ask, t.Bid, t.Last, 
-        (IntPtr)t.Volume, 0.01, out isClosePos,
+      return _process_tick(_algo_p, t.Time.ToString("yyyy.MM.dd HH:mm"), t.Ask, t.Bid, t.Last,
+        (IntPtr)t.Volume, sl, out isClosePos,
         _callbackInstance);
     }
 

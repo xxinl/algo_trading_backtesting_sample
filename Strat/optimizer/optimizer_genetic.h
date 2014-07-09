@@ -23,7 +23,7 @@ namespace strat{
 	template<typename ...Params>
 	class optimizer_genetic{
 	
-	private:
+	protected:
 		optimizable_algo_genetic<Params...>* _opti_algo;
 		const int _elite_size;
 		double _mutation_rate;
@@ -32,7 +32,7 @@ namespace strat{
 		const string _hist_ticks_f_path;
 
 		int _no_iter_no_change = 0; //no of iteration that top fitness hasnot change
-		const int _max_iter_no_change = 20; //max no of iteration that fitness doesnt change
+		const int _max_iter_no_change = 32; //max no of iteration that fitness doesnt change
 
 		typedef std::pair<double, std::tuple<Params...>> CITIZEN_TYPE;
 
@@ -105,32 +105,20 @@ namespace strat{
 
 		void _print_elite(){
 		
-			for (int i = 0; i < _elite_size; ++i){
+			//for (int i = 0; i < _elite_size; ++i){
 
-				LOG("elite..." << _opti_algo->print_params(_population[i].second) << " fitness:" << _population[i].first);
-			}
+			//	LOG("elite..." << _opti_algo->print_params(_population[i].second) << " fitness:" << _population[i].first);
+			//}
 		}
 
-	public:
-		optimizer_genetic(string hist_ticks_f_path, optimizable_algo_genetic<Params...>* opti_algo,
-			double elite_rate = 0.20f, double mutation_rate = 0.30f, int max_iteration = 16, int population_size = 64) :
-			_opti_algo(opti_algo), _elite_size(elite_rate * population_size), _mutation_rate(mutation_rate * 100), 
-			_max_iteration(max_iteration), _population_size(population_size), _hist_ticks_f_path(hist_ticks_f_path){		}
-
-		CITIZEN_TYPE optimize(boost::posix_time::ptime start_date, boost::posix_time::ptime end_date){
-
-			LOG("optimizer starting iteration:" << _max_iteration << " population:" << _population_size <<
-				" start:" << start_date << " end:" << end_date);
-
-			std::vector<tick> ticks = _read_sample_ticks(_hist_ticks_f_path, start_date, end_date);
-			//_opti_algo->remove_non_important_ticks(ticks);
-
+		CITIZEN_TYPE _optimize(const std::vector<tick>& ticks){
+		
 			LOG("initialising population");
 			_init_population();
 			_calc_population_fitness(0, ticks, _population, _opti_algo);
 			_sort_population();
 
-			LOG("initialised population with top fitness " 
+			LOG("initialised population with top fitness "
 				<< _population.front().first << " params: " << _opti_algo->print_params(_population.front().second));
 			_print_elite();
 
@@ -147,7 +135,7 @@ namespace strat{
 				_calc_population_fitness(_elite_size, ticks, _population, _opti_algo);
 				_sort_population();
 
-				LOG("completed optimization iteration " << i << " with top fitness " 
+				LOG("completed optimization iteration " << i << " with top fitness "
 					<< _population.front().first << " params: " << _opti_algo->print_params(_population.front().second));
 
 				_print_elite();
@@ -171,6 +159,23 @@ namespace strat{
 			}
 
 			return _population[0];
+		}
+
+	public:
+		optimizer_genetic(string hist_ticks_f_path, optimizable_algo_genetic<Params...>* opti_algo,
+			double elite_rate = 0.20f, double mutation_rate = 0.30f, int max_iteration = 16, int population_size = 64) :
+			_opti_algo(opti_algo), _elite_size(elite_rate * population_size), _mutation_rate(mutation_rate * 100), 
+			_max_iteration(max_iteration), _population_size(population_size), _hist_ticks_f_path(hist_ticks_f_path){		}
+
+		CITIZEN_TYPE optimize(boost::posix_time::ptime start_date, boost::posix_time::ptime end_date){
+
+			LOG("optimizer starting iteration:" << _max_iteration << " population:" << _population_size <<
+				" start:" << start_date << " end:" << end_date);
+
+			std::vector<tick> ticks = _read_sample_ticks(_hist_ticks_f_path, start_date, end_date);
+			//_opti_algo->remove_non_important_ticks(ticks);
+
+			return _optimize(ticks);
 		}
 	};
 }

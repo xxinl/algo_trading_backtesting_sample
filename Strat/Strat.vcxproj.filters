@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\algos">
+      <UniqueIdentifier>{567d3b17-144e-4141-aaab-9bd1208a6c4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\indicators">
+      <UniqueIdentifier>{917e0d98-9e88-4b96-aed7-487f8532e969}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -33,25 +39,10 @@
     <ClInclude Include="logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="algo\event\event_long_short.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="indicator\sma.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="algo\event\event_algo_ma.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="algo\event\event_algo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="algo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="indicator\indicator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="trend.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="optimizer\optimizable_algo_genetic.h">
@@ -60,7 +51,31 @@
     <ClInclude Include="optimizer\optimizer_genetic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="optimizer\optimizer_genetic_day_research.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="algo\algo_bollinger.h">
+      <Filter>Header Files\algos</Filter>
+    </ClInclude>
+    <ClInclude Include="algo\algo_bollinger_sd.h">
+      <Filter>Header Files\algos</Filter>
+    </ClInclude>
+    <ClInclude Include="algo\event\event_algo.h">
+      <Filter>Header Files\algos</Filter>
+    </ClInclude>
+    <ClInclude Include="algo\event\event_algo_ma.h">
+      <Filter>Header Files\algos</Filter>
+    </ClInclude>
+    <ClInclude Include="algo\event\event_long_short.h">
+      <Filter>Header Files\algos</Filter>
+    </ClInclude>
+    <ClInclude Include="indicator\sd.h">
+      <Filter>Header Files\indicators</Filter>
+    </ClInclude>
+    <ClInclude Include="indicator\sma.h">
+      <Filter>Header Files\indicators</Filter>
+    </ClInclude>
+    <ClInclude Include="trend.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

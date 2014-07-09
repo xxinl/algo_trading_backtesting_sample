@@ -243,14 +243,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="algo\algo_bollinger.h" />
+    <ClInclude Include="algo\algo_bollinger_sd.h" />
     <ClInclude Include="algo\event\event_long_short.h" />
     <ClInclude Include="algo\event\event_algo.h" />
     <ClInclude Include="algo\event\event_algo_ma.h" />
     <ClInclude Include="indicator\indicator.h" />
+    <ClInclude Include="indicator\sd.h" />
     <ClInclude Include="indicator\sma.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="optimizer\optimizable_algo_genetic.h" />
     <ClInclude Include="optimizer\optimizer_genetic.h" />
+    <ClInclude Include="optimizer\optimizer_genetic_day_research.h" />
     <ClInclude Include="position.h" />
     <ClInclude Include="tick.h" />
     <ClInclude Include="algo.h" />

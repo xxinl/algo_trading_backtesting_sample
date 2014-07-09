@@ -20,6 +20,8 @@ namespace strat{
 		tick close_tick;
 		signal type;
 
+		double open_rate;
+
 		position(){
 			type = signal::NONE;
 		}

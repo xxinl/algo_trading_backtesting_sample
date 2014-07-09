@@ -28,6 +28,9 @@ namespace strat{
 			_position.open_tick = t;
 			_position.type = type;
 
+			_position.open_rate = _position.type == signal::BUY ? _position.open_tick.ask 
+				: _position.open_tick.bid;
+
 #ifdef MQL5_RELEASE
 			if (!_is_log_off)
 				LOG("opened position at tick " << t.time_stamp);			

@@ -87,8 +87,10 @@ namespace strat{
 		}
 
 		int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) override{
-			
-			bool is_stop_out = stop_loss != -1 && (_position.open_tick.last - crr_tick.last) * _position.type > stop_loss;
+
+			double closeRate = _position.type == signal::SELL ? crr_tick.ask : crr_tick.bid;
+
+			bool is_stop_out = stop_loss != -1 && (_position.open_rate - closeRate) * _position.type > stop_loss;
 
 			if (is_stop_out ||
 				crr_tick.time_stamp >= _position.open_tick.time_stamp + boost::posix_time::minutes(_hold_win))
@@ -183,10 +185,10 @@ namespace strat{
 		std::tuple<size_t, size_t, double, double> get_random_citizen(){
 
 			return std::make_tuple(
-				_rand_from_range(1, 10),
-				_rand_from_range(1, 360),
-				_rand_from_range(1, 100) * 0.00010,
-				_rand_from_range(1, 100) * 0.00010
+				_rand_from_range(1, 15),
+				_rand_from_range(1, 60),
+				_rand_from_range(1, 100) * 0.0010,
+				_rand_from_range(1, 100) * 0.0010
 				);
 		}
 
@@ -267,8 +269,8 @@ namespace strat{
 		string print_params(std::tuple<size_t, size_t, double, double> params) override{
 
 			return static_cast<std::ostringstream&>(std::ostringstream().flush() <<
-				"obser:" << std::get<0>(params) << " hold:" << std::get<1>(params) << 
-				" ini_t:" << std::get<2>(params) << " obser_t:" << std::get<3>(params)).str();
+				std::get<0>(params) << "," << std::get<1>(params) << 
+				"," << std::get<2>(params) << "," << std::get<3>(params)).str();
 		}
 
 #pragma endregion

@@ -12,6 +12,7 @@
 #include "logger.h"
 #include "optimizer\optimizable_algo_genetic.h"
 #include "optimizer\optimizer_genetic.h"
+//#include "optimizer\optimizer_genetic_day_research.h"
 
 #include <string>
 #include <future>
@@ -63,6 +64,10 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path,
 	write_ini("OPTI_PARAM.HOLD", std::get<1>(opti_params.second));
 	write_ini("OPTI_PARAM.INI_T", std::get<2>(opti_params.second));
 	write_ini("OPTI_PARAM.OBSER_T", std::get<2>(opti_params.second));
+
+	//strat::optimizer_genetic_day_research<OPTIMIZER_PARAMS> optimizer(
+	//	convert_wchar_to_string(hist_tick_path), algo_p, 0.2f, 0.3f, max_iteration, population_size);
+	//optimizer.run_day_opti(start_date, end_date);
 }
 
 #pragma endregion
@@ -218,11 +223,6 @@ void log_tick(const wchar_t* time, double ask, double bid, double last, size_t v
 	LOG_TICK(time_str, ask, bid, last, volume);
 }
 
-extern "C"	__declspec(dllexport)
-void run_day_opti(){
-
-	
-}
 
 //extern "C"	__declspec(dllexport)
 //int process_end_day(size_t algo_addr, const wchar_t* hist_tick_path, size_t keep_days_no,

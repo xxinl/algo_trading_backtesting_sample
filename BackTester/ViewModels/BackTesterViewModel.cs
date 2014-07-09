@@ -32,6 +32,7 @@ namespace BackTester.ViewModels
     public double Threshold2 { get; set; }
     public int OptimizeInterval { get; set; } //days
     public int OptimizeLookback { get; set; } //days
+    public double SL { get; set; }
 
     #endregion input properties
 
@@ -80,6 +81,7 @@ namespace BackTester.ViewModels
       Threshold2 = 0.001;
       OptimizeInterval = 30;
       OptimizeLookback = 90;
+      SL = 0.01;
 
       RunTestCommand = new RelayCommand(async () => {
         if (IsBusy)
@@ -199,7 +201,7 @@ namespace BackTester.ViewModels
                                       }
 
                                       bool isClosePos = false;
-                                      var signal = algo.OnTick(tick, out isClosePos);
+                                      var signal = algo.OnTick(tick, out isClosePos, SL);
                                       tickPro.OnTick(tick, signal, isClosePos);
 
                                       _setProgress(i*100/ticks.Count);
