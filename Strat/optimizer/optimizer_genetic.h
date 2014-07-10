@@ -105,10 +105,11 @@ namespace strat{
 
 		void _print_elite(){
 		
-			//for (int i = 0; i < _elite_size; ++i){
+			int max = min(20, _elite_size);
+			for (int i = 0; i < max; ++i){
 
-			//	LOG("elite..." << _opti_algo->print_params(_population[i].second) << " fitness:" << _population[i].first);
-			//}
+				LOG("elite..." << _opti_algo->print_params(_population[i].second) << " fitness:" << _population[i].first);
+			}
 		}
 
 		CITIZEN_TYPE _optimize(const std::vector<tick>& ticks){

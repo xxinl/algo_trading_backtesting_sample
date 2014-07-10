@@ -11,7 +11,7 @@ namespace BackTester
   {
     private readonly int _leverage;
     private double _balance;
-    private const int _lotSize = 3000; //0.01
+    private const int _lotSize = 5000; //0.05
 
     private double _posOpenRate = -1;
     private int? _currPosSignal = null;

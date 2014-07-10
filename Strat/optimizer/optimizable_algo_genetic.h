@@ -84,7 +84,7 @@ namespace strat{
 				}
 			}
 			
-			if (no_win < 500) return 0;
+			if (no_win < 462) return 0; //462
 
 			if (no_loss < 1) no_loss = 1;
 			if (no_win < 1) no_win = 1;

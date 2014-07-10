@@ -187,8 +187,8 @@ namespace strat{
 			return std::make_tuple(
 				_rand_from_range(1, 15),
 				_rand_from_range(1, 60),
-				_rand_from_range(1, 100) * 0.0010,
-				_rand_from_range(1, 100) * 0.0010
+				_rand_from_range(1, 100) * 0.00010, //0.00010
+				_rand_from_range(1, 100) * 0.00010
 				);
 		}
 

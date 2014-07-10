@@ -54,7 +54,11 @@ private:
 			boost::log::add_console_log(std::clog, boost::log::keywords::format = "%TimeStamp%: %Message%"
 			,boost::log::keywords::filter = boost::log::expressions::attr< severity_level >("Severity") > debug);
 			
+			#ifdef MQL5_RELEASE
+			string file_name = "C:/strat_live_logs/" + util::get_current_dt_str();
+			#else
 			string file_name = "C:/strat_logs/" + util::get_current_dt_str();
+			#endif MQL5_RELEASE
 
 			boost::log::add_file_log
 				(
@@ -75,7 +79,7 @@ private:
 
 			boost::log::add_file_log
 				(
-				"C:/strat_logs/tick.tk",
+				file_name + "_TICKS.tk",
 				boost::log::keywords::filter = boost::log::expressions::attr< severity_level >("Severity") == tick
 				);
 
