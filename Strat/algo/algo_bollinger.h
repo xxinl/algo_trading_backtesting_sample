@@ -58,6 +58,10 @@ namespace strat{
 		signal _get_signal_algo(const tick& crr_tick) override {
 
 			signal ret_sig = signal::NONE;
+
+			//no trade after 2300 hours to avoid position carry over to next day
+			if (crr_tick.time_stamp.time_of_day().hours() >= 23)
+				return ret_sig;
 			
 			if (crr_tick.time_stamp >= _last_tick.time_stamp + boost::posix_time::minutes(_obser_win)){
 
