@@ -78,6 +78,9 @@
     <ClInclude Include="trend.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="algo\algo_dayrange.h">
+      <Filter>Header Files\algos</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

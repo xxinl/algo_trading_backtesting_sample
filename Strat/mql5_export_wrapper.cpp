@@ -9,6 +9,7 @@
 //#include "algo\event\event_algo_ma.h"
 //#include "algo\event\event_long_short.h"
 #include "algo\algo_bollinger.h"
+#include "algo\algo_dayrange.h"
 #include "logger.h"
 #include "optimizer\optimizable_algo_genetic.h"
 #include "optimizer\optimizer_genetic.h"
@@ -25,8 +26,11 @@ using std::string;
 
 logger::callback logger::on_callback = nullptr;
 
-typedef strat::algo_bollinger ALGO_TYPE;
-#define OPTIMIZER_PARAMS size_t, size_t, double, double
+//typedef strat::algo_bollinger ALGO_TYPE;
+//#define OPTIMIZER_PARAMS size_t, size_t, double, double
+
+typedef strat::algo_dayrange ALGO_TYPE;
+#define OPTIMIZER_PARAMS int, double, double
 
 #pragma region _private members
 
@@ -60,10 +64,10 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path,
 		convert_wchar_to_string(hist_tick_path), algo_p, 0.2f, 0.3f, max_iteration, population_size);
 	std::pair<double, std::tuple<OPTIMIZER_PARAMS>> opti_params = optimizer.optimize(start_date, end_date);
 
-	write_ini("OPTI_PARAM.OBSERV", std::get<0>(opti_params.second));
-	write_ini("OPTI_PARAM.HOLD", std::get<1>(opti_params.second));
-	write_ini("OPTI_PARAM.INI_T", std::get<2>(opti_params.second));
-	write_ini("OPTI_PARAM.OBSER_T", std::get<2>(opti_params.second));
+	//write_ini("OPTI_PARAM.OBSERV", std::get<0>(opti_params.second));
+	//write_ini("OPTI_PARAM.HOLD", std::get<1>(opti_params.second));
+	//write_ini("OPTI_PARAM.INI_T", std::get<2>(opti_params.second));
+	//write_ini("OPTI_PARAM.OBSER_T", std::get<3>(opti_params.second));
 
 	//strat::optimizer_genetic_day_research<OPTIMIZER_PARAMS> optimizer(
 	//	convert_wchar_to_string(hist_tick_path), algo_p, 0.2f, 0.3f, max_iteration, population_size);
@@ -77,7 +81,8 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path,
 // base/quote has to be lower case
 extern "C"	__declspec(dllexport)
 size_t get_algo(const wchar_t* base, const wchar_t* quote, //const wchar_t* path, 
-									size_t obser_win, size_t hold_win, double ini_t, double obser_t,
+									size_t obser_win/*complete_hour*/, size_t hold_win, 
+									double ini_t/*entry_lev*/, double obser_t/*exit_lev*/,
 									logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
@@ -88,9 +93,11 @@ size_t get_algo(const wchar_t* base, const wchar_t* quote, //const wchar_t* path
 
 	try{
 
-		ret_p = new strat::algo_bollinger(
-			base_str, quote_str,
-			obser_win, hold_win, ini_t, obser_t);
+		//ret_p = new strat::algo_bollinger(
+		//	base_str, quote_str,
+		//	obser_win, hold_win, ini_t, obser_t);
+
+		ret_p = new strat::algo_dayrange(base_str, quote_str, obser_win, ini_t, obser_t);
 
 		//ret_p = new strat::event_long_short(
 		//	base_str, quote_str, convert_wchar_to_string(path),
@@ -206,14 +213,14 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path, const wchar_t* st
 extern "C"	__declspec(dllexport)
 void reset_algo_params(size_t algo_addr){
 
-	ALGO_TYPE* algo_p = reinterpret_cast<ALGO_TYPE*>(algo_addr);
+	//ALGO_TYPE* algo_p = reinterpret_cast<ALGO_TYPE*>(algo_addr);
 
-	algo_p->reset_params(
-		read_ini<size_t>("OPTI_PARAM.OBSERV"),
-		read_ini<size_t>("OPTI_PARAM.HOLD"),
-		read_ini<double>("OPTI_PARAM.INI_T"),
-		read_ini<double>("OPTI_PARAM.OBSER_T")
-		);
+	//algo_p->reset_params(
+	//	read_ini<size_t>("OPTI_PARAM.OBSERV"),
+	//	read_ini<size_t>("OPTI_PARAM.HOLD"),
+	//	read_ini<double>("OPTI_PARAM.INI_T"),
+	//	read_ini<double>("OPTI_PARAM.OBSER_T")
+	//	);
 }
 
 extern "C"	__declspec(dllexport)
