@@ -11,6 +11,7 @@ implementation:
 #include "tick.h"
 #include "position.h"
 #include "algo.h"
+#include "optimizer/optimizable_algo_genetic.h"
 
 #include <vector>
 #include <cmath>
@@ -30,7 +31,7 @@ namespace strat{
 
 		double _high;
 		double _low;
-		boost::posix_time::ptime _current_day;
+		boost::posix_time::ptime::date_type _current_day;
 		int _complete_hour;
 		double _entry_lev;
 		double _exit_lev;
@@ -85,7 +86,8 @@ namespace strat{
 			algo(s_base, s_quote), 
 			_complete_hour(complete_hour), _entry_lev(entry_lev), _exit_lev(exit_lev){
 		
-			_current_day = boost::posix_time::min_date_time;
+			boost::posix_time::ptime day = boost::posix_time::min_date_time;
+			_current_day = day.date();
 		};
 
 
@@ -96,16 +98,17 @@ namespace strat{
 
 		signal process_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1) override{
 
-			int hour = crr_tick.time_stamp.time_of_day().hours();
+			int crr_hour = crr_tick.time_stamp.time_of_day().hours();
+			boost::posix_time::ptime::date_type crr_day = crr_tick.time_stamp.date();
 
-			if (crr_tick.time_stamp.date() > _current_day.date())
+			if (crr_day > _current_day)
 			{
 				_high = 0;
 				_low = 0;
-				_current_day = crr_tick.time_stamp;
+				_current_day = crr_day;
 			}
 
-			if (hour < _complete_hour){
+			if (crr_hour < _complete_hour){
 			
 				if (crr_tick.last > _high){
 				
@@ -115,8 +118,10 @@ namespace strat{
 				
 					_low = crr_tick.last;
 				}
+
+				return signal::NONE;
 			}
-			else if (hour < 22){
+			else if (crr_hour < 22){
 			
 				if (has_open_position()){
 
@@ -152,7 +157,7 @@ namespace strat{
 			return std::make_tuple(
 				_rand_from_range(12, 20),
 				_rand_from_range(0, 10) * 0.00010, //0.00010
-				_rand_from_range(0, 50) * 0.00010
+				_rand_from_range(5, 50) * 0.00010
 				);
 		}
 

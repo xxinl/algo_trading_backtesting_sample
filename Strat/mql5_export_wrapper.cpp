@@ -8,7 +8,7 @@
 #include "algo.h"
 //#include "algo\event\event_algo_ma.h"
 //#include "algo\event\event_long_short.h"
-#include "algo\algo_bollinger.h"
+//#include "algo\algo_bollinger.h"
 #include "algo\algo_dayrange.h"
 #include "logger.h"
 #include "optimizer\optimizable_algo_genetic.h"
@@ -81,7 +81,7 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path,
 // base/quote has to be lower case
 extern "C"	__declspec(dllexport)
 size_t get_algo(const wchar_t* base, const wchar_t* quote, //const wchar_t* path, 
-									size_t obser_win/*complete_hour*/, size_t hold_win, 
+									size_t obser_win/*complete_hour*/, size_t hold_win,
 									double ini_t/*entry_lev*/, double obser_t/*exit_lev*/,
 									logger::callback callback_handler){
 
