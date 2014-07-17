@@ -104,7 +104,7 @@ namespace strat{
 			if (crr_day > _current_day)
 			{
 				_high = 0;
-				_low = 0;
+				_low = 999999;
 				_current_day = crr_day;
 			}
 
@@ -118,16 +118,12 @@ namespace strat{
 				
 					_low = crr_tick.last;
 				}
-
-				return signal::NONE;
 			}
 			else if (crr_hour < 22){
 			
 				if (has_open_position()){
 
 					_close_position_algo(crr_tick, close_pos, stop_loss);
-
-					return signal::NONE;
 				}
 				else{
 				
@@ -143,9 +139,9 @@ namespace strat{
 					close_pos = _position;
 					_delete_position();
 				}
-
-				return signal::NONE;
 			}
+
+			return signal::NONE;
 		}
 	
 #pragma region optimizable_algo members
