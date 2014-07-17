@@ -9,7 +9,6 @@
 #include <utility>
 #include <tuple>   
 #include <vector>
-#include <algorithm>
 
 #include <ppl.h>
 #include <concurrent_vector.h>
@@ -105,7 +104,10 @@ namespace strat{
 
 		void _print_elite(){
 		
-			int max = min(20, _elite_size);
+			int max = 20;
+			if (_elite_size < max)
+				max = _elite_size;
+
 			for (int i = 0; i < max; ++i){
 
 				LOG("elite..." << _opti_algo->print_params(_population[i].second) << " fitness:" << _population[i].first);
