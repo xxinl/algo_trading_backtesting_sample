@@ -12,6 +12,7 @@
 #include "trend.h"
 #include "optimizer\optimizer_genetic.h"
 #include "algo\algo_bollinger.h"
+#include "algo\algo_dayrange.h"
 
 #include <iostream>
 #include <thread>
@@ -449,6 +450,60 @@ namespace Strat
 				if (i == 89){
 
 					Assert::IsTrue(close_pos.type == strat::signal::SELL);
+					Assert::IsTrue(strat::signal::NONE == sig);
+					Assert::IsTrue(!algo.has_open_position());
+				}
+			}
+		}
+
+		TEST_METHOD(algo_dayrange_process_tick){
+
+			strat::algo_dayrange algo("eur", "usd", 13, 0, 0.0005);
+
+			std::vector<strat::tick> tick_vec;
+
+			std::vector<int> cols_v{ 0, 1, 2, 3 };
+			auto start_date = util::convert_to_dt("20130108", "%Y%m%d");
+			auto end_date = util::convert_to_dt("20130110", "%Y%m%d");
+			util::read_tick_csv("../../test_files/EURUSD_2013_1min_alpari-Jan.csv",
+				tick_vec, start_date, end_date, "%Y.%m.%d %H:%M", cols_v);
+
+			strat::position close_pos;
+			strat::signal sig = strat::signal::NONE;
+
+			size_t size = 1;
+			for (int i = 0; i < 45; i++){
+
+				sig = algo.process_tick(tick_vec[i], close_pos);
+
+				if (i == 5){
+
+					Assert::IsTrue(strat::signal::NONE == sig);
+					Assert::IsTrue(!algo.has_open_position());
+				}
+
+				if (i == 3083){
+
+					Assert::IsTrue(strat::signal::SELL == sig);
+					Assert::IsTrue(algo.has_open_position());
+				}
+
+				if (i == 3084){
+
+					Assert::IsTrue(close_pos.type == strat::signal::SELL);
+					Assert::IsTrue(strat::signal::NONE == sig);
+					Assert::IsTrue(!algo.has_open_position());
+				}
+
+				if (i == 3094){
+
+					Assert::IsTrue(strat::signal::BUY == sig);
+					Assert::IsTrue(algo.has_open_position());
+				}
+
+				if (i == 3095){
+
+					Assert::IsTrue(close_pos.type == strat::signal::BUY);
 					Assert::IsTrue(strat::signal::NONE == sig);
 					Assert::IsTrue(!algo.has_open_position());
 				}
