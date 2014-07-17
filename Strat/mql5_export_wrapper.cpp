@@ -1,3 +1,7 @@
+//0-hybrid
+//1-dayrange
+//2-bollinger
+
 #include "stdafx.h"
 
 #ifdef STRAT_EXPORTS
@@ -8,8 +12,9 @@
 #include "algo.h"
 //#include "algo\event\event_algo_ma.h"
 //#include "algo\event\event_long_short.h"
-//#include "algo\algo_bollinger.h"
+#include "algo\algo_bollinger.h"
 #include "algo\algo_dayrange.h"
+#include "algo\algo_hybrid.h"
 #include "logger.h"
 #include "optimizer\optimizable_algo_genetic.h"
 #include "optimizer\optimizer_genetic.h"
@@ -80,25 +85,32 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path,
 // todo free strings
 // base/quote has to be lower case
 extern "C"	__declspec(dllexport)
-size_t get_algo(const wchar_t* base, const wchar_t* quote, //const wchar_t* path, 
-									size_t obser_win/*complete_hour*/, size_t hold_win,
-									double ini_t/*entry_lev*/, double obser_t/*exit_lev*/,
+size_t get_algo(const wchar_t* base, const wchar_t* quote, size_t algo_type,
+									size_t obser_win, size_t hold_win, double ini_t, double obser_t,
+									size_t complete_hour, double entry_lev, double exit_lev,
 									logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
-	ALGO_TYPE* ret_p = nullptr;
+	strat::algo* ret_p = nullptr;
 
 	string base_str = convert_wchar_to_string(base);
 	string quote_str = convert_wchar_to_string(quote);
 
 	try{
 
-		//ret_p = new strat::algo_bollinger(
-		//	base_str, quote_str,
-		//	obser_win, hold_win, ini_t, obser_t);
-
-		ret_p = new strat::algo_dayrange(base_str, quote_str, obser_win, ini_t, obser_t);
-
+		switch (algo_type){
+		case 0:
+			ret_p = new strat::algo_hybrid(base_str, quote_str,
+				obser_win, hold_win, ini_t, obser_t, complete_hour, entry_lev, exit_lev);
+			break;
+		case 1:
+			ret_p = new strat::algo_dayrange(base_str, quote_str, complete_hour, entry_lev, exit_lev);
+			break;
+		case 2:
+			ret_p = new strat::algo_bollinger(base_str, quote_str,
+				obser_win, hold_win, ini_t, obser_t);
+			break;
+		}
 		//ret_p = new strat::event_long_short(
 		//	base_str, quote_str, convert_wchar_to_string(path),
 		//	obser_win, hold_win, run_sd);
@@ -114,11 +126,7 @@ size_t get_algo(const wchar_t* base, const wchar_t* quote, //const wchar_t* path
 
 	size_t ret_addr = reinterpret_cast<size_t>(ret_p);
 
-	//LOG("get_algo constructing event_algo. base:" << base_str << " quote:" << quote_str <<
-	//	" obser: " << obser_win << " hold : " << hold_win << " sd : " << ini_t <<
-	//	". return pointer adreess:" << ret_addr);
-
-	LOG("get_algo constructing. base:" << base_str << " quote:" << quote_str <<
+	LOG("get_algo constructing type " << algo_type <<". base:" << base_str << " quote:" << quote_str <<
 		" obser: " << obser_win << " hold: " << hold_win << " ini_t: " << ini_t << " obser_t:" << obser_t <<
 		". return pointer adreess:" << ret_addr);
 
@@ -126,9 +134,38 @@ size_t get_algo(const wchar_t* base, const wchar_t* quote, //const wchar_t* path
 }
 
 extern "C"	__declspec(dllexport)
+size_t get_dayrange_algo(const wchar_t* base, const wchar_t* quote,
+						size_t complete_hour, double entry_lev, double exit_lev,
+						logger::callback callback_handler){
+
+	return get_algo(base, quote, 1, 0, 0, 0, 0,
+		complete_hour, entry_lev, exit_lev, callback_handler);
+}
+
+
+extern "C"	__declspec(dllexport)
+size_t get_bollinger_algo(const wchar_t* base, const wchar_t* quote,
+						size_t obser_win, size_t hold_win, double ini_t, double obser_t,
+						logger::callback callback_handler){
+
+	return get_algo(base, quote, 2, obser_win, hold_win, ini_t, obser_t,
+		0, 0, 0, callback_handler);
+}
+
+extern "C"	__declspec(dllexport)
+size_t get_hybrid_algo(const wchar_t* base, const wchar_t* quote,
+						size_t obser_win, size_t hold_win, double ini_t, double obser_t,
+						size_t complete_hour, double entry_lev, double exit_lev,
+						logger::callback callback_handler){
+
+	return get_algo(base, quote, 0, obser_win, hold_win, ini_t, obser_t,
+		complete_hour, entry_lev, exit_lev, callback_handler);
+}
+
+extern "C"	__declspec(dllexport)
 int delete_algo(size_t algo_addr){
 
-	ALGO_TYPE* algo_p = reinterpret_cast<ALGO_TYPE*>(algo_addr);
+	strat::algo* algo_p = reinterpret_cast<strat::algo*>(algo_addr);
 	delete(algo_p);
 
 	return 1;
@@ -144,14 +181,10 @@ int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, 
 	*is_close_pos = false;
 
 	string time_str = convert_wchar_to_string(time);
-	ALGO_TYPE* algo_p = reinterpret_cast<ALGO_TYPE*>(algo_addr);
+	strat::algo* algo_p = reinterpret_cast<strat::algo*>(algo_addr);
 
 	LOG_SEV("process_tick algo:" << algo_addr << " time:" << time_str
 		<< " last:" << last << " sl:" << stop_loss, logger::debug);
-
-//#ifdef MQL5_RELEASE
-//	LOG_TICK(time_str, ask, bid, last, volume);
-//#endif MQL5_RELEASE
 	
 	strat::signal sig = strat::signal::NONE;
 	strat::position close_pos;

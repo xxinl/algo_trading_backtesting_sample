@@ -11,9 +11,9 @@ namespace BackTester
     [DllImport("strat.dll", EntryPoint = "get_algo", CallingConvention = CallingConvention.Cdecl,
       CharSet = CharSet.Unicode)]
     private static extern IntPtr _get_algo(
-      string base_c, string quote, 
-      //string path,
+      string base_c, string quote, IntPtr algo_type,
       IntPtr obser_win, IntPtr hold_win, double ini_t, double obser_t,
+      IntPtr complete_hour, double entry_lev, double exit_lev,
       _callback _callbackInstance);
 
     [DllImport("strat.dll", EntryPoint = "delete_algo", CallingConvention = CallingConvention.Cdecl)]
@@ -64,15 +64,18 @@ namespace BackTester
     }
 
     public async Task Init(//string eventFilePath, 
-      int obserWin, int holdWin, double t1, double t2)
+      int algoType,
+      int obserWin, int holdWin, double t1, double t2,
+      int completeHour, double entryLev, double exitLev)
     {
       //_eventFilePath = eventFilePath;
 
       await Task.Run(() =>
       {
-        _algo_p = _get_algo("eur", "usd", 
-          //eventFilePath,
-          (IntPtr)obserWin, (IntPtr)holdWin, t1, t2, _callbackInstance);
+        _algo_p = _get_algo("xxx", "xxx",  (IntPtr)algoType,
+          (IntPtr)obserWin, (IntPtr)holdWin, t1, t2,
+           (IntPtr)completeHour, entryLev, exitLev,
+          _callbackInstance);
       });
     }
 
@@ -84,14 +87,16 @@ namespace BackTester
         _callbackInstance);
     }
 
-    public async Task Optimize(DateTime tickDate, int obserWin, int holdWin, double t1, double t2,
+    public async Task Optimize(DateTime tickDate, int algoType, 
+      int obserWin, int holdWin, double t1, double t2,
+      int completeHour, double entryLev, double exitLev,
       int backNoofDays, int maxIteration = 32, int populationSize = 128)
     {
       using (AlgoService optiAlgo = new AlgoService(_uiCallbackAction, _tickFilePath))
       {
         await optiAlgo.Init(
-          //_eventFilePath, 
-          obserWin, holdWin, t1, t2);
+          algoType, obserWin, holdWin, t1, t2,
+          completeHour, holdWin, exitLev);
 
         await optiAlgo.OptimizeExecute(tickDate, backNoofDays, maxIteration, populationSize);
       }

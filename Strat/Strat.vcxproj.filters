@@ -81,6 +81,9 @@
     <ClInclude Include="algo\algo_dayrange.h">
       <Filter>Header Files\algos</Filter>
     </ClInclude>
+    <ClInclude Include="algo\algo_hybrid.h">
+      <Filter>Header Files\algos</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
