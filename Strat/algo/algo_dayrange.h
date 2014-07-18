@@ -64,8 +64,8 @@ namespace strat{
 			bool is_stop_out = stop_loss != -1 && (_position.open_rate - closeRate) * _position.type > stop_loss;
 
 			if (is_stop_out || 
-				(_position.type == signal::SELL && crr_tick.ask <= (_high - _exit_lev))
-				|| (_position.type == signal::BUY && crr_tick.bid >= (_low + _exit_lev))){
+				(_position.type == signal::SELL && crr_tick.ask <= (_position.open_rate - _exit_lev))
+				|| (_position.type == signal::BUY && crr_tick.bid >= (_position.open_rate + _exit_lev))){
 
 				_position.close_tick = crr_tick;
 				close_pos = _position;
