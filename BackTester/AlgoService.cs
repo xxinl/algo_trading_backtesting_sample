@@ -79,7 +79,6 @@ namespace BackTester
       });
     }
 
-    //todo stop loss
     public int OnTick(Tick t, out bool isClosePos, double sl)
     {
       return _process_tick(_algo_p, t.Time.ToString("yyyy.MM.dd HH:mm"), t.Ask, t.Bid, t.Last,
