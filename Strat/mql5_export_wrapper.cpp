@@ -207,8 +207,10 @@ int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, 
 		LOG_SEV("process_tick error: " << e.what(), logger::error);
 	}
 
+#ifdef MQL5_RELEASE
 	if (sig != strat::signal::NONE)
 		LOG("return signal: " << sig);
+#endif MQL5_RELEASE
 
 	//close position signal
 	if (close_pos.type != strat::signal::NONE)

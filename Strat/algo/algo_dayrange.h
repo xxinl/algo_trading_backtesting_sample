@@ -107,19 +107,17 @@ namespace strat{
 				_low = 999999;
 				_current_day = crr_day;
 			}
-
-			if (crr_hour < _complete_hour){
-			
-				if (crr_tick.last > _high){
+					
+			if (crr_tick.last > _high){
 				
-					_high = crr_tick.last;
-				}
-				else if (crr_tick.last < _low){
-				
-					_low = crr_tick.last;
-				}
+				_high = crr_tick.last;
 			}
-			else if (crr_hour < 22){
+			else if (crr_tick.last < _low){
+				
+				_low = crr_tick.last;
+			}
+
+			if (crr_hour > _complete_hour && crr_hour < 22){
 			
 				if (has_open_position()){
 

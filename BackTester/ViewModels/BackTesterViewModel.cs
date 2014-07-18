@@ -89,7 +89,7 @@ namespace BackTester.ViewModels
       CompleteHour = 13;
       EntryLev = 0;
       ExitLev = 0.0005;
-      AlgoType = 0;
+      AlgoType = 1;
 
       RunTestCommand = new RelayCommand(async () => {
         if (IsBusy)
