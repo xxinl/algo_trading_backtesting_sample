@@ -1,6 +1,7 @@
 //0-hybrid
 //1-dayrange
 //2-bollinger
+//3-dayrange_mid
 
 #include "stdafx.h"
 
@@ -14,6 +15,7 @@
 //#include "algo\event\event_long_short.h"
 #include "algo\algo_bollinger.h"
 #include "algo\algo_dayrange.h"
+//#include "algo\algo_dayrange_mid.h"
 #include "algo\algo_hybrid.h"
 #include "logger.h"
 #include "optimizer\optimizable_algo_genetic.h"
@@ -111,13 +113,6 @@ size_t get_algo(const wchar_t* base, const wchar_t* quote, size_t algo_type,
 				obser_win, hold_win, ini_t, obser_t);
 			break;
 		}
-		//ret_p = new strat::event_long_short(
-		//	base_str, quote_str, convert_wchar_to_string(path),
-		//	obser_win, hold_win, run_sd);
-	
-		//ret_p = new strat::event_algo_ma(
-		//	convert_wchar_to_string(base), convert_wchar_to_string(quote), convert_wchar_to_string(path),
-		//	7, 45, 0.0003, 25, 270, 0.7);
 	}
 	catch(std::exception& e){
 		
@@ -141,7 +136,6 @@ size_t get_dayrange_algo(const wchar_t* base, const wchar_t* quote,
 	return get_algo(base, quote, 1, 0, 0, 0, 0,
 		complete_hour, entry_lev, exit_lev, callback_handler);
 }
-
 
 extern "C"	__declspec(dllexport)
 size_t get_bollinger_algo(const wchar_t* base, const wchar_t* quote,

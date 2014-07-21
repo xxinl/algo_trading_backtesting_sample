@@ -9,9 +9,9 @@ namespace strat{
 	struct tick {
 
 		boost::posix_time::ptime time_stamp;
-		double ask;
-		double bid;
-		double last;
+		double ask;//high
+		double bid;//low
+		double last;//close
 		size_t volume;
 	};
 }

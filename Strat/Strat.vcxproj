@@ -243,8 +243,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="algo\algo_bollinger.h" />
-    <ClInclude Include="algo\algo_bollinger_sd.h" />
     <ClInclude Include="algo\algo_dayrange.h" />
+    <ClInclude Include="algo\algo_dayrange_mid.h" />
     <ClInclude Include="algo\algo_hybrid.h" />
     <ClInclude Include="algo\event\event_long_short.h" />
     <ClInclude Include="algo\event\event_algo.h" />

@@ -5,8 +5,8 @@ implementation:
 */
 
 
-#ifndef _STRAT_DAYRANGE
-#define _STRAT_DAYRANGE
+#ifndef _STRAT_DAYRANGE_MID
+#define _STRAT_DAYRANGE_MID
 
 #include "tick.h"
 #include "position.h"
@@ -23,35 +23,71 @@ using std::string;
 
 namespace strat{
 
-	class algo_dayrange : public algo,
+	class algo_dayrange_mid : public algo,
 		public optimizable_algo_genetic<int, double, double>{
 
 	private:
 
 		double _high;
 		double _low;
+		double _mid;
 		boost::posix_time::ptime::date_type _current_day;
-		boost::posix_time::ptime::date_type _stopout_day;
 		const int _complete_hour;
 		const double _entry_lev;
 		const double _exit_lev;
+		tick _tick_m;
+		tick _tick_m_1;
+		tick _tick_m_2;
+
+		void _track_min_tick_hist(const tick& crr_tick){
+		
+			if (crr_tick.time_stamp.time_of_day().minutes() > 
+				_tick_m.time_stamp.time_of_day().minutes()){
+			
+				_tick_m_2 = _tick_m_1;
+				_tick_m_1 = _tick_m;
+				_tick_m = crr_tick;
+			}
+			else{
+
+				_tick_m.last = crr_tick.last;
+			
+				if (crr_tick.last > _tick_m.ask){
+
+					_tick_m.ask = crr_tick.last;
+				}
+				else if (crr_tick.last < _tick_m.bid){
+
+					_tick_m.bid = crr_tick.last;
+				}
+			}
+		}
+
+		bool _is_up_trend(){
+
+			return _tick_m.ask > _tick_m_1.ask && _tick_m_1.ask > _tick_m_2.ask
+				&& _tick_m.bid > _tick_m_1.bid && _tick_m_1.bid > _tick_m_2.bid;
+		}
+
+		bool _is_down_trend(){
+
+			return _tick_m.ask < _tick_m_1.ask && _tick_m_1.ask < _tick_m_2.ask
+				&& _tick_m.bid < _tick_m_1.bid && _tick_m_1.bid < _tick_m_2.bid;
+		}
 
 	protected:
 
 		signal _get_signal_algo(const tick& crr_tick) override {
 
 			signal ret_sig = signal::NONE;
-
-			if (_stopout_day == crr_tick.time_stamp.date())
-				return ret_sig;
-			
-			if (crr_tick.last >= _high + _entry_lev){
+						
+			if (crr_tick.last >= _mid - _entry_lev && _is_up_trend()){
 
 				ret_sig = signal::SELL;
 				_add_position(crr_tick, ret_sig);
 			}
 
-			if (crr_tick.last <= _low - _entry_lev){
+			if (crr_tick.last < _mid + _entry_lev && _is_down_trend()){
 
 				ret_sig = signal::BUY;
 				_add_position(crr_tick, ret_sig);
@@ -67,20 +103,12 @@ namespace strat{
 			bool is_stop_out = stop_loss != -1 && (_position.open_rate - closeRate) * _position.type > stop_loss;
 
 			if (is_stop_out || 
-				(_position.type == signal::SELL && crr_tick.ask <= (_high - _exit_lev))
-				|| (_position.type == signal::BUY && crr_tick.bid >= (_low + _exit_lev))){
+				(_position.type == signal::SELL && crr_tick.ask <= (_mid - _exit_lev))
+				|| (_position.type == signal::BUY && crr_tick.bid >= (_mid + _exit_lev))){
 
 				_position.close_tick = crr_tick;
 				close_pos = _position;
 				_delete_position();
-
-				if (is_stop_out){
-
-					_stopout_day = crr_tick.time_stamp.date();
-#ifdef MQL5_RELEASE
-					LOG("stoped out at " << crr_tick.time_stamp << ". no entry for the rest of the day.")
-#endif MQL5_RELEASE
-				}
 
 				return 1;
 			}
@@ -92,19 +120,18 @@ namespace strat{
 
 #pragma region constructors
 
-		algo_dayrange(const string s_base, const string s_quote, 
-			int complete_hour, double entry_lev, double exit_lev) :
+		algo_dayrange_mid(const string s_base, const string s_quote, 
+			const int complete_hour, const double entry_lev, const double exit_lev) :
 			algo(s_base, s_quote), 
 			_complete_hour(complete_hour), _entry_lev(entry_lev), _exit_lev(exit_lev){
 		
 			boost::posix_time::ptime day = boost::posix_time::min_date_time;
 			_current_day = day.date();
-			_stopout_day = _current_day;
 		};
 
 
 		/// Destructor
-		~algo_dayrange(){};
+		~algo_dayrange_mid(){};
 
 #pragma endregion
 
@@ -118,6 +145,9 @@ namespace strat{
 				_high = 0;
 				_low = 999999;
 				_current_day = crr_day;
+				_tick_m = crr_tick;
+				_tick_m_1 = crr_tick;
+				_tick_m_2 = crr_tick;
 			}
 				
 			if (crr_hour < _complete_hour){
@@ -125,13 +155,17 @@ namespace strat{
 				if (crr_tick.last > _high){
 
 					_high = crr_tick.last;
+					_mid = (_high + _low) / 2;
 				}
 				else if (crr_tick.last < _low){
 
 					_low = crr_tick.last;
+					_mid = (_high + _low) / 2;
 				}
 			}
-			else if (crr_hour <= 23){
+			else if (crr_hour >= _complete_hour && crr_hour <= 23){
+
+				_track_min_tick_hist(crr_tick);
 			
 				if (has_open_position()){
 
@@ -144,7 +178,7 @@ namespace strat{
 			}		
 			else{
 			
-				//close all positions after 2200 hours
+				//close all positions after 2300 hours
 				if (has_open_position()){
 
 					_position.close_tick = crr_tick;
