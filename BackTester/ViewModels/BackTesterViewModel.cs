@@ -88,7 +88,7 @@ namespace BackTester.ViewModels
       SL = 0.01;
       CompleteHour = 13;
       EntryLev = 0;
-      ExitLev = 0.0005;
+      ExitLev = 0.00025;
       AlgoType = 1;
 
       RunTestCommand = new RelayCommand(async () => {

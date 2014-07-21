@@ -72,7 +72,7 @@ int OnInit(void){
       
       string start_str = IntegerToString(stm.year) + "." + IntegerToString(stm.mon) + "." + IntegerToString(stm.day);      
       datetime start = StringToTime(start_str);
-      datetime end = start +  COMPLETE_HOUR * 60 * 60;
+			datetime end = start +  COMPLETE_HOUR * 60 * 60;
    
       MqlRates rt[];
       int count = CopyRates(_Symbol,_Period,start,end,rt);
@@ -112,7 +112,7 @@ void OnTick(void){
    
    if(SymbolInfoTick(_Symbol,last_tick)){
    
-      dt_str =  TimeToString(last_tick.time, TIME_DATE|TIME_MINUTES);
+      dt_str = TimeToString(last_tick.time, TIME_DATE|TIME_MINUTES);
       signal = process_tick(algo_p, dt_str, last_tick.ask, last_tick.bid, last_tick.last, last_tick.volume, 
                              SL, is_close_pos, 0);     
    }

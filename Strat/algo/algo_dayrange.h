@@ -32,6 +32,7 @@ namespace strat{
 		double _high;
 		double _low;
 		boost::posix_time::ptime::date_type _current_day;
+		boost::posix_time::ptime::date_type _stopout_day;
 		int _complete_hour;
 		double _entry_lev;
 		double _exit_lev;
@@ -41,6 +42,9 @@ namespace strat{
 		signal _get_signal_algo(const tick& crr_tick) override {
 
 			signal ret_sig = signal::NONE;
+
+			if (_stopout_day == crr_tick.time_stamp.date())
+				return ret_sig;
 			
 			if (crr_tick.last >= _high + _entry_lev){
 
@@ -64,12 +68,18 @@ namespace strat{
 			bool is_stop_out = stop_loss != -1 && (_position.open_rate - closeRate) * _position.type > stop_loss;
 
 			if (is_stop_out || 
-				(_position.type == signal::SELL && crr_tick.ask <= (_position.open_rate - _exit_lev))
-				|| (_position.type == signal::BUY && crr_tick.bid >= (_position.open_rate + _exit_lev))){
+				(_position.type == signal::SELL && crr_tick.ask <= (_high - _exit_lev))
+				|| (_position.type == signal::BUY && crr_tick.bid >= (_low + _exit_lev))){
 
 				_position.close_tick = crr_tick;
 				close_pos = _position;
 				_delete_position();
+
+				if (is_stop_out){
+
+					_stopout_day = crr_tick.time_stamp.date();
+					LOG("stoped out at " << crr_tick.time_stamp << ". no entry for the rest of the day.")
+				}
 
 				return 1;
 			}
@@ -88,6 +98,7 @@ namespace strat{
 		
 			boost::posix_time::ptime day = boost::posix_time::min_date_time;
 			_current_day = day.date();
+			_stopout_day = _current_day;
 		};
 
 
@@ -107,17 +118,19 @@ namespace strat{
 				_low = 999999;
 				_current_day = crr_day;
 			}
-					
-			if (crr_tick.last > _high){
 				
-				_high = crr_tick.last;
-			}
-			else if (crr_tick.last < _low){
-				
-				_low = crr_tick.last;
-			}
+			if (crr_hour < _complete_hour){
 
-			if (crr_hour > _complete_hour && crr_hour < 22){
+				if (crr_tick.last > _high){
+
+					_high = crr_tick.last;
+				}
+				else if (crr_tick.last < _low){
+
+					_low = crr_tick.last;
+				}
+			}
+			else if (crr_hour < 22){
 			
 				if (has_open_position()){
 
