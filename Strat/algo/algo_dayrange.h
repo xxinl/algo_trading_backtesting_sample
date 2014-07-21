@@ -33,9 +33,9 @@ namespace strat{
 		double _low;
 		boost::posix_time::ptime::date_type _current_day;
 		boost::posix_time::ptime::date_type _stopout_day;
-		int _complete_hour;
-		double _entry_lev;
-		double _exit_lev;
+		const int _complete_hour;
+		const double _entry_lev;
+		const double _exit_lev;
 
 	protected:
 
