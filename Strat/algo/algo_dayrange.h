@@ -78,7 +78,9 @@ namespace strat{
 				if (is_stop_out){
 
 					_stopout_day = crr_tick.time_stamp.date();
+#ifdef MQL5_RELEASE
 					LOG("stoped out at " << crr_tick.time_stamp << ". no entry for the rest of the day.")
+#endif MQL5_RELEASE
 				}
 
 				return 1;
@@ -130,7 +132,7 @@ namespace strat{
 					_low = crr_tick.last;
 				}
 			}
-			else if (crr_hour < 22){
+			else if (crr_hour <= 23){
 			
 				if (has_open_position()){
 
