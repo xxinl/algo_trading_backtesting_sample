@@ -54,7 +54,8 @@
           <TextBox Text="{Binding OptimizeLookback, Mode=TwoWay}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,5,10,0" HorizontalAlignment="Right">
-          <Button Content="{Binding RunState, Mode=OneWay}" Command="{Binding RunTestCommand}" />
+          <CheckBox IsChecked="{Binding ShowDebugWin}" Content="show debug" VerticalAlignment="Center"></CheckBox>
+          <Button Content="{Binding RunState, Mode=OneWay}" Command="{Binding RunTestCommand}" Margin="5,0,0,0" />
           <Button Content="Run Optimize" Command="{Binding RunOptimizeCommand}" Margin="5,0,0,0" />
         </StackPanel>
       </StackPanel>

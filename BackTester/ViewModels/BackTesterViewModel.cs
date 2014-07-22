@@ -65,6 +65,14 @@ namespace BackTester.ViewModels
       }
     }
 
+    private bool _showDebugWin = false;
+
+    public bool ShowDebugWin
+    {
+      get { return _showDebugWin; }
+      set { _showDebugWin = value; }
+    }
+
 
     public RelayCommand RunTestCommand { get; private set; }
     public RelayCommand RunOptimizeCommand { get; private set; }
@@ -95,7 +103,7 @@ namespace BackTester.ViewModels
       CompleteHour2 = 15;
       EntryLev2 = 0.0001;
       ExitLev2 = 0.0002;
-      AlgoType = 0;
+      AlgoType = 1;
 
       RunTestCommand = new RelayCommand(async () => {
         if (IsBusy)
@@ -173,7 +181,8 @@ namespace BackTester.ViewModels
           if (_debugInfoWin == null || !_debugInfoWin.IsLoaded)
           {
             _debugInfoWin = new DebugInfoWin();
-            _debugInfoWin.Show();
+            if(ShowDebugWin)
+              _debugInfoWin.Show();
           }
 
           Messenger.Default.Send(info);
