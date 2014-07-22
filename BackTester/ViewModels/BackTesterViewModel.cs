@@ -26,16 +26,19 @@ namespace BackTester.ViewModels
     public int Leverage { get; set; }
     public double StartBalance { get; set; }
     public bool RunTestWithOptimizer { get; set; }
-    public int ObserWin { get; set; }
-    public int HoldWin { get; set; }
-    public double Threshold1 { get; set; }
-    public double Threshold2 { get; set; }
+    //public int ObserWin { get; set; }
+    //public int HoldWin { get; set; }
+    //public double Threshold1 { get; set; }
+    //public double Threshold2 { get; set; }
     public int OptimizeInterval { get; set; } //days
     public int OptimizeLookback { get; set; } //days
     public double SL { get; set; }
     public int CompleteHour { get; set; }
     public double EntryLev { get; set; }
     public double ExitLev { get; set; }
+    public int CompleteHour2 { get; set; }
+    public double EntryLev2 { get; set; }
+    public double ExitLev2 { get; set; }
     public int AlgoType { get; set; }
 
     #endregion input properties
@@ -79,17 +82,20 @@ namespace BackTester.ViewModels
       Leverage = 500;
       StartBalance = 0;
       RunTestWithOptimizer = false;
-      ObserWin = 1;
-      HoldWin = 15;
-      Threshold1 = 0.0006;
-      Threshold2 = 0.0011;
+      //ObserWin = 1;
+      //HoldWin = 15;
+      //Threshold1 = 0.0006;
+      //Threshold2 = 0.0011;
       OptimizeInterval = 30;
       OptimizeLookback = 90;
       SL = 0.01;
       CompleteHour = 13;
       EntryLev = 0;
       ExitLev = 0.00025;
-      AlgoType = 1;
+      CompleteHour2 = 15;
+      EntryLev2 = 0.0001;
+      ExitLev2 = 0.0002;
+      AlgoType = 0;
 
       RunTestCommand = new RelayCommand(async () => {
         if (IsBusy)
@@ -125,8 +131,8 @@ namespace BackTester.ViewModels
         _setProgress();
         using (AlgoService algo = new AlgoService(_onMessage, TickFilePath))
         {
-          await algo.Init(AlgoType, ObserWin, HoldWin, Threshold1, Threshold2,
-            CompleteHour, EntryLev, ExitLev);
+          await algo.Init(AlgoType, CompleteHour, EntryLev, ExitLev,
+            CompleteHour2, EntryLev2, ExitLev2);
 
           _setProgress();
           List<Tick> ticks = await Util.ReadTickCsv(TickFilePath, StartDate, EndDate, ct);
@@ -203,9 +209,9 @@ namespace BackTester.ViewModels
                                           tick.Time.Date.AddDays(0 - OptimizeInterval) > lastOptimizeDate &&
                                           tick.Time.Date.AddDays(0 - OptimizeLookback) > StartDate)
                                       {
-                                        algo.Optimize(tick.Time.Date, AlgoType, 
-                                          ObserWin, HoldWin, Threshold1, Threshold2,
-                                          CompleteHour, EntryLev, ExitLev, OptimizeLookback).Wait(ct);
+                                        algo.Optimize(tick.Time.Date, AlgoType,
+                                          CompleteHour, EntryLev, ExitLev,
+                                          CompleteHour2, EntryLev2, ExitLev2, OptimizeLookback).Wait(ct);
 
                                         algo.ResetAlgoParams();
                                         lastOptimizeDate = tick.Time.Date;
@@ -229,13 +235,13 @@ namespace BackTester.ViewModels
         _setProgress();
         using (AlgoService algo = new AlgoService(_onMessage, TickFilePath))
         {
-          await algo.Init(AlgoType, ObserWin, HoldWin, Threshold1, Threshold2,
-            CompleteHour, EntryLev, ExitLev);
+          await algo.Init(AlgoType, CompleteHour, EntryLev, ExitLev,
+            CompleteHour2, EntryLev2, ExitLev2);
 
           int backNoDays = Convert.ToInt32((EndDate.Date - StartDate.Date).TotalDays);
-          await algo.Optimize(EndDate, AlgoType, 
-            ObserWin, HoldWin, Threshold1, Threshold2,
-            CompleteHour, EntryLev, ExitLev, backNoDays, 128, 512);
+          await algo.Optimize(EndDate, AlgoType,
+            CompleteHour, EntryLev, ExitLev,
+            CompleteHour2, EntryLev2, ExitLev2, backNoDays, 128, 512);
         }
       }
       catch (OperationCanceledException)

@@ -4,15 +4,11 @@
 #import "strat.dll"
 
 ulong get_algo(string base, string quote, ulong algo_type,
-				ulong obser_win, ulong hold_win, double ini_t, double obser_t,
 				ulong complete_hour, double entry_lev, double exit_lev,
+				ulong complete_hour2, double entry_lev2, double exit_lev2,
 				ulong callback_handler);
 ulong get_dayrange_algo(string base, string quote, 
-				ulong complete_hour, double entry_lev, double exit_lev,
-				ulong callback_handler);
-ulong get_bollinger_algo(string base, string quote,
-				ulong obser_win, ulong hold_win, double ini_t, double obser_t,
-				ulong callback_handler);
+				ulong complete_hour, double entry_lev, double exit_lev);
 int process_tick(ulong algo_p, string time, double ask, double bid, double last, ulong volume, 
 									double stop_loss, bool &is_close_pos, ulong callback_handler);
 int delete_algo(ulong algo_p);
@@ -22,15 +18,10 @@ int delete_algo(ulong algo_p);
 enum AlgoType{
 
 	HYBRID = 0,
-	DAYRANGE = 1,
-	BOLLINGER = 2
+	DAYRANGE = 1
 };
 
 //--- input parameters
-input ulong OBSER_WIN = 1;
-input ulong HOLD_WIN = 15;
-input double INI_T = 0.0006;
-input double OBSER_T = 0.0011;
 input double SL = 0.01;
 input double TP = 0.05;
 input ulong COMPLETE_HOUR = 13;
@@ -48,18 +39,14 @@ int OnInit(void){
    
    switch(ALGO_TYPE){
    
-   case 0:
-	   algo_p = get_algo(StringSubstr(symbol, 0, 3), StringSubstr(symbol, 3, 3), ALGO_TYPE,
-				OBSER_WIN, HOLD_WIN, INI_T, OBSER_T, 
-				COMPLETE_HOUR, ENTRY_LEV, EXIT_LEV, 0);
-		break;
+  // case 0:
+	  // algo_p = get_algo(StringSubstr(symbol, 0, 3), StringSubstr(symbol, 3, 3), ALGO_TYPE,
+				// COMPLETE_HOUR, ENTRY_LEV, EXIT_LEV,
+				// COMPLETE_HOUR, ENTRY_LEV, EXIT_LEV, 0);
+		// break;
 	case 1:
 	   algo_p = get_dayrange_algo(StringSubstr(symbol, 0, 3), StringSubstr(symbol, 3, 3), 
-				COMPLETE_HOUR, ENTRY_LEV, EXIT_LEV, 0);
-		break;
-	case 2:
-	   algo_p = get_bollinger_algo(StringSubstr(symbol, 0, 3), StringSubstr(symbol, 3, 3), 
-				OBSER_WIN, HOLD_WIN, INI_T, OBSER_T, 0);
+				COMPLETE_HOUR, ENTRY_LEV, EXIT_LEV);
 		break;
    }
    
@@ -72,7 +59,7 @@ int OnInit(void){
       
       string start_str = IntegerToString(stm.year) + "." + IntegerToString(stm.mon) + "." + IntegerToString(stm.day);      
       datetime start = StringToTime(start_str);
-			datetime end = start +  COMPLETE_HOUR * 60 * 60;
+      datetime end = start +  COMPLETE_HOUR * 60 * 60;
    
       MqlRates rt[];
       int count = CopyRates(_Symbol,_Period,start,end,rt);

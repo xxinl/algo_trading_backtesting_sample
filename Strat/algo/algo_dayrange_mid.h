@@ -227,13 +227,13 @@ namespace strat{
 
 		std::shared_ptr<algo> get_optimizable_algo(std::tuple<int, double, double> params) override{
 
-			algo_dayrange* ret_algo = new algo_dayrange(_s_base, _s_quote,
+			algo_dayrange_mid* ret_algo = new algo_dayrange_mid(_s_base, _s_quote,
 				std::get<0>(params), std::get<1>(params), std::get<2>(params));
 
 			//disable logging for open and close position/oberv
 			ret_algo->toggle_log_switch();
 
-			std::shared_ptr<algo> casted_ret = std::make_shared<algo_dayrange>(*ret_algo);
+			std::shared_ptr<algo> casted_ret = std::make_shared<algo_dayrange_mid>(*ret_algo);
 
 			return casted_ret;
 		}
