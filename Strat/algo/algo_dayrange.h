@@ -12,8 +12,10 @@ implementation:
 #include "position.h"
 #include "algo.h"
 #include "optimizer/optimizable_algo_genetic.h"
+#include "indicator/sd.h"
 
 #include <vector>
+#include <algorithm>
 
 #include <boost/date_time.hpp>
 
@@ -36,6 +38,32 @@ namespace strat{
 		const double _entry_lev;
 		const double _exit_lev;
 
+		const int _last_entry_hour = 21;
+		const int _start_close_hour = 23; //this as to be at least _last_entry_hour + 2 to allow collect deviation
+		sd _run_sd;
+		tick _last_m_tick;
+		double _dev_factor = 1.01;
+
+		//return 1. sd changed, 0 unchanged
+		int _push_run_sd(const tick& crr_tick){
+		
+			if (_last_m_tick.last == -1)
+				_last_m_tick = crr_tick;
+			else{
+
+				if (crr_tick.time_stamp.time_of_day().minutes() !=
+					_last_m_tick.time_stamp.time_of_day().minutes()){
+
+					_run_sd.push(crr_tick.last - _last_m_tick.last);
+					_last_m_tick = crr_tick;
+
+					return 1;
+				}
+			}
+
+			return 0;
+		}
+
 	protected:
 
 		signal _get_signal_algo(const tick& crr_tick) override {
@@ -45,13 +73,13 @@ namespace strat{
 			if (_stopout_day == crr_tick.time_stamp.date())
 				return ret_sig;
 			
-			if (crr_tick.last >= _high + _entry_lev){
+			if (crr_tick.bid >= _high + _entry_lev){
 
 				ret_sig = signal::SELL;
 				_add_position(crr_tick, ret_sig);
 			}
 
-			if (crr_tick.last <= _low - _entry_lev){
+			if (crr_tick.ask <= _low - _entry_lev){
 
 				ret_sig = signal::BUY;
 				_add_position(crr_tick, ret_sig);
@@ -95,7 +123,8 @@ namespace strat{
 		algo_dayrange(const string s_base, const string s_quote, 
 			int complete_hour, double entry_lev, double exit_lev) :
 			algo(s_base, s_quote), 
-			_complete_hour(complete_hour), _entry_lev(entry_lev), _exit_lev(exit_lev){
+			_complete_hour(complete_hour), _entry_lev(entry_lev), _exit_lev(exit_lev),
+			_run_sd(60){
 		
 			boost::posix_time::ptime day = boost::posix_time::min_date_time;
 			_current_day = day.date();
@@ -115,9 +144,20 @@ namespace strat{
 
 			if (crr_day > _current_day)
 			{
+				//close all positions for previous day
+				if (has_open_position()){
+
+					_position.close_tick = crr_tick;
+					close_pos = _position;
+					_delete_position();
+				}
+
 				_high = 0;
 				_low = 999999;
 				_current_day = crr_day;
+
+				_run_sd.reset();
+				_last_m_tick.last = -1;
 			}
 				
 			if (crr_hour < _complete_hour){
@@ -131,25 +171,44 @@ namespace strat{
 					_low = crr_tick.last;
 				}
 			}
-			else if (crr_hour <= 23){
+			else if (crr_hour < _start_close_hour){
 			
 				if (has_open_position()){
+
+					if (crr_hour > _last_entry_hour){
+
+						_push_run_sd(crr_tick);
+					}
 
 					_close_position_algo(crr_tick, close_pos, stop_loss);
 				}
-				else{
+				else if (crr_hour <= _last_entry_hour){
 				
 					return _get_signal_algo(crr_tick);
 				}
-			}		
+			}	
 			else{
-			
-				//close all positions after 2200 hours
-				if (has_open_position()){
 
-					_position.close_tick = crr_tick;
-					close_pos = _position;
-					_delete_position();
+				// >= _start_close_hour, strat close positions and accept losses
+				if (has_open_position()){
+					
+					//update new _high/_low every minute
+					if (_push_run_sd(crr_tick)){
+
+						double dev = _run_sd.get_value();
+						//reduce sd range every minute to close position faster
+						_dev_factor = _dev_factor * 0.99;
+
+						if (dev != -1){
+
+							//update new _high/_low to keep it as deviation range of last_m_tick.last
+							//	+-_exit_lev to adjust the _close_position_algo(i.e. ignore _exit_lev)
+							_high = (std::max)(_high, _last_m_tick.last - dev * _dev_factor + _exit_lev);
+							_low = (std::min)(_low, _last_m_tick.last + dev * _dev_factor - _exit_lev);
+						}
+					}
+
+					_close_position_algo(crr_tick, close_pos, stop_loss);
 				}
 			}
 
