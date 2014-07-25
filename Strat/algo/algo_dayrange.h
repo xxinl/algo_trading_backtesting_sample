@@ -185,7 +185,14 @@ namespace strat{
 				}
 				else if (crr_hour <= _last_entry_hour){
 				
-					return _get_signal_algo(crr_tick);
+					signal sig = _get_signal_algo(crr_tick);
+					if (sig != signal::NONE){
+					
+						_low -= _exit_lev;
+						_high += _exit_lev;
+					}
+
+					return sig;
 				}
 			}	
 			else{
