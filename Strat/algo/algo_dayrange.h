@@ -33,13 +33,13 @@ namespace strat{
 		double _high;
 		double _low;
 		boost::posix_time::ptime::date_type _current_day;
-		boost::posix_time::ptime::date_type _stopout_day;
+		bool _is_skip_day;
 		const int _complete_hour;
 		const double _entry_lev;
 		const double _exit_lev;
-
 		const int _last_entry_hour = 21;
 		const int _start_close_hour = 22; //this as to be at least _last_entry_hour + 2 to allow collect deviation
+		
 		sd _run_sd;
 		tick _last_m_tick;
 		double _dev_factor;
@@ -69,9 +69,6 @@ namespace strat{
 		signal _get_signal_algo(const tick& crr_tick) override {
 
 			signal ret_sig = signal::NONE;
-
-			if (_stopout_day == crr_tick.time_stamp.date())
-				return ret_sig;
 			
 			if (crr_tick.bid >= _high + _entry_lev){
 
@@ -104,7 +101,8 @@ namespace strat{
 
 				if (is_stop_out){
 
-					_stopout_day = crr_tick.time_stamp.date();
+					_is_skip_day = true;
+
 #ifdef MQL5_RELEASE
 					LOG("stoped out at " << crr_tick.time_stamp << ". no entry for the rest of the day.")
 #endif MQL5_RELEASE
@@ -128,10 +126,8 @@ namespace strat{
 		
 			boost::posix_time::ptime day = boost::posix_time::min_date_time;
 			_current_day = day.date();
-			_stopout_day = _current_day;
 		};
-
-
+		
 		/// Destructor
 		~algo_dayrange(){};
 
@@ -159,6 +155,8 @@ namespace strat{
 				_run_sd.reset();
 				_last_m_tick.last = -1;
 				_dev_factor = 2;
+
+				_is_skip_day = false;
 			}
 				
 			if (crr_hour < _complete_hour){
@@ -183,11 +181,12 @@ namespace strat{
 
 					_close_position_algo(crr_tick, close_pos, stop_loss);
 				}
-				else if (crr_hour <= _last_entry_hour){
+				else if (crr_hour <= _last_entry_hour && !_is_skip_day){
 				
 					signal sig = _get_signal_algo(crr_tick);
 					if (sig != signal::NONE){
 					
+						//extend entry level each time after a buy/sell signal
 						_low -= _exit_lev;
 						_high += _exit_lev;
 					}
