@@ -26,10 +26,10 @@ namespace BackTester.ViewModels
     public int Leverage { get; set; }
     public double StartBalance { get; set; }
     public bool RunTestWithOptimizer { get; set; }
-    //public int ObserWin { get; set; }
-    //public int HoldWin { get; set; }
-    //public double Threshold1 { get; set; }
-    //public double Threshold2 { get; set; }
+    public int ObserWin { get; set; }
+    public int HoldWin { get; set; }
+    public double Threshold1 { get; set; }
+    public double Threshold2 { get; set; }
     public int OptimizeInterval { get; set; } //days
     public int OptimizeLookback { get; set; } //days
     public double SL { get; set; }
@@ -90,10 +90,10 @@ namespace BackTester.ViewModels
       Leverage = 500;
       StartBalance = 0;
       RunTestWithOptimizer = false;
-      //ObserWin = 1;
-      //HoldWin = 15;
-      //Threshold1 = 0.0006;
-      //Threshold2 = 0.0011;
+      ObserWin = 1;
+      HoldWin = 15;
+      Threshold1 = 0.0006;
+      Threshold2 = 0.0011;
       OptimizeInterval = 30;
       OptimizeLookback = 90;
       SL = 0.01;
@@ -139,8 +139,17 @@ namespace BackTester.ViewModels
         _setProgress();
         using (AlgoService algo = new AlgoService(_onMessage, TickFilePath))
         {
-          await algo.Init(AlgoType, CompleteHour, EntryLev, ExitLev,
-            CompleteHour2, EntryLev2, ExitLev2);
+          switch (AlgoType)
+          {
+            case 0:
+              break;
+            case 1:
+              await algo.InitDayRange(CompleteHour, EntryLev, ExitLev);
+              break;
+            case 2:
+              await algo.InitBollinger(ObserWin, HoldWin, Threshold1, Threshold2);
+              break;
+          }
 
           _setProgress();
           List<Tick> ticks = await Util.ReadTickCsv(TickFilePath, StartDate, EndDate, ct);
@@ -214,17 +223,18 @@ namespace BackTester.ViewModels
 
                                       Tick tick = ticks[i];
 
-                                      if (RunTestWithOptimizer &&
-                                          tick.Time.Date.AddDays(0 - OptimizeInterval) > lastOptimizeDate &&
-                                          tick.Time.Date.AddDays(0 - OptimizeLookback) > StartDate)
-                                      {
-                                        algo.Optimize(tick.Time.Date, AlgoType,
-                                          CompleteHour, EntryLev, ExitLev,
-                                          CompleteHour2, EntryLev2, ExitLev2, OptimizeLookback).Wait(ct);
+                                      //if (RunTestWithOptimizer &&
+                                      //    tick.Time.Date.AddDays(0 - OptimizeInterval) > lastOptimizeDate &&
+                                      //    tick.Time.Date.AddDays(0 - OptimizeLookback) > StartDate)
+                                      //{
+                                      //  //TODO new algo instance need to be created here
+                                      //  //algo.Optimize(tick.Time.Date, AlgoType,
+                                      //  //  CompleteHour, EntryLev, ExitLev,
+                                      //  //  CompleteHour2, EntryLev2, ExitLev2, OptimizeLookback).Wait(ct);
 
-                                        algo.ResetAlgoParams();
-                                        lastOptimizeDate = tick.Time.Date;
-                                      }
+                                      //  algo.ResetAlgoParams();
+                                      //  lastOptimizeDate = tick.Time.Date;
+                                      //}
 
                                       bool isClosePos = false;
                                       var signal = algo.OnTick(tick, out isClosePos, SL);
@@ -244,13 +254,20 @@ namespace BackTester.ViewModels
         _setProgress();
         using (AlgoService algo = new AlgoService(_onMessage, TickFilePath))
         {
-          await algo.Init(AlgoType, CompleteHour, EntryLev, ExitLev,
-            CompleteHour2, EntryLev2, ExitLev2);
+          switch (AlgoType)
+          {
+            case 0:
+              break;
+            case 1:
+              await algo.InitDayRange(CompleteHour, EntryLev, ExitLev);
+              break;
+            case 2:
+              await algo.InitBollinger(ObserWin, HoldWin, Threshold1, Threshold2);
+              break;
+          }
 
           int backNoDays = Convert.ToInt32((EndDate.Date - StartDate.Date).TotalDays);
-          await algo.Optimize(EndDate, AlgoType,
-            CompleteHour, EntryLev, ExitLev,
-            CompleteHour2, EntryLev2, ExitLev2, backNoDays, 128, 512);
+          await algo.Optimize(EndDate, backNoDays, 128, 512);
         }
       }
       catch (OperationCanceledException)

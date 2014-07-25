@@ -8,13 +8,17 @@ namespace BackTester
   {
     #region dll imports
 
-    [DllImport("strat.dll", EntryPoint = "get_algo", CallingConvention = CallingConvention.Cdecl,
+    [DllImport("strat.dll", EntryPoint = "get_dayrange_algo", CallingConvention = CallingConvention.Cdecl,
       CharSet = CharSet.Unicode)]
-    private static extern IntPtr _get_algo(
-      string base_c, string quote, IntPtr algo_type,
+    private static extern IntPtr _get_dayrange_algo(string base_c, string quote,
       IntPtr complete_hour, double entry_lev, double exit_lev,
-      IntPtr complete_hour2, double entry_lev2, double exit_lev2,
-      _callback _callbackInstance);
+      _callback callback_handler);
+
+    [DllImport("strat.dll", EntryPoint = "get_bollinger_algo", CallingConvention = CallingConvention.Cdecl,
+      CharSet = CharSet.Unicode)]
+    private static extern IntPtr _get_bollinger_algo(string base_c, string quote,
+      IntPtr obser_win, IntPtr hold_win, double ini_t, double obser_t,
+      _callback callback_handler);
 
     [DllImport("strat.dll", EntryPoint = "delete_algo", CallingConvention = CallingConvention.Cdecl)]
     private static extern int _delete_algo(IntPtr algo_add);
@@ -63,20 +67,24 @@ namespace BackTester
       };
     }
 
-    public async Task Init(//string eventFilePath, 
-      int algoType,
-      int completeHour, double entryLev, double exitLev,
-      int completeHour2, double entryLev2, double exitLev2)
+    public async Task InitDayRange(int completeHour, double entryLev, double exitLev)
     {
-      //_eventFilePath = eventFilePath;
-
       await Task.Run(() =>
                      {
-                       _algo_p = _get_algo("xxx", "xxx", (IntPtr) algoType,
+                       _algo_p = _get_dayrange_algo("xxx", "xxx",
                          (IntPtr) completeHour, entryLev, exitLev,
-                         (IntPtr) completeHour2, entryLev2, exitLev2,
                          _callbackInstance);
                      });
+    }
+
+    public async Task InitBollinger(int obserWin, int holdWin, double iniT, double obserT)
+    {
+      await Task.Run(() =>
+      {
+        _algo_p = _get_bollinger_algo("xxx", "xxx",
+          (IntPtr)obserWin,  (IntPtr)holdWin, iniT, obserT,
+          _callbackInstance);
+      });
     }
 
     public int OnTick(Tick t, out bool isClosePos, double sl)
@@ -86,22 +94,22 @@ namespace BackTester
         _callbackInstance);
     }
 
-    public async Task Optimize(DateTime tickDate, int algoType, 
-      int completeHour, double entryLev, double exitLev,
-      int completeHour2, double entryLev2, double exitLev2,
-      int backNoofDays, int maxIteration = 32, int populationSize = 128)
-    {
-      using (AlgoService optiAlgo = new AlgoService(_uiCallbackAction, _tickFilePath))
-      {
-        await optiAlgo.Init(
-          algoType, completeHour, entryLev, exitLev,
-          completeHour2, entryLev2, exitLev2);
+    //public async Task Optimize(DateTime tickDate, int algoType, 
+    //  int completeHour, double entryLev, double exitLev,
+    //  int completeHour2, double entryLev2, double exitLev2,
+    //  int backNoofDays, int maxIteration = 32, int populationSize = 128)
+    //{
+    //  using (AlgoService optiAlgo = new AlgoService(_uiCallbackAction, _tickFilePath))
+    //  {
+    //    await optiAlgo.Init(
+    //      algoType, completeHour, entryLev, exitLev,
+    //      completeHour2, entryLev2, exitLev2);
 
-        await optiAlgo.OptimizeExecute(tickDate, backNoofDays, maxIteration, populationSize);
-      }
-    }
+    //    await optiAlgo.OptimizeExecute(tickDate, backNoofDays, maxIteration, populationSize);
+    //  }
+    //}
 
-    public async Task OptimizeExecute(DateTime tickDate, int backNoofDays, int maxIteration, int populationSize)
+    public async Task Optimize(DateTime tickDate, int backNoofDays, int maxIteration, int populationSize)
     {
       await Task.Run(() =>
                      {

@@ -1,6 +1,6 @@
 //0-hybrid
 //1-dayrange
-//2-dayrange_mid
+//2-bollinger
 
 #include "stdafx.h"
 
@@ -12,9 +12,9 @@
 #include "algo.h"
 //#include "algo\event\event_algo_ma.h"
 //#include "algo\event\event_long_short.h"
-//#include "algo\algo_bollinger.h"
+#include "algo\algo_bollinger.h"
 #include "algo\algo_dayrange.h"
-#include "algo\algo_dayrange_mid.h"
+//#include "algo\algo_dayrange_mid.h"
 #include "algo\algo_hybrid.h"
 #include "logger.h"
 #include "optimizer\optimizable_algo_genetic.h"
@@ -83,14 +83,10 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path,
 
 #pragma endregion
 
-
-// todo free strings
-// base/quote has to be lower case
 extern "C"	__declspec(dllexport)
-size_t get_algo(const wchar_t* base, const wchar_t* quote, size_t algo_type,
-									size_t complete_hour, double entry_lev, double exit_lev,
-									size_t complete_hour2, double entry_lev2, double exit_lev2,
-									logger::callback callback_handler){
+size_t get_dayrange_algo(const wchar_t* base, const wchar_t* quote,
+							size_t complete_hour, double entry_lev, double exit_lev,
+							logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
 	strat::algo* ret_p = nullptr;
@@ -100,53 +96,51 @@ size_t get_algo(const wchar_t* base, const wchar_t* quote, size_t algo_type,
 
 	try{
 
-		switch (algo_type){
-		case 0:
-			ret_p = new strat::algo_hybrid(base_str, quote_str,
-				complete_hour, entry_lev, exit_lev, complete_hour2, entry_lev2, exit_lev2);
-			break;
-		case 1:
-			ret_p = new strat::algo_dayrange(base_str, quote_str, complete_hour, entry_lev, exit_lev);
-			break;
-		//case 2:
-		//	ret_p = new strat::algo_bollinger(base_str, quote_str,
-		//		obser_win, hold_win, ini_t, obser_t);
-		//	break;
-		case 2:
-			ret_p = new strat::algo_dayrange_mid(base_str, quote_str, complete_hour2, entry_lev2, exit_lev2);
-			break;
-		}
+		ret_p = new strat::algo_dayrange(base_str, quote_str, complete_hour, entry_lev, exit_lev);			
 	}
-	catch(std::exception& e){
-		
-		LOG_SEV("get_algo error: " << e.what(), logger::error);
+	catch (std::exception& e){
+
+		LOG_SEV("get_dayrange_algo error: " << e.what(), logger::error);
 	}
 
 	size_t ret_addr = reinterpret_cast<size_t>(ret_p);
 
-	LOG("get_algo constructing type " << algo_type <<". base:" << base_str << " quote:" << quote_str <<
+	LOG("get_dayrange_algo instantiated. base:" << base_str << " quote:" << quote_str <<
 		" complete_hour: " << complete_hour << " entry_lev:" << entry_lev << " exit_lev:" << exit_lev <<
-		" complete_hour2: " << complete_hour2 << " entry_lev2:" << entry_lev2 << " exit_lev2:" << exit_lev2 <<
 		". return pointer adreess:" << ret_addr);
 
 	return ret_addr;
 }
 
 extern "C"	__declspec(dllexport)
-size_t get_dayrange_algo(const wchar_t* base, const wchar_t* quote,
-						size_t complete_hour, double entry_lev, double exit_lev){
+size_t get_bollinger_algo(const wchar_t* base, const wchar_t* quote,
+						size_t obser_win, size_t hold_win, double ini_t, double obser_t,
+						logger::callback callback_handler){
 
-	return get_algo(base, quote, 1, complete_hour, entry_lev, exit_lev, -1, -1, -1, nullptr);
+	logger::on_callback = callback_handler;
+	strat::algo* ret_p = nullptr;
+
+	string base_str = convert_wchar_to_string(base);
+	string quote_str = convert_wchar_to_string(quote);
+
+	try{		
+
+		ret_p = new strat::algo_bollinger(base_str, quote_str,
+			obser_win, hold_win, ini_t, obser_t);
+	}
+	catch (std::exception& e){
+
+		LOG_SEV("get_bollinger_algo error: " << e.what(), logger::error);
+	}
+
+	size_t ret_addr = reinterpret_cast<size_t>(ret_p);
+
+	LOG("get_bollinger_algo instantiated. base:" << base_str << " quote:" << quote_str <<
+		" obser_win: " << obser_win << " hold_win:" << hold_win << " ini_t:" << ini_t << " obser_t:" << obser_t <<
+		". return pointer adreess:" << ret_addr);
+
+	return ret_addr;
 }
-
-//extern "C"	__declspec(dllexport)
-//size_t get_bollinger_algo(const wchar_t* base, const wchar_t* quote,
-//						size_t obser_win, size_t hold_win, double ini_t, double obser_t,
-//						logger::callback callback_handler){
-//
-//	return get_algo(base, quote, 2, obser_win, hold_win, ini_t, obser_t,
-//		0, 0, 0, callback_handler);
-//}
 
 extern "C"	__declspec(dllexport)
 int delete_algo(size_t algo_addr){
