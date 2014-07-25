@@ -39,10 +39,10 @@ namespace strat{
 		const double _exit_lev;
 
 		const int _last_entry_hour = 21;
-		const int _start_close_hour = 23; //this as to be at least _last_entry_hour + 2 to allow collect deviation
+		const int _start_close_hour = 22; //this as to be at least _last_entry_hour + 2 to allow collect deviation
 		sd _run_sd;
 		tick _last_m_tick;
-		double _dev_factor = 1;
+		double _dev_factor;
 
 		//return 1. sd changed, 0 unchanged
 		int _push_run_sd(const tick& crr_tick){
@@ -158,7 +158,7 @@ namespace strat{
 
 				_run_sd.reset();
 				_last_m_tick.last = -1;
-				_dev_factor = 1;
+				_dev_factor = 2;
 			}
 				
 			if (crr_hour < _complete_hour){
@@ -176,7 +176,7 @@ namespace strat{
 			
 				if (has_open_position()){
 
-					if (crr_hour > _last_entry_hour){
+					if (crr_hour >= _start_close_hour - 1){
 
 						_push_run_sd(crr_tick);
 					}
@@ -207,7 +207,7 @@ namespace strat{
 						}
 
 						//reduce sd range every minute to close position faster
-						_dev_factor = _dev_factor * 0.99;
+						_dev_factor = _dev_factor * 0.98;
 					}
 
 					_close_position_algo(crr_tick, close_pos, stop_loss);
