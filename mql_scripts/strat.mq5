@@ -3,12 +3,12 @@
 
 #import "strat.dll"
 
-ulong get_algo(string base, string quote, ulong algo_type,
-				ulong complete_hour, double entry_lev, double exit_lev,
-				ulong complete_hour2, double entry_lev2, double exit_lev2,
-				ulong callback_handler);
 ulong get_dayrange_algo(string base, string quote, 
-				ulong complete_hour, double entry_lev, double exit_lev);
+				ulong complete_hour, double entry_lev, double exit_lev, 
+				ulong callback_handler);
+ulong get_bollinger_algo(string base, string quote, 
+				ulong obser_win, ulong hold_win, double ini_t, double obser_t, 
+				ulong callback_handler);
 int process_tick(ulong algo_p, string time, double ask, double bid, double last, ulong volume, 
 									double stop_loss, bool &is_close_pos, ulong callback_handler);
 int delete_algo(ulong algo_p);
@@ -18,16 +18,24 @@ int delete_algo(ulong algo_p);
 enum AlgoType{
 
 	HYBRID = 0,
-	DAYRANGE = 1
+	DAYRANGE = 1,
+	BOLLINGER = 2
 };
 
 //--- input parameters
 input double SL = 0.01;
 input double TP = 0.05;
+
 input ulong COMPLETE_HOUR = 13;
 input double ENTRY_LEV = 0;
 input double EXIT_LEV = 0.0005;
 input AlgoType ALGO_TYPE = DAYRANGE;
+
+input ulong OBSER_WIN = 1;
+input ulong HOLD_WIN = 5;
+input double INI_T = 0.0006;
+input double OBSER_T = 0.0011;
+//--- input parameters end
 
 ulong algo_p = -1;
 
@@ -46,7 +54,11 @@ int OnInit(void){
 		// break;
 	case 1:
 	   algo_p = get_dayrange_algo(StringSubstr(symbol, 0, 3), StringSubstr(symbol, 3, 3), 
-				COMPLETE_HOUR, ENTRY_LEV, EXIT_LEV);
+				COMPLETE_HOUR, ENTRY_LEV, EXIT_LEV, 0);
+		break;
+	case 2:
+	   algo_p = get_bollinger_algo(StringSubstr(symbol, 0, 3), StringSubstr(symbol, 3, 3), 
+				OBSER_WIN, HOLD_WIN, INI_T, OBSER_T, 0);
 		break;
    }
    
@@ -118,7 +130,7 @@ void OnTick(void){
    
    if(signal != 0 && !has_position){
            
-      double size = 0.05;
+      double size = 0.06;
    
       Print(_Symbol, ":opening position at ", last_tick.time);
 	  

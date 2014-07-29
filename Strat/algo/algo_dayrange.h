@@ -99,6 +99,10 @@ namespace strat{
 				close_pos = _position;
 				_delete_position();
 
+				//extend entry level each time after a buy/sell signal
+				_low -= _exit_lev;
+				_high += _exit_lev;
+
 				if (is_stop_out){
 
 					_is_skip_day = true;
@@ -183,15 +187,7 @@ namespace strat{
 				}
 				else if (crr_hour <= _last_entry_hour && !_is_skip_day){
 				
-					signal sig = _get_signal_algo(crr_tick);
-					if (sig != signal::NONE){
-					
-						//extend entry level each time after a buy/sell signal
-						_low -= _exit_lev;
-						_high += _exit_lev;
-					}
-
-					return sig;
+					return _get_signal_algo(crr_tick);
 				}
 			}	
 			else{
