@@ -158,7 +158,7 @@ namespace strat{
 
 				_run_sd.reset();
 				_last_m_tick.last = -1;
-				_dev_factor = 2;
+				_dev_factor = 5;
 
 				_is_skip_day = false;
 			}
