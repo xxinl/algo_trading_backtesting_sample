@@ -6,6 +6,8 @@ namespace BackTester
   {
     public DateTime Time;
 
+    public string TimeStr;
+
     public double Ask;
 
     public double Bid;

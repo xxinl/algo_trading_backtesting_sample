@@ -41,6 +41,7 @@ namespace BackTester
                   if (values.Count() < 4) continue;
 
                   t.Time = DateTime.ParseExact(values[0], "yyyy.MM.dd HH:mm:ss", CultureInfo.InvariantCulture);
+                  t.TimeStr = values[0];
                   if (t.Time < startDate)
                     continue;
                   if (t.Time > endDate)
