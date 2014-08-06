@@ -29,8 +29,12 @@ using std::string;
 
 namespace strat{
 
+#ifdef MQL5_RELEASE
+	class algo_dayrange : public algo_bar{
+#else
 	class algo_dayrange : public algo_bar,
-		public optimizable_algo_genetic<int, double, double>{
+		public optimizable_algo_genetic < int, double, double > {
+#endif MQL5_RELEASE
 
 	private:
 
