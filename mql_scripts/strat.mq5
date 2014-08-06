@@ -79,7 +79,7 @@ int OnInit(void){
       
          for(int i = 0; i < count; i++){
       
-            string dt_str =  TimeToString(rt[i].time, TIME_DATE|TIME_MINUTES);
+            string dt_str =  TimeToString(rt[i].time, TIME_DATE|TIME_MINUTES|TIME_SECONDS);
             bool is_close_pos;
             process_tick(algo_p, dt_str, rt[i].close, rt[i].close, rt[i].close, rt[i].tick_volume, 
                              SL, is_close_pos, 0);  
@@ -130,7 +130,7 @@ void OnTick(void){
    
    if(signal != 0 && !has_position){
            
-      double size = 0.06;
+      double size = 0.05;
    
       Print(_Symbol, ":opening position at ", last_tick.time);
 	  

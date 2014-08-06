@@ -34,6 +34,7 @@
 #include <exception>
 #include <iostream>
 #include <thread>
+#include <functional>
 
 #include <boost/date_time.hpp>
 #include <boost/tokenizer.hpp>

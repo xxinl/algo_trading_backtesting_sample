@@ -14,12 +14,14 @@
 //#include "algo\event\event_long_short.h"
 #include "algo\algo_bollinger.h"
 #include "algo\algo_dayrange.h"
-//#include "algo\algo_dayrange_mid.h"
 #include "algo\algo_hybrid.h"
 #include "logger.h"
+
+#ifndef MQL5_RELEASE
 #include "optimizer\optimizable_algo_genetic.h"
 #include "optimizer\optimizer_genetic.h"
 //#include "optimizer\optimizer_genetic_day_research.h"
+#endif MQL5_RELEASE
 
 #include <string>
 #include <future>
@@ -35,8 +37,7 @@ logger::callback logger::on_callback = nullptr;
 //typedef strat::algo_bollinger ALGO_TYPE;
 //#define OPTIMIZER_PARAMS size_t, size_t, double, double
 
-//typedef strat::algo_dayrange ALGO_TYPE;
-typedef strat::algo_dayrange_mid ALGO_TYPE;
+typedef strat::algo_dayrange ALGO_TYPE;
 #define OPTIMIZER_PARAMS int, double, double
 
 #pragma region _private members
@@ -59,6 +60,8 @@ T read_ini(string section){
 	return util::read_ini<T>("c:/strat_ini/strat.ini", section);
 }
 
+#ifndef MQL5_RELEASE
+
 void optimize(size_t algo_addr, const wchar_t* hist_tick_path, 
 	boost::posix_time::ptime start_date, boost::posix_time::ptime end_date,
 	size_t max_iteration, size_t population_size){
@@ -80,6 +83,8 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path,
 	//	convert_wchar_to_string(hist_tick_path), algo_p, 0.2f, 0.3f, max_iteration, population_size);
 	//optimizer.run_day_opti(start_date, end_date);
 }
+
+#endif MQL5_RELEASE
 
 #pragma endregion
 
@@ -152,6 +157,7 @@ int delete_algo(size_t algo_addr){
 }
 
 //time eg.2013-11-25 23:50:00.000
+//TODO  time pass in long
 extern "C"	__declspec(dllexport)
 int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, double last, size_t volume,
 									double stop_loss, bool* is_close_pos, logger::callback callback_handler){
@@ -202,6 +208,8 @@ int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, 
 	return sig;
 }
 
+#ifndef MQL5_RELEASE
+
 extern "C"	__declspec(dllexport)
 void optimize(size_t algo_addr, const wchar_t* hist_tick_path, const wchar_t* start_date, const wchar_t* end_date,
 								size_t max_iteration, size_t population_size,
@@ -224,6 +232,8 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path, const wchar_t* st
 		LOG_SEV("optimize error: " << e.what(), logger::error);
 	}
 }
+
+#endif MQL5_RELEASE
 
 extern "C"	__declspec(dllexport)
 void reset_algo_params(size_t algo_addr){

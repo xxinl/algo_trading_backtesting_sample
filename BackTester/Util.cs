@@ -40,7 +40,7 @@ namespace BackTester
                   var values = line.Split(',');
                   if (values.Count() < 4) continue;
 
-                  t.Time = DateTime.ParseExact(values[0], "yyyy.MM.dd HH:mm", CultureInfo.InvariantCulture);
+                  t.Time = DateTime.ParseExact(values[0], "yyyy.MM.dd HH:mm:ss", CultureInfo.InvariantCulture);
                   if (t.Time < startDate)
                     continue;
                   if (t.Time > endDate)

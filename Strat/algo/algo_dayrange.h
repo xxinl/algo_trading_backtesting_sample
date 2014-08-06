@@ -10,8 +10,7 @@ implementation:
 
 #include "tick.h"
 #include "position.h"
-#include "algo.h"
-#include "optimizer/optimizable_algo_genetic.h"
+#include "algo_bar.h"
 #include "indicator/sd.h"
 
 #include <vector>
@@ -19,24 +18,32 @@ implementation:
 
 #include <boost/date_time.hpp>
 
+#ifndef MQL5_RELEASE
+
+#include "optimizer/optimizable_algo_genetic.h"
 #include <concurrent_vector.h>
+
+#endif MQL5_RELEASE
 
 using std::string;
 
 namespace strat{
 
-	class algo_dayrange : public algo,
+	class algo_dayrange : public algo_bar,
 		public optimizable_algo_genetic<int, double, double>{
 
 	private:
 
 		double _high;
 		double _low;
+
 		boost::posix_time::ptime::date_type _current_day;
 		bool _is_skip_day;
+		
 		const int _complete_hour;
 		const double _entry_lev;
 		const double _exit_lev;
+		
 		const int _last_entry_hour = 21;
 		const int _start_close_hour = 22; //this as to be at least _last_entry_hour + 2 to allow collect deviation
 		
@@ -118,13 +125,18 @@ namespace strat{
 			return 0;
 		}
 
+		void _on_bar_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1) override{
+
+			_close_position_algo(crr_tick, close_pos, stop_loss);
+		}
+
 	public:
 
 #pragma region constructors
 
 		algo_dayrange(const string s_base, const string s_quote, 
 			int complete_hour, double entry_lev, double exit_lev) :
-			algo(s_base, s_quote), 
+			algo_bar(s_base, s_quote, bar_interval::SEC_15),
 			_complete_hour(complete_hour), _entry_lev(entry_lev), _exit_lev(exit_lev),
 			_run_sd(60){
 		
@@ -183,7 +195,9 @@ namespace strat{
 						_push_run_sd(crr_tick);
 					}
 
-					_close_position_algo(crr_tick, close_pos, stop_loss);
+					//_close_position_algo(crr_tick, close_pos, stop_loss);
+
+					_process_bar_tick(crr_tick, close_pos, stop_loss);
 				}
 				else if (crr_hour <= _last_entry_hour && !_is_skip_day){
 				
@@ -219,6 +233,8 @@ namespace strat{
 			return signal::NONE;
 		}
 	
+#ifndef MQL5_RELEASE
+
 #pragma region optimizable_algo members
 
 		typedef std::pair<double, std::tuple<int, double, double>> CITIZEN_TYPE;
@@ -308,6 +324,8 @@ namespace strat{
 		}
 
 #pragma endregion
+
+#endif MQL5_RELEASE
 	};
 }
 

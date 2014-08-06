@@ -36,9 +36,9 @@ namespace BackTester.ViewModels
     public int CompleteHour { get; set; }
     public double EntryLev { get; set; }
     public double ExitLev { get; set; }
-    public int CompleteHour2 { get; set; }
-    public double EntryLev2 { get; set; }
-    public double ExitLev2 { get; set; }
+    //public int CompleteHour2 { get; set; }
+    //public double EntryLev2 { get; set; }
+    //public double ExitLev2 { get; set; }
     public int AlgoType { get; set; }
 
     #endregion input properties
@@ -100,9 +100,9 @@ namespace BackTester.ViewModels
       CompleteHour = 13;
       EntryLev = 0;
       ExitLev = 0.00025;
-      CompleteHour2 = 15;
-      EntryLev2 = 0.0001;
-      ExitLev2 = 0.0002;
+      //CompleteHour2 = 15;
+      //EntryLev2 = 0.0001;
+      //ExitLev2 = 0.0002;
       AlgoType = 1;
 
       RunTestCommand = new RelayCommand(async () => {
