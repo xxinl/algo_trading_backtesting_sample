@@ -51,7 +51,7 @@ namespace strat{
 		const int _last_entry_hour = 21;
 		const int _start_close_hour = 22; //this as to be at least _last_entry_hour + 2 to allow collect deviation
 		
-		const double _extend_entry_lev_factor;
+		const double _extend_exit_lev_factor;
 
 		sd _run_sd;
 		tick _last_m_tick;
@@ -113,8 +113,8 @@ namespace strat{
 				_delete_position();
 
 				//extend entry level each time after a buy/sell signal
-				_low -= _exit_lev * _extend_entry_lev_factor;
-				_high += _exit_lev * _extend_entry_lev_factor;
+				_low -= _exit_lev * _extend_exit_lev_factor;
+				_high += _exit_lev * _extend_exit_lev_factor;
 
 				if (is_stop_out){
 
@@ -144,7 +144,7 @@ namespace strat{
 			int complete_hour, double entry_lev, double exit_lev, double extend_factor = 1.5) :
 			algo_bar(s_base, s_quote, bar_interval::SEC_15),
 			_complete_hour(complete_hour), _entry_lev(entry_lev), _exit_lev(exit_lev),
-			_run_sd(60), _extend_entry_lev_factor(extend_factor){
+			_run_sd(60), _extend_exit_lev_factor(extend_factor){
 		
 			boost::posix_time::ptime day = boost::posix_time::min_date_time;
 			_current_day = day.date();
@@ -269,7 +269,7 @@ namespace strat{
 				_complete_hour,
 				_entry_lev,
 				_exit_lev,
-				_extend_entry_lev_factor
+				_extend_exit_lev_factor
 				)));
 
 			for (int i = 0; i < population_size - 1; i++){
