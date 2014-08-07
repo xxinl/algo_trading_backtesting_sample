@@ -33,7 +33,7 @@ namespace strat{
 	class algo_dayrange : public algo_bar{
 #else
 	class algo_dayrange : public algo_bar,
-		public optimizable_algo_genetic < int, double, double > {
+		public optimizable_algo_genetic < int, double, double, double > {
 #endif MQL5_RELEASE
 
 	private:
@@ -51,6 +51,8 @@ namespace strat{
 		const int _last_entry_hour = 21;
 		const int _start_close_hour = 22; //this as to be at least _last_entry_hour + 2 to allow collect deviation
 		
+		const double _extend_entry_lev_factor;
+
 		sd _run_sd;
 		tick _last_m_tick;
 		double _dev_factor;
@@ -111,8 +113,8 @@ namespace strat{
 				_delete_position();
 
 				//extend entry level each time after a buy/sell signal
-				_low -= _exit_lev;
-				_high += _exit_lev;
+				_low -= _exit_lev * _extend_entry_lev_factor;
+				_high += _exit_lev * _extend_entry_lev_factor;
 
 				if (is_stop_out){
 
@@ -139,10 +141,10 @@ namespace strat{
 #pragma region constructors
 
 		algo_dayrange(const string s_base, const string s_quote, 
-			int complete_hour, double entry_lev, double exit_lev) :
+			int complete_hour, double entry_lev, double exit_lev, double extend_factor = 1.5) :
 			algo_bar(s_base, s_quote, bar_interval::SEC_15),
 			_complete_hour(complete_hour), _entry_lev(entry_lev), _exit_lev(exit_lev),
-			_run_sd(60){
+			_run_sd(60), _extend_entry_lev_factor(extend_factor){
 		
 			boost::posix_time::ptime day = boost::posix_time::min_date_time;
 			_current_day = day.date();
@@ -241,14 +243,19 @@ namespace strat{
 
 #pragma region optimizable_algo members
 
-		typedef std::pair<double, std::tuple<int, double, double>> CITIZEN_TYPE;
+#ifndef OPTI_PARAMS
+#define OPTI_PARAMS int, double, double, double
+#endif
 
-		std::tuple<int, double, double> get_random_citizen(){
+		typedef std::pair<double, std::tuple<OPTI_PARAMS>> CITIZEN_TYPE;
+
+		std::tuple<OPTI_PARAMS> get_random_citizen(){
 
 			return std::make_tuple(
 				_rand_from_range(12, 20),
 				_rand_from_range(0, 10) * 0.00010, //0.00010
-				_rand_from_range(2, 50) * 0.00010
+				_rand_from_range(2, 50) * 0.00010,
+				_rand_from_range(2, 10) * 0.5
 				);
 		}
 
@@ -261,23 +268,24 @@ namespace strat{
 				std::make_tuple(
 				_complete_hour,
 				_entry_lev,
-				_exit_lev
+				_exit_lev,
+				_extend_entry_lev_factor
 				)));
 
 			for (int i = 0; i < population_size - 1; i++){
 
 				CITIZEN_TYPE citizen =
-					std::make_pair<double, std::tuple<int, double, double>>(0, get_random_citizen());
+					std::make_pair<double, std::tuple<OPTI_PARAMS>>(0, get_random_citizen());
 				population.push_back(citizen);
 			}
 
 			return population;
 		}
 
-		std::shared_ptr<algo> get_optimizable_algo(std::tuple<int, double, double> params) override{
+		std::shared_ptr<algo> get_optimizable_algo(std::tuple<OPTI_PARAMS> params) override{
 
 			algo_dayrange* ret_algo = new algo_dayrange(_s_base, _s_quote,
-				std::get<0>(params), std::get<1>(params), std::get<2>(params));
+				std::get<0>(params), std::get<1>(params), std::get<2>(params), std::get<3>(params));
 
 			//disable logging for open and close position/oberv
 			ret_algo->toggle_log_switch();
@@ -287,21 +295,22 @@ namespace strat{
 			return casted_ret;
 		}
 
-		std::tuple<int, double, double> mate(
-			const std::tuple<int, double, double>& i, const std::tuple<int, double, double>& j) override{
+		std::tuple<OPTI_PARAMS> mate(
+			const std::tuple<OPTI_PARAMS>& i, const std::tuple<OPTI_PARAMS>& j) override{
 
 			return std::make_tuple(
 				std::get<0>(i),
-				std::get<1>(j),
-				std::get<2>(i)
+				std::get<1>(i),
+				std::get<2>(j),
+				std::get<3>(j)
 				);
 		}
 
-		std::tuple<int, double, double> mutate(std::tuple<int, double, double> params) override{
+		std::tuple<OPTI_PARAMS> mutate(std::tuple<OPTI_PARAMS> params) override{
 
-			std::tuple<int, double, double> ret = get_random_citizen();
+			std::tuple<OPTI_PARAMS> ret = get_random_citizen();
 
-			int keep = rand() % 3;
+			int keep = rand() % 4;
 			switch (keep){
 
 			case 0:
@@ -315,16 +324,20 @@ namespace strat{
 			case 2:
 				std::get<2>(ret) = std::get<2>(params);
 				break;
+
+			case 3:
+				std::get<3>(ret) = std::get<3>(params);
+				break;
 			}
 
 			return ret;
 		}
 
-		string print_params(std::tuple<int, double, double> params) override{
+		string print_params(std::tuple<OPTI_PARAMS> params) override{
 
 			return static_cast<std::ostringstream&>(std::ostringstream().flush() <<
 				std::get<0>(params) << "," << std::get<1>(params) <<
-				"," << std::get<2>(params)).str();
+				"," << std::get<2>(params) << "," << std::get<3>(params)).str();
 		}
 
 #pragma endregion

@@ -38,7 +38,9 @@ logger::callback logger::on_callback = nullptr;
 //#define OPTIMIZER_PARAMS size_t, size_t, double, double
 
 typedef strat::algo_dayrange ALGO_TYPE;
-#define OPTIMIZER_PARAMS int, double, double
+#ifndef OPTIMIZER_PARAMS
+#define OPTIMIZER_PARAMS int, double, double, double
+#endif
 
 #pragma region _private members
 
@@ -90,7 +92,7 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path,
 
 extern "C"	__declspec(dllexport)
 size_t get_dayrange_algo(const wchar_t* base, const wchar_t* quote,
-							size_t complete_hour, double entry_lev, double exit_lev,
+							size_t complete_hour, double entry_lev, double exit_lev, double extend_factor,	
 							logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;

@@ -36,6 +36,7 @@ namespace BackTester.ViewModels
     public int CompleteHour { get; set; }
     public double EntryLev { get; set; }
     public double ExitLev { get; set; }
+    public double ExtendFactor { get; set; }
     //public int CompleteHour2 { get; set; }
     //public double EntryLev2 { get; set; }
     //public double ExitLev2 { get; set; }
@@ -100,6 +101,7 @@ namespace BackTester.ViewModels
       CompleteHour = 13;
       EntryLev = 0;
       ExitLev = 0.00025;
+      ExtendFactor = 1.5;
       //CompleteHour2 = 15;
       //EntryLev2 = 0.0001;
       //ExitLev2 = 0.0002;
@@ -144,7 +146,7 @@ namespace BackTester.ViewModels
             case 0:
               break;
             case 1:
-              await algo.InitDayRange(CompleteHour, EntryLev, ExitLev);
+              await algo.InitDayRange(CompleteHour, EntryLev, ExitLev, ExtendFactor);
               break;
             case 2:
               await algo.InitBollinger(ObserWin, HoldWin, Threshold1, Threshold2);
@@ -259,7 +261,7 @@ namespace BackTester.ViewModels
             case 0:
               break;
             case 1:
-              await algo.InitDayRange(CompleteHour, EntryLev, ExitLev);
+              await algo.InitDayRange(CompleteHour, EntryLev, ExitLev, ExtendFactor);
               break;
             case 2:
               await algo.InitBollinger(ObserWin, HoldWin, Threshold1, Threshold2);
