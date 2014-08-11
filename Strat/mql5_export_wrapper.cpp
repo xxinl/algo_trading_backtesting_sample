@@ -34,13 +34,12 @@ using std::string;
 
 logger::callback logger::on_callback = nullptr;
 
-//typedef strat::algo_bollinger ALGO_TYPE;
-//#define OPTIMIZER_PARAMS size_t, size_t, double, double
+typedef strat::algo_bollinger ALGO_TYPE;
+#define OPTIMIZER_PARAMS size_t, double, double, double
 
-typedef strat::algo_dayrange ALGO_TYPE;
-#ifndef OPTIMIZER_PARAMS
-#define OPTIMIZER_PARAMS int, double, double, double
-#endif
+//typedef strat::algo_dayrange ALGO_TYPE;
+//#define OPTIMIZER_PARAMS int, double, double, double
+
 
 #pragma region _private members
 
@@ -121,7 +120,7 @@ size_t get_dayrange_algo(const wchar_t* base, const wchar_t* quote,
 
 extern "C"	__declspec(dllexport)
 size_t get_bollinger_algo(const wchar_t* base, const wchar_t* quote,
-						size_t obser_win, size_t hold_win, double ini_t, double obser_t,
+						size_t obser_win, double exit_lev, double ini_t, double obser_t,
 						logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
@@ -133,7 +132,7 @@ size_t get_bollinger_algo(const wchar_t* base, const wchar_t* quote,
 	try{		
 
 		ret_p = new strat::algo_bollinger(base_str, quote_str,
-			obser_win, hold_win, ini_t, obser_t);
+			obser_win, exit_lev, ini_t, obser_t);
 	}
 	catch (std::exception& e){
 
@@ -143,7 +142,7 @@ size_t get_bollinger_algo(const wchar_t* base, const wchar_t* quote,
 	size_t ret_addr = reinterpret_cast<size_t>(ret_p);
 
 	LOG("get_bollinger_algo instantiated. base:" << base_str << " quote:" << quote_str <<
-		" obser_win: " << obser_win << " hold_win:" << hold_win << " ini_t:" << ini_t << " obser_t:" << obser_t <<
+		" obser_win: " << obser_win << " exit_lev:" << exit_lev << " ini_t:" << ini_t << " obser_t:" << obser_t <<
 		". return pointer adreess:" << ret_addr);
 
 	return ret_addr;

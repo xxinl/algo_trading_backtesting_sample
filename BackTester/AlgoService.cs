@@ -17,7 +17,7 @@ namespace BackTester
     [DllImport("strat.dll", EntryPoint = "get_bollinger_algo", CallingConvention = CallingConvention.Cdecl,
       CharSet = CharSet.Unicode)]
     private static extern IntPtr _get_bollinger_algo(string base_c, string quote,
-      IntPtr obser_win, IntPtr hold_win, double ini_t, double obser_t,
+      IntPtr obser_win, double exit_lev, double ini_t, double obser_t,
       _callback callback_handler);
 
     [DllImport("strat.dll", EntryPoint = "delete_algo", CallingConvention = CallingConvention.Cdecl)]
@@ -77,12 +77,12 @@ namespace BackTester
                      });
     }
 
-    public async Task InitBollinger(int obserWin, int holdWin, double iniT, double obserT)
+    public async Task InitBollinger(int obserWin, double exitLev, double iniT, double obserT)
     {
       await Task.Run(() =>
       {
         _algo_p = _get_bollinger_algo("xxx", "xxx",
-          (IntPtr)obserWin,  (IntPtr)holdWin, iniT, obserT,
+          (IntPtr)obserWin, exitLev, iniT, obserT,
           _callbackInstance);
       });
     }

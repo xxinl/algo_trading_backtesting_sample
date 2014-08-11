@@ -23,10 +23,10 @@
           <DatePicker SelectedDate="{Binding EndDate, Mode=TwoWay}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-          <Label Content="obser:" /><TextBox Text="{Binding ObserWin, Mode=TwoWay}" />
-          <Label Content="hold:" /><TextBox Text="{Binding HoldWin, Mode=TwoWay}" />
+          <Label Content="obser.m:" /><TextBox Text="{Binding ObserWin, Mode=TwoWay}" />
           <Label Content="t1:" /><TextBox Text="{Binding Threshold1, Mode=TwoWay}" />
           <Label Content="t2:" /><TextBox Text="{Binding Threshold2, Mode=TwoWay}" />
+          <Label Content="exit lev:" /><TextBox Text="{Binding ExitLev2, Mode=TwoWay}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
           <Label Content="comp. h.:" />

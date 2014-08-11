@@ -243,13 +243,11 @@ namespace strat{
 
 #pragma region optimizable_algo members
 
-#ifndef OPTI_PARAMS
-#define OPTI_PARAMS int, double, double, double
-#endif
+#define OPTI_PARAMS_DAYRANGE int, double, double, double
 
-		typedef std::pair<double, std::tuple<OPTI_PARAMS>> CITIZEN_TYPE;
+		typedef std::pair<double, std::tuple<OPTI_PARAMS_DAYRANGE>> CITIZEN_TYPE;
 
-		std::tuple<OPTI_PARAMS> get_random_citizen(){
+		std::tuple<OPTI_PARAMS_DAYRANGE> get_random_citizen(){
 
 			return std::make_tuple(
 				_rand_from_range(12, 20),
@@ -275,14 +273,14 @@ namespace strat{
 			for (int i = 0; i < population_size - 1; i++){
 
 				CITIZEN_TYPE citizen =
-					std::make_pair<double, std::tuple<OPTI_PARAMS>>(0, get_random_citizen());
+					std::make_pair<double, std::tuple<OPTI_PARAMS_DAYRANGE>>(0, get_random_citizen());
 				population.push_back(citizen);
 			}
 
 			return population;
 		}
 
-		std::shared_ptr<algo> get_optimizable_algo(std::tuple<OPTI_PARAMS> params) override{
+		std::shared_ptr<algo> get_optimizable_algo(std::tuple<OPTI_PARAMS_DAYRANGE> params) override{
 
 			algo_dayrange* ret_algo = new algo_dayrange(_s_base, _s_quote,
 				std::get<0>(params), std::get<1>(params), std::get<2>(params), std::get<3>(params));
@@ -295,8 +293,8 @@ namespace strat{
 			return casted_ret;
 		}
 
-		std::tuple<OPTI_PARAMS> mate(
-			const std::tuple<OPTI_PARAMS>& i, const std::tuple<OPTI_PARAMS>& j) override{
+		std::tuple<OPTI_PARAMS_DAYRANGE> mate(
+			const std::tuple<OPTI_PARAMS_DAYRANGE>& i, const std::tuple<OPTI_PARAMS_DAYRANGE>& j) override{
 
 			return std::make_tuple(
 				std::get<0>(i),
@@ -306,9 +304,9 @@ namespace strat{
 				);
 		}
 
-		std::tuple<OPTI_PARAMS> mutate(std::tuple<OPTI_PARAMS> params) override{
+		std::tuple<OPTI_PARAMS_DAYRANGE> mutate(std::tuple<OPTI_PARAMS_DAYRANGE> params) override{
 
-			std::tuple<OPTI_PARAMS> ret = get_random_citizen();
+			std::tuple<OPTI_PARAMS_DAYRANGE> ret = get_random_citizen();
 
 			int keep = rand() % 4;
 			switch (keep){
@@ -333,7 +331,7 @@ namespace strat{
 			return ret;
 		}
 
-		string print_params(std::tuple<OPTI_PARAMS> params) override{
+		string print_params(std::tuple<OPTI_PARAMS_DAYRANGE> params) override{
 
 			return static_cast<std::ostringstream&>(std::ostringstream().flush() <<
 				std::get<0>(params) << "," << std::get<1>(params) <<

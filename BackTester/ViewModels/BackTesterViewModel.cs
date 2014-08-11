@@ -27,7 +27,7 @@ namespace BackTester.ViewModels
     public double StartBalance { get; set; }
     public bool RunTestWithOptimizer { get; set; }
     public int ObserWin { get; set; }
-    public int HoldWin { get; set; }
+    public double ExitLev2 { get; set; }
     public double Threshold1 { get; set; }
     public double Threshold2 { get; set; }
     public int OptimizeInterval { get; set; } //days
@@ -91,10 +91,10 @@ namespace BackTester.ViewModels
       Leverage = 500;
       StartBalance = 0;
       RunTestWithOptimizer = false;
-      ObserWin = 1;
-      HoldWin = 15;
-      Threshold1 = 0.0006;
-      Threshold2 = 0.0011;
+      ObserWin = 10;
+      ExitLev2 = 0.00025;
+      Threshold1 = 0.0004;
+      Threshold2 = 0.0025;
       OptimizeInterval = 30;
       OptimizeLookback = 90;
       SL = 0.01;
@@ -105,7 +105,7 @@ namespace BackTester.ViewModels
       //CompleteHour2 = 15;
       //EntryLev2 = 0.0001;
       //ExitLev2 = 0.0002;
-      AlgoType = 1;
+      AlgoType = 2;
 
       RunTestCommand = new RelayCommand(async () => {
         if (IsBusy)
@@ -149,7 +149,7 @@ namespace BackTester.ViewModels
               await algo.InitDayRange(CompleteHour, EntryLev, ExitLev, ExtendFactor);
               break;
             case 2:
-              await algo.InitBollinger(ObserWin, HoldWin, Threshold1, Threshold2);
+              await algo.InitBollinger(ObserWin, ExitLev2, Threshold1, Threshold2);
               break;
           }
 
@@ -264,7 +264,7 @@ namespace BackTester.ViewModels
               await algo.InitDayRange(CompleteHour, EntryLev, ExitLev, ExtendFactor);
               break;
             case 2:
-              await algo.InitBollinger(ObserWin, HoldWin, Threshold1, Threshold2);
+              await algo.InitBollinger(ObserWin, ExitLev2, Threshold1, Threshold2);
               break;
           }
 
