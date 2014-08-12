@@ -94,10 +94,10 @@ namespace BackTester.ViewModels
       ObserWin = 10;
       ExitLev2 = 0.00025;
       Threshold1 = 0.0004;
-      Threshold2 = 0.0025;
+      Threshold2 = 0.002;
       OptimizeInterval = 30;
       OptimizeLookback = 90;
-      SL = 0.01;
+      SL = 0.005;
       CompleteHour = 13;
       EntryLev = 0;
       ExitLev = 0.00025;

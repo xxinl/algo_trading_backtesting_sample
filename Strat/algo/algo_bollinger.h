@@ -1,7 +1,7 @@
 /*
 idea principle: price rever to mean after a dramatic movement
 implementation: a. bollinger band + anti trend, regression mean price;
-								if price jump up or down, oberve a period to confirm the sudden jump, then hold until it reverse
+if price jump up or down, oberve a period to confirm the sudden jump, then hold until it reverse
 */
 
 
@@ -10,7 +10,8 @@ implementation: a. bollinger band + anti trend, regression mean price;
 
 #include "tick.h"
 #include "position.h"
-#include "algo.h"
+#include "algo_bar.h"
+#include "indicator/sd.h"
 
 #include <vector>
 #include <queue>
@@ -30,9 +31,9 @@ using std::string;
 namespace strat{
 
 #ifdef MQL5_RELEASE
-	class algo_bollinger : public algo{
+	class algo_bollinger : public algo_bar{
 #else
-	class algo_bollinger : public algo,
+	class algo_bollinger : public algo_bar,
 		public optimizable_algo_genetic < size_t, double, double, double > {
 #endif MQL5_RELEASE
 
@@ -49,6 +50,13 @@ namespace strat{
 
 		boost::posix_time::ptime::date_type _current_day;
 
+		const int _last_entry_hour = 21;
+		const int _start_close_hour = 22; //this as to be at least _last_entry_hour + 1 to allow collect deviation
+
+		//sd _run_sd;
+		//tick _last_m_tick;
+		//double _dev_factor;
+
 		bool _check_if_obser(const tick& crr_tick){
 
 			double diff = crr_tick.last - _last_obser_tick.last;
@@ -60,17 +68,37 @@ namespace strat{
 		void _update_last_tick(const tick& crr_tick){
 
 			if (crr_tick.time_stamp >= _last_obser_tick.time_stamp + boost::posix_time::minutes(1)){
-			
+
 				_last_obser_tick = crr_tick;
 			}
 		}
+
+		////return 1. sd changed, 0 unchanged
+		//int _push_run_sd(const tick& crr_tick){
+
+		//	if (_last_m_tick.last == -1)
+		//		_last_m_tick = crr_tick;
+		//	else{
+
+		//		if (crr_tick.time_stamp.time_of_day().minutes() !=
+		//			_last_m_tick.time_stamp.time_of_day().minutes()){
+
+		//			_run_sd.push(crr_tick.last - _last_m_tick.last);
+		//			_last_m_tick = crr_tick;
+
+		//			return 1;
+		//		}
+		//	}
+
+		//	return 0;
+		//}
 
 	protected:
 
 		signal _get_signal_algo(const tick& crr_tick) override {
 
 			signal ret_sig = signal::NONE;
-		
+
 			if (_obser_up && crr_tick.last >= _last_obser_tick.last + _obser_threshold){
 
 				ret_sig = signal::SELL;
@@ -116,15 +144,25 @@ namespace strat{
 			return 0;
 		}
 
+		void _on_bar_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1) override{
+
+			if (_close_position_algo(crr_tick, close_pos, stop_loss))	{
+
+				_can_obser = true;
+				_update_last_tick(crr_tick);
+			}
+		}
+
 	public:
 
 #pragma region constructors
 
 		algo_bollinger(const string s_base, const string s_quote,
 			size_t obser_max, double exit_lev, double initial_threshold, double obser_threshold) :
-			algo(s_base, s_quote), _obser_max(obser_max), _exit_lev(exit_lev),
+			algo_bar(s_base, s_quote, bar_interval::SEC_15),
+			_obser_max(obser_max), _exit_lev(exit_lev),
 			_initial_threshold(initial_threshold), _obser_threshold(obser_threshold),
-			_can_obser(true){
+			_can_obser(true)/*, _run_sd(60)*/{
 
 			boost::posix_time::ptime day = boost::posix_time::min_date_time;
 			_current_day = day.date();
@@ -137,11 +175,12 @@ namespace strat{
 #pragma endregion
 
 		signal process_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1) override{
-	
+
+			int crr_hour = crr_tick.time_stamp.time_of_day().hours();
 			boost::posix_time::ptime::date_type crr_day = crr_tick.time_stamp.date();
 
-			if (crr_day > _current_day)
-			{
+			if (crr_day > _current_day){
+
 				//close all positions for previous day
 				if (has_open_position()){
 
@@ -152,39 +191,78 @@ namespace strat{
 
 				_current_day = crr_day;
 				_last_obser_tick = crr_tick;
+
+				//_run_sd.reset();
+				//_last_m_tick.last = -1;
+				//_dev_factor = 5;
+
+				_can_obser = true;
 			}
-			
-			if (_can_obser){
 
-				if (_check_if_obser(crr_tick)){
+			if (crr_hour < _start_close_hour){
 
-					_can_obser = false;
+				//if (crr_hour >= _start_close_hour - 1){
+
+				//	_push_run_sd(crr_tick);
+				//}
+
+				if (_can_obser){
+
+					if (_check_if_obser(crr_tick)){
+
+						_can_obser = false;
 
 #ifdef MQL5_RELEASE
-					if (!_is_log_off)
-						LOG("observed at tick " << crr_tick.time_stamp << " " << crr_tick.last << "; last tick " << _last_tick.last);
+						if (!_is_log_off)
+							LOG("observed at tick " << crr_tick.time_stamp << " " << crr_tick.last << "; last tick " << _last_tick.last);
 #endif MQL5_RELEASE
-				}
-
-				_update_last_tick(crr_tick);
-
-				return signal::NONE;
-			}
-			else {
-
-				if (has_open_position()){
-
-					if (_close_position_algo(crr_tick, close_pos, stop_loss))	{
-
-						_can_obser = true;
-						_update_last_tick(crr_tick);
 					}
+
+					_update_last_tick(crr_tick);
 
 					return signal::NONE;
 				}
-				else{
+				else {
 
-					return _get_signal_algo(crr_tick);
+					if (has_open_position()){
+
+						//if (_close_position_algo(crr_tick, close_pos, stop_loss))	{
+
+						//	_can_obser = true;
+						//	_update_last_tick(crr_tick);
+						//}
+
+						_process_bar_tick(crr_tick, close_pos, stop_loss);
+
+						return signal::NONE;
+					}
+					else if (crr_hour <= _last_entry_hour){
+
+						return _get_signal_algo(crr_tick);
+					}
+				}
+			}
+			else{
+
+				// >= _start_close_hour, strat close positions and accept losses
+				if (has_open_position()){
+
+					////update new _high/_low every minute
+					//if (_push_run_sd(crr_tick)){
+
+					//	double dev = _run_sd.get_value();
+
+					//	if (dev != -1){
+
+					//		double adj_dev = dev * _dev_factor;
+					//		_exit_lev = (std::min)(_position.type * (_last_m_tick.last - _position.open_rate) + adj_dev, 0.0001);
+					//	}
+
+					//	//reduce sd range every minute to close position faster
+					//	_dev_factor = _dev_factor * 0.98;
+					//}
+
+					_close_position_algo(crr_tick, close_pos, stop_loss);
 				}
 			}
 		}
@@ -245,7 +323,7 @@ namespace strat{
 
 			algo_bollinger* ret_algo = new algo_bollinger(_s_base, _s_quote,
 				std::get<0>(params), std::get<1>(params), std::get<2>(params), std::get<3>(params));
-			
+
 			//disable logging for open and close position/oberv
 			ret_algo->toggle_log_switch();
 
@@ -295,7 +373,7 @@ namespace strat{
 		string print_params(std::tuple<OPTI_PARAMS_BOLLINGER> params) override{
 
 			return static_cast<std::ostringstream&>(std::ostringstream().flush() <<
-				std::get<0>(params) << "," << std::get<1>(params) << 
+				std::get<0>(params) << "," << std::get<1>(params) <<
 				"," << std::get<2>(params) << "," << std::get<3>(params)).str();
 		}
 
@@ -303,6 +381,6 @@ namespace strat{
 
 #endif MQL5_RELEASE
 	};
-}
+	}
 
 #endif
