@@ -214,7 +214,7 @@ namespace strat{
 
 #ifdef MQL5_RELEASE
 						if (!_is_log_off)
-							LOG("observed at tick " << crr_tick.time_stamp << " " << crr_tick.last << "; last tick " << _last_tick.last);
+							LOG("observed at tick " << crr_tick.time_stamp << " " << crr_tick.last << "; last tick " << _last_obser_tick.last);
 #endif MQL5_RELEASE
 					}
 
