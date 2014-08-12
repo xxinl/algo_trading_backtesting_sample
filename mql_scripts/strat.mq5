@@ -7,7 +7,7 @@ ulong get_dayrange_algo(string base, string quote,
 				ulong complete_hour, double entry_lev, double exit_lev, 
 				ulong callback_handler);
 ulong get_bollinger_algo(string base, string quote, 
-				ulong obser_win, ulong hold_win, double ini_t, double obser_t, 
+				ulong obser_win, double exit_lev, double ini_t, double obser_t, 
 				ulong callback_handler);
 int process_tick(ulong algo_p, string time, double ask, double bid, double last, ulong volume, 
 									double stop_loss, bool &is_close_pos, ulong callback_handler);
@@ -31,10 +31,10 @@ input double ENTRY_LEV = 0;
 input double EXIT_LEV = 0.0005;
 input AlgoType ALGO_TYPE = DAYRANGE;
 
-input ulong OBSER_WIN = 1;
-input ulong HOLD_WIN = 5;
-input double INI_T = 0.0006;
-input double OBSER_T = 0.0011;
+input ulong OBSER_WIN = 10;
+input double EXIT_LEV_BL = 0.0002;
+input double INI_T = 0.0004;
+input double OBSER_T = 0.002;
 //--- input parameters end
 
 ulong algo_p = -1;
@@ -58,7 +58,7 @@ int OnInit(void){
 		break;
 	case 2:
 	   algo_p = get_bollinger_algo(StringSubstr(symbol, 0, 3), StringSubstr(symbol, 3, 3), 
-				OBSER_WIN, HOLD_WIN, INI_T, OBSER_T, 0);
+				OBSER_WIN, EXIT_LEV_BL, INI_T, OBSER_T, 0);
 		break;
    }
    
@@ -111,7 +111,7 @@ void OnTick(void){
    
    if(SymbolInfoTick(_Symbol,last_tick)){
    
-      dt_str = TimeToString(last_tick.time, TIME_DATE|TIME_MINUTES);
+      dt_str = TimeToString(last_tick.time, TIME_DATE|TIME_MINUTES|TIME_SECONDS);
       signal = process_tick(algo_p, dt_str, last_tick.ask, last_tick.bid, last_tick.last, last_tick.volume, 
                              SL, is_close_pos, 0);     
    }
