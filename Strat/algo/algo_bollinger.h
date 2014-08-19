@@ -14,7 +14,6 @@ if price jump up or down, oberve a period to confirm the sudden jump, then hold 
 #include "indicator/sd.h"
 
 #include <vector>
-#include <queue>
 #include <cmath>
 
 #include <boost/date_time.hpp>
@@ -39,23 +38,26 @@ namespace strat{
 
 	private:
 
+#pragma region variables
+
+		//input params------------
 		size_t _obser_max;
 		double _exit_lev;
 		double _initial_threshold;
 		double _obser_threshold;
+		//input params end--------
 
 		tick _last_obser_tick;
 		bool _can_obser;
 		bool _obser_up;
 
-		boost::posix_time::ptime::date_type _current_day;
-
 		const int _last_entry_hour = 21;
-		const int _start_close_hour = 22; //this as to be at least _last_entry_hour + 1 to allow collect deviation
+		const int _start_close_hour = 22; 
 
-		//sd _run_sd;
-		//tick _last_m_tick;
-		//double _dev_factor;
+		int _crr_hour;
+		bool _can_close_pos;
+
+#pragma endregion variables
 
 		bool _check_if_obser(const tick& crr_tick){
 
@@ -64,34 +66,26 @@ namespace strat{
 			return std::abs(diff) > _initial_threshold;
 		}
 
-		// update _last_obser_tick every minute
-		void _update_last_tick(const tick& crr_tick){
+#pragma region bar_warcher handlers
 
-			if (crr_tick.time_stamp >= _last_obser_tick.time_stamp + boost::posix_time::minutes(1)){
+		void _on_new_15sec_bar(const tick& crr_tick, const bar& last_bar){
 
-				_last_obser_tick = crr_tick;
-			}
+			_can_close_pos = true;
 		}
 
-		////return 1. sd changed, 0 unchanged
-		//int _push_run_sd(const tick& crr_tick){
+		void _on_new_min_bar(const tick& crr_tick, const bar& last_bar){
 
-		//	if (_last_m_tick.last == -1)
-		//		_last_m_tick = crr_tick;
-		//	else{
+			// update _last_obser_tick every minute
+			if (_can_obser)
+				_last_obser_tick = crr_tick;
+		}
 
-		//		if (crr_tick.time_stamp.time_of_day().minutes() !=
-		//			_last_m_tick.time_stamp.time_of_day().minutes()){
+		void _on_new_hour_bar(const tick& crr_tick, const bar& last_bar){
 
-		//			_run_sd.push(crr_tick.last - _last_m_tick.last);
-		//			_last_m_tick = crr_tick;
+			_crr_hour = crr_tick.time.time_of_day().hours();
+		}
 
-		//			return 1;
-		//		}
-		//	}
-
-		//	return 0;
-		//}
+#pragma endregion bar_warcher handlers
 
 	protected:
 
@@ -102,41 +96,40 @@ namespace strat{
 			if (_obser_up && crr_tick.last >= _last_obser_tick.last + _obser_threshold){
 
 				ret_sig = signal::SELL;
-				_add_position(crr_tick, ret_sig);
+				_open_position(crr_tick, ret_sig);
 			}
 			else if (!_obser_up && crr_tick.last <= _last_obser_tick.last - _obser_threshold){
 
 				ret_sig = signal::BUY;
-				_add_position(crr_tick, ret_sig);
+				_open_position(crr_tick, ret_sig);
 			}
-			else if (crr_tick.time_stamp >= _last_obser_tick.time_stamp + boost::posix_time::minutes(_obser_max)){
+			else if (crr_tick.time >= _last_obser_tick.time + boost::posix_time::minutes(_obser_max)){
 
 				_can_obser = true;
-				_update_last_tick(crr_tick);
 
 #ifdef MQL5_RELEASE
 				if (!_is_log_off)
-					LOG("canceled observe, no singal for the last " << _obser_max << " minutes, at tick " << crr_tick.time_stamp);
+					LOG("canceled observe, no singal for the last " << _obser_max << " minutes, at tick " << crr_tick.time);
 #endif MQL5_RELEASE
 			}
 
 			return ret_sig;
 		}
 
-		int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) override{
+		int _close_position_algo(const tick& crr_tick, position& close_pos, 
+			const double stop_loss, const double take_profit) override{
 
-			double closeRate = _position.type == signal::SELL ? crr_tick.ask : crr_tick.bid;
+			double profit = _calc_profit(crr_tick);
+			bool is_stop_out = algo::_is_stop_out(profit, stop_loss);
 
-			bool is_stop_out = stop_loss != -1 && (_position.open_rate - closeRate) * _position.type > stop_loss;
+			if (is_stop_out || profit > _exit_lev){
 
-			if (is_stop_out ||
-				//crr_tick.time_stamp >= _position.open_tick.time_stamp + boost::posix_time::minutes(_hold_win)
-				(closeRate - _position.open_rate) * _position.type > _exit_lev
-				)
-			{
 				_position.close_tick = crr_tick;
 				close_pos = _position;
 				_delete_position();
+
+				_can_obser = true;
+				_last_obser_tick = crr_tick;
 
 				return 1;
 			}
@@ -144,28 +137,19 @@ namespace strat{
 			return 0;
 		}
 
-		void _on_bar_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1) override{
-
-			if (_close_position_algo(crr_tick, close_pos, stop_loss))	{
-
-				_can_obser = true;
-				_update_last_tick(crr_tick);
-			}
-		}
-
 	public:
 
 #pragma region constructors
 
-		algo_bollinger(const string s_base, const string s_quote,
+		algo_bollinger(const string symbol,
 			size_t obser_max, double exit_lev, double initial_threshold, double obser_threshold) :
-			algo_bar(s_base, s_quote, bar_interval::SEC_15),
-			_obser_max(obser_max), _exit_lev(exit_lev),
+			algo_bar(symbol), _obser_max(obser_max), _exit_lev(exit_lev),
 			_initial_threshold(initial_threshold), _obser_threshold(obser_threshold),
-			_can_obser(true)/*, _run_sd(60)*/{
+			_can_obser(true){
 
-			boost::posix_time::ptime day = boost::posix_time::min_date_time;
-			_current_day = day.date();
+			_attach_watcher(bar_watcher(bar_interval::SEC_15, boost::bind(&algo_bollinger::_on_new_15sec_bar, this, _1, _2)));
+			_attach_watcher(bar_watcher(bar_interval::MIN, boost::bind(&algo_bollinger::_on_new_min_bar, this, _1, _2)));
+			_attach_watcher(bar_watcher(bar_interval::HOUR, boost::bind(&algo_bollinger::_on_new_hour_bar, this, _1, _2)));
 		};
 
 
@@ -174,37 +158,23 @@ namespace strat{
 
 #pragma endregion
 
-		signal process_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1) override{
+		signal process_tick(const tick& crr_tick, position& close_pos, 
+			double stop_loss = -1, const double take_profit = -1) override{
 
-			int crr_hour = crr_tick.time_stamp.time_of_day().hours();
-			boost::posix_time::ptime::date_type crr_day = crr_tick.time_stamp.date();
-
-			if (crr_day > _current_day){
+			_process_bar_tick(crr_tick);
+			
+			if (_crr_hour < _start_close_hour){
 
 				//close all positions for previous day
-				if (has_open_position()){
+				if (_crr_hour == 0 && has_open_position()){
 
 					_position.close_tick = crr_tick;
 					close_pos = _position;
 					_delete_position();
+
+					_can_obser = true;
+					_last_obser_tick = crr_tick;
 				}
-
-				_current_day = crr_day;
-				_last_obser_tick = crr_tick;
-
-				//_run_sd.reset();
-				//_last_m_tick.last = -1;
-				//_dev_factor = 5;
-
-				_can_obser = true;
-			}
-
-			if (crr_hour < _start_close_hour){
-
-				//if (crr_hour >= _start_close_hour - 1){
-
-				//	_push_run_sd(crr_tick);
-				//}
 
 				if (_can_obser){
 
@@ -214,11 +184,9 @@ namespace strat{
 
 #ifdef MQL5_RELEASE
 						if (!_is_log_off)
-							LOG("observed at tick " << crr_tick.time_stamp << " " << crr_tick.last << "; last tick " << _last_obser_tick.last);
+							LOG("observed at tick " << crr_tick.time << " " << crr_tick.last << "; last tick " << _last_obser_tick.last);
 #endif MQL5_RELEASE
 					}
-
-					_update_last_tick(crr_tick);
 
 					return signal::NONE;
 				}
@@ -226,17 +194,16 @@ namespace strat{
 
 					if (has_open_position()){
 
-						//if (_close_position_algo(crr_tick, close_pos, stop_loss))	{
+						//this reset every 15 sec
+						if (_can_close_pos){
 
-						//	_can_obser = true;
-						//	_update_last_tick(crr_tick);
-						//}
-
-						_process_bar_tick(crr_tick, close_pos, stop_loss);
+							_close_position_algo(crr_tick, close_pos, stop_loss, take_profit);
+							_can_close_pos = false;
+						}
 
 						return signal::NONE;
 					}
-					else if (crr_hour <= _last_entry_hour){
+					else if (_crr_hour <= _last_entry_hour){
 
 						return _get_signal_algo(crr_tick);
 					}
@@ -247,22 +214,7 @@ namespace strat{
 				// >= _start_close_hour, strat close positions and accept losses
 				if (has_open_position()){
 
-					////update new _high/_low every minute
-					//if (_push_run_sd(crr_tick)){
-
-					//	double dev = _run_sd.get_value();
-
-					//	if (dev != -1){
-
-					//		double adj_dev = dev * _dev_factor;
-					//		_exit_lev = (std::min)(_position.type * (_last_m_tick.last - _position.open_rate) + adj_dev, 0.0001);
-					//	}
-
-					//	//reduce sd range every minute to close position faster
-					//	_dev_factor = _dev_factor * 0.98;
-					//}
-
-					_close_position_algo(crr_tick, close_pos, stop_loss);
+					_close_position_algo(crr_tick, close_pos, stop_loss, take_profit);
 				}
 			}
 		}
@@ -321,12 +273,9 @@ namespace strat{
 
 		std::shared_ptr<algo> get_optimizable_algo(std::tuple<OPTI_PARAMS_BOLLINGER> params) override{
 
-			algo_bollinger* ret_algo = new algo_bollinger(_s_base, _s_quote,
+			algo_bollinger* ret_algo = new algo_bollinger(_symbol,
 				std::get<0>(params), std::get<1>(params), std::get<2>(params), std::get<3>(params));
-
-			//disable logging for open and close position/oberv
-			ret_algo->toggle_log_switch();
-
+			
 			std::shared_ptr<algo> casted_ret = std::make_shared<algo_bollinger>(*ret_algo);
 
 			return casted_ret;

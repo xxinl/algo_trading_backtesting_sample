@@ -15,68 +15,74 @@ namespace strat{
 	class algo {
 		
 	protected:
-		string _name;
-		const string _s_base;
-		const string _s_quote;
 
-		bool _is_log_off = false;
+		const string _symbol;
 
 		position _position;
 
-		virtual void _add_position(tick t, signal type){
+		virtual void _open_position(const tick& t, const signal type){
 
-			_position.open_tick = t;
-			_position.type = type;
-
-			_position.open_rate = _position.type == signal::BUY ? _position.open_tick.ask 
-				: _position.open_tick.bid;
+			_position.open(t, type);
 
 #ifdef MQL5_RELEASE
-			if (!_is_log_off)
-				LOG("opened position at tick " << t.time_stamp);			
+				LOG("opened position at tick " << t.time);			
 #endif MQL5_RELEASE
 		}
 
 		void _delete_position(){
 
 #ifdef MQL5_RELEASE
-			if (!_is_log_off)
-				LOG("closing position at tick " << _position.open_tick.time_stamp);
+				LOG("closing position at tick " << _position.open_tick.time);
 #endif MQL5_RELEASE
 
-			_position.type = signal::NONE;
+			_position.clear();
+		}
+
+		double _calc_profit(const tick& crr_tick) const{
+		
+			if (has_open_position()){
+
+				double closeRate = _position.type == signal::SELL ? crr_tick.ask : crr_tick.bid;
+				return (closeRate - _position.open_rate) * _position.type;
+			}
+
+			return 0;
+		}
+
+		bool _is_stop_out(const double profit, const double stop_loss) const{
+					
+			return stop_loss != -1 && (0 - profit) > stop_loss;
+		}
+
+		bool _is_stop_out(const tick& crr_tick, const double stop_loss) const{
+			
+			double profit = _calc_profit(crr_tick);
+			return _is_stop_out(profit, stop_loss);
 		}
 
 		virtual signal _get_signal_algo(const tick& crr_tick) = 0;
-		virtual int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) = 0;
+		virtual int _close_position_algo(const tick& crr_tick, position& close_pos, 
+			double stop_loss, const double take_profit) = 0;
 
 	public:
 
 		virtual ~algo() {}
 
-		algo(string s_base, string s_quote) :
-			_s_base(s_base), _s_quote(s_quote){
-		
-			_position.type = signal::NONE;
-		};
+		algo(const string symbol) :	_symbol(symbol){};
 
-		virtual signal process_tick(const tick&, position& close_pos, double stop_loss = -1) = 0;
+		//stop_loss and take_profit are pips level. 
+		//  -1: ignore
+		virtual signal process_tick(const tick&, position& close_pos, 
+			const double stop_loss = -1, const double take_profit = -1) = 0;
 
 		position get_position() const{
 
 			return _position;
 		}
 
-		bool toggle_log_switch(){
+		bool has_open_position() const{
 
-			_is_log_off = !_is_log_off;
-
-			return _is_log_off;
-		}
-
-		bool has_open_position(){
-
-			return _position.type != signal::NONE;
+			return !_position.is_empty();
 		}
 	};
 }

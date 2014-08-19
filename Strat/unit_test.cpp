@@ -50,7 +50,7 @@ namespace Strat
 
 		TEST_METHOD(event_long_short_constructor)
 		{
-			strat::event_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv"
+			strat::event_long_short algo("eurusd", "../../test_files/Calendar-11-24-2013.csv"
 				, 5, 15, 0.0003);
 
 			std::queue<boost::posix_time::ptime> event_q = algo.get_event_queue();
@@ -74,14 +74,14 @@ namespace Strat
 			Assert::AreEqual(tick_vec.size(), size);
 			boost::posix_time::ptime t =
 				boost::posix_time::time_from_string(std::string("2013-11-24 23:10:00.000"));
-			Assert::IsTrue(tick_vec[9].time_stamp == t);
+			Assert::IsTrue(tick_vec[9].time == t);
 			Assert::AreEqual(tick_vec[9].last, 1.3549);
 
 		}
 
 		TEST_METHOD(event_long_short_process_tick)
 		{
-			strat::event_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv"
+			strat::event_long_short algo("eurusd", "../../test_files/Calendar-11-24-2013.csv"
 				, 5, 15, 0.0003, true);
 
 			std::vector<strat::tick> tick_vec;
@@ -145,7 +145,7 @@ namespace Strat
 			strat::position p;
 			
 			strat::tick tick1;
-			tick1.time_stamp = now;
+			tick1.time = now;
 			tick1.last = 1.006;
 
 			p.open_tick = tick1;
@@ -171,7 +171,7 @@ namespace Strat
 
 		TEST_METHOD(event_long_short_process_tick_with_stoploss)
 		{
-			strat::event_long_short algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv"
+			strat::event_long_short algo("eurusd", "../../test_files/Calendar-11-24-2013.csv"
 				, 5, 15, 0.0003, true);
 
 			std::vector<strat::tick> tick_vec;
@@ -249,7 +249,7 @@ namespace Strat
 
 		TEST_METHOD(event_ma_process_tick){
 
-			strat::event_algo_ma algo("eur", "usd", "../../test_files/Calendar-11-24-2013.csv",
+			strat::event_algo_ma algo("eurusd", "../../test_files/Calendar-11-24-2013.csv",
 				 5, 15, 0.0003, 15, 60);
 
 			std::vector<strat::tick> tick_vec;
@@ -307,60 +307,14 @@ namespace Strat
 				}
 			}
 		}
-
-#pragma region test mql5 _export wrapper
-
-		size_t get_algo(wchar_t* base, wchar_t* quote, wchar_t* path){
-
-			std::wstring w_base_str = std::wstring(base);
-			std::wstring w_quote_str = std::wstring(quote);
-			std::wstring w_path_str = std::wstring(path);
-
-			strat::event_algo_ma* ret_p = nullptr;
-
-			ret_p = new strat::event_algo_ma(string(w_base_str.begin(), w_base_str.end()),
-				string(w_quote_str.begin(), w_quote_str.end()),
-				string(w_path_str.begin(), w_path_str.end()),
-				7, 45, 0.0003, 25, 270, 0.7);
-
-			size_t ret_add = reinterpret_cast<size_t>(ret_p);
-
-			return ret_add;
-		}
-
-		int process_tick(size_t algo_add, wchar_t* time, double last, double stop_loss){
-
-			std::wstring w_time_str = std::wstring(time);
-			strat::signal sig = strat::signal::NONE;
-
-			strat::tick tick;
-			tick.time_stamp = boost::posix_time::time_from_string(string(w_time_str.begin(), w_time_str.end()));
-			tick.last = last;
-
-			strat::position close_pos;
-			strat::event_algo_ma* algo_p = reinterpret_cast<strat::event_algo_ma*>(algo_add);
-			sig = algo_p->process_tick(tick, close_pos, stop_loss);
-
-			return sig;
-		}
-
-		TEST_METHOD(mql5_export_wrapper){
 		
-			size_t algo_add = get_algo(L"eur", L"usd", L"C:\\workspace\\Strat\\back_test_files\\Calendar - 2013.csv");
-
-			process_tick(algo_add, L"2013.04.14 05:00", 1.35, 0.01);
-		}
-
-#pragma endregion
-
 #pragma region optimizer
 
 		TEST_METHOD(algo_bollinger_optimize){
 		
-			strat::algo_bollinger* algo_p = new strat::algo_bollinger("eur", "usd", 1, 16, 0.028, 0.092);
+			strat::algo_bollinger* algo_p = new strat::algo_bollinger("eurusd", 1, 16, 0.028, 0.092);
 			strat::optimizer_genetic<size_t, size_t, double, double> optimizer(
-				"C:/workspace/Strat/test_files/USDJPY2013.csv", algo_p,
-				0.20f, 0.40f, 1, 1);
+				"C:/workspace/Strat/test_files/USDJPY2013.csv", algo_p, 0.20f, 0.40f, 1, 1);
 
 			boost::posix_time::ptime start =
 				boost::posix_time::time_from_string(std::string("2013-01-01 00:00:00.000"));
@@ -386,7 +340,7 @@ namespace Strat
 
 		TEST_METHOD(algo_bollinger_process_tick){
 
-			strat::algo_bollinger algo("eur", "usd", 1, 9, 0.0003, 0.0009);
+			strat::algo_bollinger algo("eurusd", 1, 9, 0.0003, 0.0009);
 
 			std::vector<strat::tick> tick_vec;
 
@@ -458,7 +412,7 @@ namespace Strat
 
 		TEST_METHOD(algo_dayrange_process_tick){
 
-			strat::algo_dayrange algo("eur", "usd", 13, 0, 0.0005);
+			strat::algo_dayrange algo("eurusd", 13, 0, 0.0005);
 
 			std::vector<strat::tick> tick_vec;
 

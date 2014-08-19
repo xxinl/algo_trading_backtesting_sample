@@ -51,14 +51,14 @@ namespace strat{
 			std::vector<tick> day_ticks;
 			std::vector<double> day_min_rates;
 			tick last_t = ticks.front();
-			boost::posix_time::ptime cur_day = ticks.front().time_stamp;
+			boost::posix_time::ptime cur_day = ticks.front().time;
 
 			for (tick t : ticks)
 			{
-				if (t.time_stamp.date() <= cur_day.date()){
+				if (t.time.date() <= cur_day.date()){
 
 					day_ticks.push_back(t);
-					if (last_t.time_stamp.time_of_day().minutes() != t.time_stamp.time_of_day().minutes()){
+					if (last_t.time.time_of_day().minutes() != t.time.time_of_day().minutes()){
 					
 						day_min_rates.push_back(last_t.last);
 					}
@@ -74,7 +74,7 @@ namespace strat{
 
 					day_ticks.clear();
 					day_ticks.push_back(t);
-					cur_day = t.time_stamp;
+					cur_day = t.time;
 
 					day_min_rates.clear();
 				}

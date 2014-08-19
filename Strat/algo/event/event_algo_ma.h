@@ -50,7 +50,7 @@ namespace strat{
 			if (!_obser_tick_q.empty()){
 
 				tick front_tick = _obser_tick_q.front();
-				if (crr_tick.time_stamp >= front_tick.time_stamp + boost::posix_time::minutes(_obser_win)){
+				if (crr_tick.time >= front_tick.time + boost::posix_time::minutes(_obser_win)){
 
 					if (crr_tick.last >= front_tick.last + _run_sd && _trend_type == trend_type::DOWN){
 
@@ -71,12 +71,13 @@ namespace strat{
 		}
 
 		//duplicate code as event_algo
-		int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) override {
+		int _close_position_algo(const tick& crr_tick, position& close_pos, 
+			double stop_loss, const double take_profit) override {
 
 			bool is_stop_out = stop_loss != -1 && (_position.open_tick.last - crr_tick.last) * _position.type > stop_loss;
 
 			if (is_stop_out ||
-				crr_tick.time_stamp >= _position.open_tick.time_stamp + boost::posix_time::minutes(_hold_win))
+				crr_tick.time >= _position.open_tick.time + boost::posix_time::minutes(_hold_win))
 			{
 				_position.close_tick = crr_tick;
 				close_pos = _position;
@@ -91,10 +92,10 @@ namespace strat{
 
 #pragma region constructors
 
-		event_algo_ma(const std::string s_base, const std::string s_quote,
+		event_algo_ma(const std::string symbol,
 			string event_f_path, size_t obser_win, size_t hold_win, double run_sd,
 			int ma_period, int ma_lookback, double trend_slope_t = 0.7) :
-			event_algo(s_base, s_quote, event_f_path, obser_win, hold_win, run_sd),
+			event_algo(symbol, event_f_path, obser_win, hold_win, run_sd),
 			_ma_lookback(ma_lookback), _sma(ma_period), _trend(ma_lookback, trend_slope_t){
 		}
 
@@ -102,7 +103,8 @@ namespace strat{
 
 #pragma endregion
 
-		signal process_tick(const tick& crr_tick, position& close_pos, double stop_loss = -1) override{
+		signal process_tick(const tick& crr_tick, position& close_pos, 
+			double stop_loss = -1, const double take_profit = -1) override{
 
 			_process_ma(crr_tick);
 

@@ -10,13 +10,13 @@ namespace BackTester
 
     [DllImport("strat.dll", EntryPoint = "get_dayrange_algo", CallingConvention = CallingConvention.Cdecl,
       CharSet = CharSet.Unicode)]
-    private static extern IntPtr _get_dayrange_algo(string base_c, string quote,
-      IntPtr complete_hour, double entry_lev, double exit_lev, double extend_factor,
+    private static extern IntPtr _get_dayrange_algo(string symbol,
+      IntPtr complete_hour, double exit_lev, double extend_factor,
       _callback callback_handler);
 
     [DllImport("strat.dll", EntryPoint = "get_bollinger_algo", CallingConvention = CallingConvention.Cdecl,
       CharSet = CharSet.Unicode)]
-    private static extern IntPtr _get_bollinger_algo(string base_c, string quote,
+    private static extern IntPtr _get_bollinger_algo(string symbol,
       IntPtr obser_win, double exit_lev, double ini_t, double obser_t,
       _callback callback_handler);
 
@@ -26,8 +26,8 @@ namespace BackTester
     [DllImport("strat.dll", EntryPoint = "process_tick", CallingConvention = CallingConvention.Cdecl,
       CharSet = CharSet.Unicode)]
     private static extern int _process_tick(IntPtr algo_addr,
-      string time, double ask, double bid, double last, IntPtr volume, double stop_loss, [Out] out bool is_close_pos,
-      _callback _callbackInstance);
+      string time, double ask, double bid, double last, IntPtr volume, double stop_loss, double take_profit,
+      [Out] out bool is_close_pos, _callback _callbackInstance);
 
     [DllImport("strat.dll", EntryPoint = "optimize", CallingConvention = CallingConvention.Cdecl,
       CharSet = CharSet.Unicode)]
@@ -67,12 +67,12 @@ namespace BackTester
       };
     }
 
-    public async Task InitDayRange(int completeHour, double entryLev, double exitLev, double extendFactor)
+    public async Task InitDayRange(int completeHour, double exitLev, double extendFactor)
     {
       await Task.Run(() =>
                      {
-                       _algo_p = _get_dayrange_algo("xxx", "xxx",
-                         (IntPtr) completeHour, entryLev, exitLev, extendFactor,
+                       _algo_p = _get_dayrange_algo("xxx",
+                         (IntPtr) completeHour, exitLev, extendFactor,
                          _callbackInstance);
                      });
     }
@@ -81,7 +81,7 @@ namespace BackTester
     {
       await Task.Run(() =>
       {
-        _algo_p = _get_bollinger_algo("xxx", "xxx",
+        _algo_p = _get_bollinger_algo("xxx",
           (IntPtr)obserWin, exitLev, iniT, obserT,
           _callbackInstance);
       });
@@ -90,7 +90,7 @@ namespace BackTester
     public int OnTick(Tick t, out bool isClosePos, double sl)
     {
       return _process_tick(_algo_p, t.TimeStr, t.Ask, t.Bid, t.Last,
-        (IntPtr)t.Volume, sl, out isClosePos,
+        (IntPtr)t.Volume, sl, 1, out isClosePos,
         _callbackInstance);
     }
 

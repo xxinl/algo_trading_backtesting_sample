@@ -34,7 +34,7 @@
 #include <exception>
 #include <iostream>
 #include <thread>
-#include <functional>
+//#include <functional>
 
 #include <boost/date_time.hpp>
 #include <boost/tokenizer.hpp>
@@ -49,6 +49,7 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/sources/logger.hpp>
 #include <boost/algorithm/string.hpp> 
+#include <boost/signals2.hpp>
 
 //#include <dlib/svm.h>
 

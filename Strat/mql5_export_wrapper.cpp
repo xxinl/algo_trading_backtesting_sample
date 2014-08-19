@@ -9,22 +9,16 @@
 #include <oaidl.h>
 #include <comutil.h>
 
+#include "logger.h"
 #include "algo.h"
-//#include "algo\event\event_algo_ma.h"
-//#include "algo\event\event_long_short.h"
 #include "algo\algo_bollinger.h"
 #include "algo\algo_dayrange.h"
 #include "algo\algo_hybrid.h"
-#include "logger.h"
 
-#ifndef MQL5_RELEASE
-#include "optimizer\optimizable_algo_genetic.h"
-#include "optimizer\optimizer_genetic.h"
-//#include "optimizer\optimizer_genetic_day_research.h"
-#endif MQL5_RELEASE
+//#include "algo\event\event_algo_ma.h"
+//#include "algo\event\event_long_short.h"
 
 #include <string>
-#include <future>
 #include <exception>
 #include <sstream>
 
@@ -49,60 +43,33 @@ string convert_wchar_to_string(const wchar_t* wchar){
 	return string(w_base_str.begin(), w_base_str.end());
 }
 
-template<typename T>
-void write_ini(string section, T val){
+//template<typename T>
+//void write_ini(string section, T val){
+//
+//	util::write_ini("c:/strat_ini/strat.ini", section, val);
+//}
 
-	util::write_ini("c:/strat_ini/strat.ini", section, val);
-}
-
-template<typename T>
-T read_ini(string section){
-
-	return util::read_ini<T>("c:/strat_ini/strat.ini", section);
-}
-
-#ifndef MQL5_RELEASE
-
-void optimize(size_t algo_addr, const wchar_t* hist_tick_path, 
-	boost::posix_time::ptime start_date, boost::posix_time::ptime end_date,
-	size_t max_iteration, size_t population_size){
-
-	srand((unsigned int)time(NULL));
-	
-	ALGO_TYPE* algo_p = reinterpret_cast<ALGO_TYPE*>(algo_addr);
-
-	strat::optimizer_genetic<OPTIMIZER_PARAMS> optimizer(
-		convert_wchar_to_string(hist_tick_path), algo_p, 0.2f, 0.3f, max_iteration, population_size);
-	std::pair<double, std::tuple<OPTIMIZER_PARAMS>> opti_params = optimizer.optimize(start_date, end_date);
-
-	//write_ini("OPTI_PARAM.OBSERV", std::get<0>(opti_params.second));
-	//write_ini("OPTI_PARAM.HOLD", std::get<1>(opti_params.second));
-	//write_ini("OPTI_PARAM.INI_T", std::get<2>(opti_params.second));
-	//write_ini("OPTI_PARAM.OBSER_T", std::get<3>(opti_params.second));
-
-	//strat::optimizer_genetic_day_research<OPTIMIZER_PARAMS> optimizer(
-	//	convert_wchar_to_string(hist_tick_path), algo_p, 0.2f, 0.3f, max_iteration, population_size);
-	//optimizer.run_day_opti(start_date, end_date);
-}
-
-#endif MQL5_RELEASE
+//template<typename T>
+//T read_ini(string section){
+//
+//	return util::read_ini<T>("c:/strat_ini/strat.ini", section);
+//}
 
 #pragma endregion
 
 extern "C"	__declspec(dllexport)
-size_t get_dayrange_algo(const wchar_t* base, const wchar_t* quote,
-							size_t complete_hour, double entry_lev, double exit_lev, double extend_factor,	
+size_t get_dayrange_algo(const wchar_t* symbol,
+							size_t complete_hour, double exit_lev, double extend_factor,	
 							logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
 	strat::algo* ret_p = nullptr;
 
-	string base_str = convert_wchar_to_string(base);
-	string quote_str = convert_wchar_to_string(quote);
+	string symbol_str = convert_wchar_to_string(symbol);
 
 	try{
 
-		ret_p = new strat::algo_dayrange(base_str, quote_str, complete_hour, entry_lev, exit_lev);			
+		ret_p = new strat::algo_dayrange(symbol_str, complete_hour, exit_lev);
 	}
 	catch (std::exception& e){
 
@@ -111,27 +78,26 @@ size_t get_dayrange_algo(const wchar_t* base, const wchar_t* quote,
 
 	size_t ret_addr = reinterpret_cast<size_t>(ret_p);
 
-	LOG("get_dayrange_algo instantiated. base:" << base_str << " quote:" << quote_str <<
-		" complete_hour: " << complete_hour << " entry_lev:" << entry_lev << " exit_lev:" << exit_lev <<
+	LOG("get_dayrange_algo instantiated. symbol:" << symbol_str <<
+		" complete_hour: " << complete_hour << " exit_lev:" << exit_lev <<
 		". return pointer adreess:" << ret_addr);
 
 	return ret_addr;
 }
 
 extern "C"	__declspec(dllexport)
-size_t get_bollinger_algo(const wchar_t* base, const wchar_t* quote,
+size_t get_bollinger_algo(const wchar_t* symbol,
 						size_t obser_win, double exit_lev, double ini_t, double obser_t,
 						logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
 	strat::algo* ret_p = nullptr;
 
-	string base_str = convert_wchar_to_string(base);
-	string quote_str = convert_wchar_to_string(quote);
+	string symbol_str = convert_wchar_to_string(symbol);
 
 	try{		
 
-		ret_p = new strat::algo_bollinger(base_str, quote_str,
+		ret_p = new strat::algo_bollinger(symbol_str,
 			obser_win, exit_lev, ini_t, obser_t);
 	}
 	catch (std::exception& e){
@@ -141,7 +107,7 @@ size_t get_bollinger_algo(const wchar_t* base, const wchar_t* quote,
 
 	size_t ret_addr = reinterpret_cast<size_t>(ret_p);
 
-	LOG("get_bollinger_algo instantiated. base:" << base_str << " quote:" << quote_str <<
+	LOG("get_bollinger_algo instantiated. base: symbol:" << symbol_str <<
 		" obser_win: " << obser_win << " exit_lev:" << exit_lev << " ini_t:" << ini_t << " obser_t:" << obser_t <<
 		". return pointer adreess:" << ret_addr);
 
@@ -161,14 +127,13 @@ int delete_algo(size_t algo_addr){
 //TODO  time pass in long
 extern "C"	__declspec(dllexport)
 int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, double last, size_t volume,
-									double stop_loss, bool* is_close_pos, logger::callback callback_handler){
+									double stop_loss, double take_profit, bool* is_close_pos, logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
 
 	*is_close_pos = false;
 
 	string time_str = convert_wchar_to_string(time);
-	strat::algo* algo_p = reinterpret_cast<strat::algo*>(algo_addr);
 
 	LOG_SEV("process_tick algo:" << algo_addr << " time:" << time_str
 		<< " last:" << last << " sl:" << stop_loss, logger::debug);
@@ -177,17 +142,18 @@ int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, 
 	strat::position close_pos;
 
 	try{
-
+		
 		strat::tick tick;
-		tick.time_stamp = boost::posix_time::time_from_string(time_str);
+		tick.time = boost::posix_time::time_from_string(time_str);
 		tick.last = last;
 		tick.ask = ask;
 		tick.bid = bid;
 		tick.volume = volume;
 
-		LOG_SEV("process_tick casted time:" << tick.time_stamp, logger::debug);
+		LOG_SEV("process_tick casted time:" << tick.time, logger::debug);
 		
-		sig = algo_p->process_tick(tick, close_pos, stop_loss);
+		strat::algo* algo_p = reinterpret_cast<strat::algo*>(algo_addr);
+		sig = algo_p->process_tick(tick, close_pos, stop_loss, take_profit);
 	}
 	catch (std::exception& e){
 
@@ -209,15 +175,48 @@ int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, 
 	return sig;
 }
 
+extern "C"	__declspec(dllexport)
+void log_tick(const wchar_t* time, double ask, double bid, double last, size_t volume){
+
+	string time_str = convert_wchar_to_string(time);
+	LOG_TICK(time_str, ask, bid, last, volume);
+}
+
 #ifndef MQL5_RELEASE
+
+#include "optimizer\optimizable_algo_genetic.h"
+#include "optimizer\optimizer_genetic.h"
+//#include "optimizer\optimizer_genetic_day_research.h"
+
+void optimize(size_t algo_addr, const wchar_t* hist_tick_path,
+	boost::posix_time::ptime start_date, boost::posix_time::ptime end_date,
+	size_t max_iteration, size_t population_size){
+
+	srand((unsigned int)time(NULL));
+
+	ALGO_TYPE* algo_p = reinterpret_cast<ALGO_TYPE*>(algo_addr);
+
+	strat::optimizer_genetic<OPTIMIZER_PARAMS> optimizer(
+		convert_wchar_to_string(hist_tick_path), algo_p, 0.2f, 0.3f, max_iteration, population_size);
+	std::pair<double, std::tuple<OPTIMIZER_PARAMS>> opti_params = optimizer.optimize(start_date, end_date);
+
+	//write_ini("OPTI_PARAM.OBSERV", std::get<0>(opti_params.second));
+	//write_ini("OPTI_PARAM.HOLD", std::get<1>(opti_params.second));
+	//write_ini("OPTI_PARAM.INI_T", std::get<2>(opti_params.second));
+	//write_ini("OPTI_PARAM.OBSER_T", std::get<3>(opti_params.second));
+
+	//strat::optimizer_genetic_day_research<OPTIMIZER_PARAMS> optimizer(
+	//	convert_wchar_to_string(hist_tick_path), algo_p, 0.2f, 0.3f, max_iteration, population_size);
+	//optimizer.run_day_opti(start_date, end_date);
+}
 
 extern "C"	__declspec(dllexport)
 void optimize(size_t algo_addr, const wchar_t* hist_tick_path, const wchar_t* start_date, const wchar_t* end_date,
-								size_t max_iteration, size_t population_size,
-								logger::callback callback_handler){
+size_t max_iteration, size_t population_size,
+logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
-	
+
 	string start_time_str = convert_wchar_to_string(start_date);
 	string end_time_str = convert_wchar_to_string(end_date);
 
@@ -236,26 +235,18 @@ void optimize(size_t algo_addr, const wchar_t* hist_tick_path, const wchar_t* st
 
 #endif MQL5_RELEASE
 
-extern "C"	__declspec(dllexport)
-void reset_algo_params(size_t algo_addr){
-
-	//ALGO_TYPE* algo_p = reinterpret_cast<ALGO_TYPE*>(algo_addr);
-
-	//algo_p->reset_params(
-	//	read_ini<size_t>("OPTI_PARAM.OBSERV"),
-	//	read_ini<size_t>("OPTI_PARAM.HOLD"),
-	//	read_ini<double>("OPTI_PARAM.INI_T"),
-	//	read_ini<double>("OPTI_PARAM.OBSER_T")
-	//	);
-}
-
-extern "C"	__declspec(dllexport)
-void log_tick(const wchar_t* time, double ask, double bid, double last, size_t volume){
-
-	string time_str = convert_wchar_to_string(time);
-	LOG_TICK(time_str, ask, bid, last, volume);
-}
-
+//extern "C"	__declspec(dllexport)
+//void reset_algo_params(size_t algo_addr){
+//
+//	ALGO_TYPE* algo_p = reinterpret_cast<ALGO_TYPE*>(algo_addr);
+//
+//	algo_p->reset_params(
+//		read_ini<size_t>("OPTI_PARAM.OBSERV"),
+//		read_ini<size_t>("OPTI_PARAM.HOLD"),
+//		read_ini<double>("OPTI_PARAM.INI_T"),
+//		read_ini<double>("OPTI_PARAM.OBSER_T")
+//		);
+//}
 
 //extern "C"	__declspec(dllexport)
 //int process_end_day(size_t algo_addr, const wchar_t* hist_tick_path, size_t keep_days_no,

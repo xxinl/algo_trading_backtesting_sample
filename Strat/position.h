@@ -23,12 +23,29 @@ namespace strat{
 		double open_rate;
 
 		position(){
+
 			type = signal::NONE;
 		}
 
-		~position(){}
+		void open(const tick& _open_tick, const signal _type){
+
+			open_tick = _open_tick;
+			type = _type;
+			open_rate = signal::BUY ? open_tick.ask : open_tick.bid;
+		}
+
+		void clear(){
+		
+			type = signal::NONE;
+		}
+
+		bool is_empty() const{
+		
+			return type == signal::NONE;
+		}
 	};
 
+	//below is only used for event based algo which none are live
 	struct event_position : position{
 
 		tick obser_tick;

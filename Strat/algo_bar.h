@@ -4,68 +4,63 @@
 
 #include "algo.h"
 #include "bar.h"
+#include "bar_watcher.h"
 
 #include <string>
-#include <functional>
 
 #include <boost/date_time.hpp>
+
+#include <ppl.h>
+#include <concurrent_vector.h>
 
 using std::string;
 
 namespace strat{
-
+	
 	class algo_bar : public algo {
-		
+
 	private:
 
-		boost::posix_time::ptime _epoch;
+		std::vector<bar_watcher> _bar_watchers;
 
 	protected:
 
-		bar_interval _bar_type;
-		bar _crr_bar;
-		size_t _bar_id;
+		void _process_bar_tick(const tick& crr_tick) {
 
-		virtual void _on_bar_tick(const tick& crr_tick, position& close_pos, double stop_loss) = 0;
+			//concurrency::parallel_for_each(std::begin(_bar_watchers), std::end(_bar_watchers),
+			//	[&crr_tick](bar_watcher watcher){
 
-		void _process_bar_tick(const tick& crr_tick, position& close_pos, double stop_loss){
+			//	watcher.on_tick(crr_tick);
+			//});
 
-			_crr_bar.close = crr_tick.last;
+			for (std::vector<bar_watcher>::iterator it = _bar_watchers.begin(); it != _bar_watchers.end(); ++it){
 
-			boost::posix_time::time_duration duration = crr_tick.time_stamp - _epoch;
-			long total_sec = duration.total_seconds();
-			size_t new_bar_id = total_sec / _bar_type;
-
-			if (new_bar_id != _bar_id){
-
-				_bar_id = new_bar_id;
-
-				_crr_bar.high = crr_tick.last;
-				_crr_bar.low = crr_tick.last;
-				_crr_bar.volume = crr_tick.volume;
-
-				_on_bar_tick(crr_tick, close_pos, stop_loss);
+				it->on_tick(crr_tick);
 			}
-			else{
+		};
 
-				if (crr_tick.last > _crr_bar.high) _crr_bar.high = crr_tick.last;
-				if (crr_tick.last < _crr_bar.low) _crr_bar.low = crr_tick.last;
-				_crr_bar.volume += crr_tick.volume;
+		void _attach_watcher(const bar_watcher& watcher){
+		
+			_bar_watchers.push_back(watcher);
+		}
+
+		bool _is_on_new_bar_tick(bar_interval type) {
+		
+			for (std::vector<bar_watcher>::iterator it = _bar_watchers.begin(); it != _bar_watchers.end(); ++it){
+
+				if (it->interval == type && it->is_on_new_bar_tick())
+					return true;
 			}
+
+			return false;
 		}
 
 	public:
 
 		virtual ~algo_bar() {}
 
-		algo_bar(string s_base, string s_quote, bar_interval bar_type) :
-			algo(s_base, s_quote){
-		
-			_position.type = signal::NONE;
-			_bar_type = bar_type;
-			_epoch = boost::posix_time::ptime(boost::gregorian::date(2000, 1, 1));
-			_bar_id = 0;
-		};
+		algo_bar(const string symbol) :
+			algo(symbol){	};
 	};
 }
 

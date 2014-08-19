@@ -130,7 +130,7 @@ public:
 				if (t > end_date) break;
 
 				strat::tick tick1;
-				tick1.time_stamp = t;
+				tick1.time = t;
 				//if (cols_len >= 3)
 				//	tick1.last = boost::lexical_cast<double>(row_vec[2]);
 				//else

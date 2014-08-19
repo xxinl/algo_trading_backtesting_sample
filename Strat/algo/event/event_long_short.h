@@ -44,7 +44,7 @@ namespace strat{
 				if (has_open_position()) return signal::NONE;
 
 				tick front_tick = _obser_tick_q.front();
-				if (crr_tick.time_stamp >= front_tick.time_stamp + boost::posix_time::minutes(_obser_win)){
+				if (crr_tick.time >= front_tick.time + boost::posix_time::minutes(_obser_win)){
 
 					if (crr_tick.last >= front_tick.last + _run_sd){
 
@@ -65,12 +65,13 @@ namespace strat{
 		}
 
 		//duplicate code as event_algo_ma
-		int _close_position_algo(const tick& crr_tick, position& close_pos, double stop_loss) override{
+		int _close_position_algo(const tick& crr_tick, position& close_pos, 
+			double stop_loss, const double take_profit) override{
 
 			bool is_stop_out = stop_loss != -1 && (_position.open_tick.last - crr_tick.last) * _position.type > stop_loss;
 
 				if (is_stop_out || 
-					crr_tick.time_stamp >= _position.open_tick.time_stamp + boost::posix_time::minutes(_hold_win))
+					crr_tick.time >= _position.open_tick.time + boost::posix_time::minutes(_hold_win))
 				{
 					_position.close_tick = crr_tick;
 					close_pos = _position;
@@ -85,10 +86,10 @@ namespace strat{
 
 #pragma region constructors
 
-		event_long_short(const string s_base, const string s_quote,
+		event_long_short(const string symbol,
 			string event_f_path, size_t obser_win, size_t hold_win, double run_sd, 
 			bool is_anti_trend = true) :
-			event_algo(s_base, s_quote, event_f_path, obser_win, hold_win, run_sd),
+			event_algo(symbol, event_f_path, obser_win, hold_win, run_sd),
 			_is_anti_trend(is_anti_trend){		};
 
 
@@ -145,14 +146,11 @@ namespace strat{
 
 		std::shared_ptr<algo> get_optimizable_algo(std::tuple<size_t, size_t, double> params) override{
 
-			event_long_short* ret_algo = new event_long_short(_s_base, _s_quote,
+			event_long_short* ret_algo = new event_long_short(_symbol,
 				"", std::get<0>(params), std::get<1>(params), std::get<2>(params));
 
 			std::queue<boost::posix_time::ptime> event_q(get_event_queue());
-
-			//disable logging for open and close position/oberv
-			ret_algo->toggle_log_switch();
-			
+		
 			ret_algo->load_event(event_q);
 
 			std::shared_ptr<algo> casted_ret = std::make_shared<event_long_short>(*ret_algo);
@@ -211,15 +209,15 @@ namespace strat{
 
 		//	for (std::vector<tick>::iterator it = ticks.begin(); it != ticks.end();){
 
-		//		if (next_event_t > it->time_stamp &&
-		//			last_event_t + boost::posix_time::hours(7) < it->time_stamp){
+		//		if (next_event_t > it->time &&
+		//			last_event_t + boost::posix_time::hours(7) < it->time){
 
 		//			//TODO extremly expensive there
 		//			it = ticks.erase(it);
 		//		}
 		//		else {
 		//			
-		//			if (next_event_t < it->time_stamp){
+		//			if (next_event_t < it->time){
 
 		//				last_event_t = next_event_t;
 		//				if (!temp_event_q.empty()){

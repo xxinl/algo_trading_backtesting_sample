@@ -111,8 +111,8 @@ public:
 		double open_rate = position.type == strat::signal::BUY ? position.open_tick.ask : position.open_tick.bid;
 		double close_rate = position.type == strat::signal::SELL ? position.close_tick.ask : position.close_tick.bid;
 
-		s << position.open_tick.time_stamp << "," << open_rate
-			<< "," << position.close_tick.time_stamp << "," << close_rate
+		s << position.open_tick.time << "," << open_rate
+			<< "," << position.close_tick.time << "," << close_rate
 			<< "," << position.type;
 
 		log_sev(s.str(), order);

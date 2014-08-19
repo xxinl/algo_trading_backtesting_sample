@@ -87,6 +87,9 @@
     <ClInclude Include="algo_bar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="bar_watcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
