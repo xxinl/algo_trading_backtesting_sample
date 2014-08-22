@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#ifdef _DEBUG
+#ifdef _DEBUG1
 
 #include "CppUnitTest.h"
 
@@ -312,18 +312,20 @@ namespace Strat
 
 		TEST_METHOD(algo_bollinger_optimize){
 		
-			strat::algo_bollinger* algo_p = new strat::algo_bollinger("eurusd", 1, 16, 0.028, 0.092);
-			strat::optimizer_genetic<size_t, size_t, double, double> optimizer(
-				"C:/workspace/Strat/test_files/USDJPY2013.csv", algo_p, 0.20f, 0.40f, 1, 1);
+			//strat::algo_bollinger* algo_p = new strat::algo_bollinger("eurusd", 1, 16, 0.028, 0.092);
+			//strat::optimizer_genetic<size_t, size_t, double, double> optimizer(
+			//	"C:/workspace/Strat/test_files/USDJPY2013.csv", algo_p, 0.20f, 0.40f, 1, 1);
 
-			boost::posix_time::ptime start =
-				boost::posix_time::time_from_string(std::string("2013-01-01 00:00:00.000"));
-			boost::posix_time::ptime end =
-				boost::posix_time::time_from_string(std::string("2013-02-01 00:00:00.000"));
-			std::pair<double, std::tuple<size_t, size_t, double, double>> opti_params = optimizer.optimize(
-				start, end);
+			//boost::posix_time::ptime start =
+			//	boost::posix_time::time_from_string(std::string("2013-01-01 00:00:00.000"));
+			//boost::posix_time::ptime end =
+			//	boost::posix_time::time_from_string(std::string("2013-02-01 00:00:00.000"));
+			//std::pair<double, std::tuple<size_t, size_t, double, double>> opti_params = optimizer.optimize(
+			//	start, end);
 
-			delete(algo_p);
+			//delete(algo_p);
+
+			throw("wrong");
 		}
 
 #pragma endregion optimizer

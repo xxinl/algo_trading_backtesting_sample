@@ -13,7 +13,7 @@
 #include "algo.h"
 #include "algo\algo_bollinger.h"
 #include "algo\algo_dayrange.h"
-#include "algo\algo_hybrid.h"
+//#include "algo\algo_hybrid.h"
 
 //#include "algo\event\event_algo_ma.h"
 //#include "algo\event\event_long_short.h"
@@ -78,9 +78,10 @@ size_t get_dayrange_algo(const wchar_t* symbol,
 
 	size_t ret_addr = reinterpret_cast<size_t>(ret_p);
 
-	LOG("get_dayrange_algo instantiated. symbol:" << symbol_str <<
+	LOG_SEV("get_dayrange_algo instantiated. symbol:" << symbol_str <<
 		" complete_hour: " << complete_hour << " exit_lev:" << exit_lev <<
-		". return pointer adreess:" << ret_addr);
+		" extend_factor:" << extend_factor <<
+		". return pointer adreess:" << ret_addr, logger::notification);
 
 	return ret_addr;
 }
@@ -107,9 +108,10 @@ size_t get_bollinger_algo(const wchar_t* symbol,
 
 	size_t ret_addr = reinterpret_cast<size_t>(ret_p);
 
-	LOG("get_bollinger_algo instantiated. base: symbol:" << symbol_str <<
-		" obser_win: " << obser_win << " exit_lev:" << exit_lev << " ini_t:" << ini_t << " obser_t:" << obser_t <<
-		". return pointer adreess:" << ret_addr);
+	LOG_SEV("get_bollinger_algo instantiated. base: symbol:" << symbol_str <<
+		" obser_win: " << obser_win << " exit_lev:" << exit_lev << 
+		" ini_t:" << ini_t << " obser_t:" << obser_t <<
+		". return pointer adreess:" << ret_addr, logger::notification);
 
 	return ret_addr;
 }
@@ -126,8 +128,10 @@ int delete_algo(size_t algo_addr){
 //time eg.2013-11-25 23:50:00.000
 //TODO  time pass in long
 extern "C"	__declspec(dllexport)
-int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, double last, size_t volume,
-									double stop_loss, double take_profit, bool* is_close_pos, logger::callback callback_handler){
+int process_tick(size_t algo_addr, const wchar_t* time, 
+									double ask, double bid, double last, size_t volume,
+									double stop_loss, double take_profit, bool* is_close_pos, 
+									logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
 
@@ -135,9 +139,6 @@ int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, 
 
 	string time_str = convert_wchar_to_string(time);
 
-	LOG_SEV("process_tick algo:" << algo_addr << " time:" << time_str
-		<< " last:" << last << " sl:" << stop_loss, logger::debug);
-	
 	strat::signal sig = strat::signal::NONE;
 	strat::position close_pos;
 
@@ -149,9 +150,7 @@ int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, 
 		tick.ask = ask;
 		tick.bid = bid;
 		tick.volume = volume;
-
-		LOG_SEV("process_tick casted time:" << tick.time, logger::debug);
-		
+				
 		strat::algo* algo_p = reinterpret_cast<strat::algo*>(algo_addr);
 		sig = algo_p->process_tick(tick, close_pos, stop_loss, take_profit);
 	}
@@ -160,10 +159,8 @@ int process_tick(size_t algo_addr, const wchar_t* time, double ask, double bid, 
 		LOG_SEV("process_tick error: " << e.what(), logger::error);
 	}
 
-#ifdef MQL5_RELEASE
 	if (sig != strat::signal::NONE)
 		LOG("return signal: " << sig);
-#endif MQL5_RELEASE
 
 	//close position signal
 	if (close_pos.type != strat::signal::NONE)

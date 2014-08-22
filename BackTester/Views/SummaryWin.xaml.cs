@@ -1,6 +1,7 @@
 ﻿
 using System.Windows;
 using System.Windows.Media;
+using BackTester.ViewModels;
 
 namespace BackTester.Views
 {
@@ -18,6 +19,12 @@ namespace BackTester.Views
                                        Plot1.InvalidatePlot(true);
                                        Plot2.InvalidatePlot(true);
                                      };
+    }
+
+    public void Reset()
+    {
+      var dc = this.DataContext as SummaryViewModel;
+      dc.Reset();
     }
   }
 }

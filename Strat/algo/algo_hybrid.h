@@ -45,8 +45,8 @@ namespace strat{
 			algo(symbol){
 
 			//algo with higher priority push in first
-			_algos.push_back(std::make_shared<strat::algo_dayrange>(symbol,
-				complete_hour, entry_lev, exit_lev));
+			//_algos.push_back(std::make_shared<strat::algo_dayrange>(symbol,
+			//	complete_hour, entry_lev, exit_lev));
 		};
 		
 		/// Destructor

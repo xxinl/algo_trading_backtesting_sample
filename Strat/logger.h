@@ -51,19 +51,21 @@ private:
 
 		std::call_once(flag, [](){
 
-			boost::log::add_console_log(std::clog, boost::log::keywords::format = "%TimeStamp%: %Message%"
-			,boost::log::keywords::filter = boost::log::expressions::attr< severity_level >("Severity") > debug);
-			
-			#ifdef MQL5_RELEASE
+#ifdef MQL5_RELEASE
 			string file_name = "C:/strat_live_logs/" + util::get_current_dt_str();
-			#else
+			auto severity = normal;
+#else
 			string file_name = "C:/strat_logs/" + util::get_current_dt_str();
-			#endif MQL5_RELEASE
+			auto severity = notification;
+#endif MQL5_RELEASE
+
+			//boost::log::add_console_log(std::clog, boost::log::keywords::format = "%TimeStamp%: %Message%"
+			//	, boost::log::keywords::filter = boost::log::expressions::attr< severity_level >("Severity") >= severity);
 
 			boost::log::add_file_log
 				(
 				file_name + ".log",
-				boost::log::keywords::filter = boost::log::expressions::attr< severity_level >("Severity") > debug
+				boost::log::keywords::filter = boost::log::expressions::attr< severity_level >("Severity") >= severity
 				&& boost::log::expressions::attr< severity_level >("Severity") < order,
 				boost::log::keywords::format = boost::log::expressions::stream
 				<< boost::log::expressions::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d, %H:%M:%S.%f")
@@ -100,9 +102,14 @@ public:
 		static boost::log::sources::severity_logger<severity_level> slg;
 
 		BOOST_LOG_SEV(slg, lev) << msg;
-
+		
+#ifdef MQL5_RELEASE
 		if (on_callback != nullptr && lev > debug && lev != 7)
 			on_callback(msg.c_str(), lev);
+#else
+		if (on_callback != nullptr && lev >= notification && lev != 7)
+			on_callback(msg.c_str(), lev);
+#endif MQL5_RELEASE
 	}
 
 	static void log_position(const strat::position& position){

@@ -24,16 +24,12 @@ namespace strat{
 
 			_position.open(t, type);
 
-#ifdef MQL5_RELEASE
-				LOG("opened position at tick " << t.time);			
-#endif MQL5_RELEASE
+			LOG("opened position at tick " << t.time);		
 		}
 
 		void _delete_position(){
 
-#ifdef MQL5_RELEASE
-				LOG("closing position at tick " << _position.open_tick.time);
-#endif MQL5_RELEASE
+			LOG("closing position at tick " << _position.open_tick.time);
 
 			_position.clear();
 		}

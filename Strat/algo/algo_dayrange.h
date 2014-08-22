@@ -18,6 +18,8 @@ implementation:
 
 #include <boost/date_time.hpp>
 
+#include <ppl.h>
+
 #ifndef MQL5_RELEASE
 
 #include "optimizer/optimizable_algo_genetic.h"
@@ -42,22 +44,25 @@ namespace strat{
 
 		//input params---
 		const int _complete_hour;
-		double _init_exit_lev;
+		const double _init_exit_lev;
 		//extend entry_lev after each position closed. i.e. make it more difficult to entry each time
 		const double _extend_entry_factor;
 		//input params end---
+
+		const int _last_entry_hour = 21;
+		const int _start_close_hour = 22;
 
 		double _high;
 		double _low;
 		double _entry_lev;
 		double _exit_lev;
-		const int _last_entry_hour = 21;
-		const int _start_close_hour = 22;
 		bool _is_skip_day;
 		int _crr_hour;
 
 		sd _run_sd;
 		double _sd_multiplier;
+
+		concurrency::critical_section _cs;
 
 #pragma endregion variables
 
@@ -69,6 +74,9 @@ namespace strat{
 		}
 
 		void _on_new_min_bar(const tick& crr_tick, const bar& last_bar){
+
+			//lock for _run_sd & _sd_multiplier
+			concurrency::critical_section::scoped_lock::scoped_lock(_cs);
 
 			if (_crr_hour >= _start_close_hour - 1)
 				_run_sd.push(crr_tick.last - last_bar.open);
@@ -85,9 +93,9 @@ namespace strat{
 						//update new _high/_low to keep it as deviation range of last_m_tick.last
 						//	+-_exit_lev to adjust the _close_position_algo(i.e. ignore _exit_lev)
 						if (_position.type == signal::SELL)
-							_exit_lev = (std::max)((double)0, (_high + _entry_lev) - (last_bar.close - adjusted_dev));
+							_exit_lev = (std::min)((double)0, (_high + _entry_lev) - (last_bar.close - adjusted_dev));
 						else
-							_exit_lev = (std::max)((double)0, (last_bar.close + adjusted_dev) - (_low - _entry_lev));
+							_exit_lev = (std::min)((double)0, (last_bar.close + adjusted_dev) - (_low - _entry_lev));
 					}
 
 					//reduce sd range every minute to close position faster
@@ -99,20 +107,24 @@ namespace strat{
 		void _on_new_hour_bar(const tick& crr_tick, const bar& last_bar){
 
 			_crr_hour = crr_tick.time.time_of_day().hours();
-		}
 
-		void _on_new_day_bar(const tick& crr_tick, const bar& last_bar){
+			//new day
+			if (_crr_hour == 0){
+			
+				//reset parameter at begining of the day
+				_high = 0;
+				_low = 999999;
+				_entry_lev = 0;
+				_exit_lev = _init_exit_lev;
 
-			//reset parameter at begining of the day
-			_high = 0;
-			_low = 999999;
-			_entry_lev = 0;
-			_exit_lev = _init_exit_lev;
+				//lock for _run_sd & _sd_multiplier
+				concurrency::critical_section::scoped_lock::scoped_lock(_cs);
 
-			_run_sd.reset();
-			_sd_multiplier = 5;
+				_run_sd.reset();
+				_sd_multiplier = 5;
 
-			_is_skip_day = false;
+				_is_skip_day = false;
+			}
 		}
 
 #pragma endregion bar_warcher handlers
@@ -156,9 +168,7 @@ namespace strat{
 
 					_is_skip_day = true;
 
-#ifdef MQL5_RELEASE
 					LOG("stoped out at " << crr_tick.time << ". no entry for the rest of the day.")
-#endif MQL5_RELEASE
 				}
 
 				return 1;
@@ -176,7 +186,6 @@ namespace strat{
 			_complete_hour(complete_hour), _init_exit_lev(exit_lev),
 			_run_sd(60), _extend_entry_factor(extend_factor){
 
-			_attach_watcher(bar_watcher(bar_interval::DAY, boost::bind(&algo_dayrange::_on_new_day_bar, this, _1, _2)));
 			_attach_watcher(bar_watcher(bar_interval::HOUR, boost::bind(&algo_dayrange::_on_new_hour_bar, this, _1, _2)));
 			_attach_watcher(bar_watcher(bar_interval::MIN, boost::bind(&algo_dayrange::_on_new_min_bar, this, _1, _2)));
 			_attach_watcher(bar_watcher(bar_interval::SEC_15, boost::bind(&algo_dayrange::_on_new_15sec_bar, this, _1, _2)));
@@ -195,7 +204,7 @@ namespace strat{
 			if (_crr_hour < _complete_hour){
 
 				//close all positions for previous day
-				if (_crr_hour == 0 && has_open_position()){
+				if (has_open_position() && _crr_hour == 0){
 
 					_position.close_tick = crr_tick;
 					close_pos = _position;
@@ -215,7 +224,7 @@ namespace strat{
 			
 				if (has_open_position()){
 					
-					//this reset every 15 sec
+					//check close every 15 sec
 					if (_is_on_new_bar_tick(bar_interval::SEC_15)){
 
 						_close_position_algo(crr_tick, close_pos, stop_loss, take_profit);
@@ -276,10 +285,8 @@ namespace strat{
 
 		std::shared_ptr<algo> get_optimizable_algo(std::tuple<OPTI_PARAMS_DAYRANGE> params) override{
 
-			algo_dayrange* ret_algo = new algo_dayrange(_symbol,
-				std::get<0>(params), std::get<1>(params), std::get<2>(params));
-
-			std::shared_ptr<algo> casted_ret = std::make_shared<algo_dayrange>(*ret_algo);
+			std::shared_ptr<algo> casted_ret = std::make_shared<algo_dayrange>(
+				_symbol, std::get<0>(params), std::get<1>(params), std::get<2>(params));
 
 			return casted_ret;
 		}

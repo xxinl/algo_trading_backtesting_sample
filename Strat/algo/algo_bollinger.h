@@ -107,10 +107,7 @@ namespace strat{
 
 				_can_obser = true;
 
-#ifdef MQL5_RELEASE
-				if (!_is_log_off)
-					LOG("canceled observe, no singal for the last " << _obser_max << " minutes, at tick " << crr_tick.time);
-#endif MQL5_RELEASE
+				LOG("canceled observe, no singal for the last " << _obser_max << " minutes, at tick " << crr_tick.time);
 			}
 
 			return ret_sig;
@@ -182,10 +179,7 @@ namespace strat{
 
 						_can_obser = false;
 
-#ifdef MQL5_RELEASE
-						if (!_is_log_off)
-							LOG("observed at tick " << crr_tick.time << " " << crr_tick.last << "; last tick " << _last_obser_tick.last);
-#endif MQL5_RELEASE
+						LOG("observed at tick " << crr_tick.time << " " << crr_tick.last << "; last tick " << _last_obser_tick.last);
 					}
 
 					return signal::NONE;

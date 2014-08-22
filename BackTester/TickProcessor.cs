@@ -1,6 +1,7 @@
 ﻿
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 using GalaSoft.MvvmLight.Messaging;
 using System;
 using GalaSoft.MvvmLight.Threading;
@@ -87,7 +88,9 @@ namespace BackTester
         }
       }
 
-      DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(pTick));
+      //only update graph each x hours
+      if (pTick.Time.Minute == 0 || pTick.Time.Hour % 4 == 0) 
+        DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(pTick));
     }
 
     private double _calcProfit(int signal, int lot, double openRate, double closeRate)

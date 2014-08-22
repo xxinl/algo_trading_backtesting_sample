@@ -29,8 +29,6 @@ namespace strat{
 
 			//delete any event in queue that has passed
 			while (!_event_q.empty() && _event_q.front() < crr_tick.time) {
-				
-				LOG_SEV("removing historical event from event queue " << _event_q.front(), logger::debug);
 
 				_event_q.pop();
 			}
@@ -39,7 +37,7 @@ namespace strat{
 
 				_obser_tick_q.push(crr_tick);
 
-				LOG_SEV("observed at tick " << crr_tick.time, logger::debug);
+				LOG("observed at tick " << crr_tick.time);
 
 				_event_q.pop();
 			}
@@ -68,7 +66,7 @@ namespace strat{
 
 			if (!_obser_tick_q.empty()){
 
-				LOG_SEV("removing observe " << _obser_tick_q.front().time, logger::debug);
+				LOG("removing observe " << _obser_tick_q.front().time);
 
 				_obser_tick_q.pop();
 			}
@@ -181,15 +179,11 @@ namespace strat{
 			fut_close_pos.wait();
 
 			signal ret_sig = fut_get_sig.get();
-			if (ret_sig){
-
-				LOG_SEV(ret_sig << " signal at tick " << crr_tick.time, logger::debug);
-			}
 
 			if (close_pos.type != signal::NONE)	{
 				
-				LOG_SEV(" position(" << close_pos.open_tick.time << ") closed at tick "
-					<< crr_tick.time, logger::debug);
+				LOG(" position(" << close_pos.open_tick.time << ") closed at tick "
+					<< crr_tick.time);
 			}
 
 			return ret_sig;

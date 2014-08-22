@@ -1,4 +1,5 @@
 ﻿
+using System.Resources;
 using GalaSoft.MvvmLight.Messaging;
 using OxyPlot;
 using OxyPlot.Axes;
@@ -48,6 +49,21 @@ namespace BackTester.ViewModels
 
       Messenger.Default.Register<PerformanceTick>(this, _updateSeries);
       Messenger.Default.Register<PerformanceSummary>(this, (summary) => PerformanceSummary = summary);
+    }
+
+    public void Reset()
+    {
+      LineSeries ls = _plotModelPer.Series[0] as LineSeries;
+      ls.Points.Clear();
+      ls = _plotModelPer.Series[1] as LineSeries;
+      ls.Points.Clear();
+      ls = _plotModelTick.Series[0] as LineSeries;
+      ls.Points.Clear();
+
+      HighLowSeries hls = PlotModelTick.Series[1] as HighLowSeries;
+      hls.Items.Clear();
+      hls = PlotModelTick.Series[2] as HighLowSeries;
+      hls.Items.Clear();
     }
 
     private void _setUpModel()
@@ -122,12 +138,12 @@ namespace BackTester.ViewModels
       model.Series.Add(ls);
     }
 
-    private const int UPDATE_EVERY_X_HOUR = 4;
+    //private const int UPDATE_EVERY_X_HOUR = 4;
     private void _updateSeries(PerformanceTick t)
     {
-      //only update graph each x hours
-      if (//!t.IsBalanceUpdated && 
-        (t.Time.Minute != 0 || t.Time.Hour % UPDATE_EVERY_X_HOUR != 0)) return;
+      ////only update graph each x hours
+      //if (//!t.IsBalanceUpdated && 
+      //  (t.Time.Minute != 0 || t.Time.Hour % UPDATE_EVERY_X_HOUR != 0)) return;
 
       _addPoint(PlotModelPer, 0, t.Time, t.Balance);
       _addPoint(PlotModelPer, 1, t.Time, t.Equity);

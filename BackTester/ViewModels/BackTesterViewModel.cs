@@ -128,10 +128,15 @@ namespace BackTester.ViewModels
 
       TickProcessor tickPro = new TickProcessor(Leverage, StartBalance);
 
-      if (_summaryWin != null)
-        _summaryWin.Close();
+      if (_summaryWin == null)
+      {
+        _summaryWin = new SummaryWin();
+      }
+      else
+      {
+        _summaryWin.Reset();
+      }
 
-      _summaryWin = new SummaryWin();
       _summaryWin.Show();
 
       try {
@@ -187,10 +192,13 @@ namespace BackTester.ViewModels
       {
         if (info != null && !string.IsNullOrWhiteSpace(info.Info))
         {
-          if (_debugInfoWin == null || !_debugInfoWin.IsLoaded)
+          if (_debugInfoWin == null)
           {
             _debugInfoWin = new DebugInfoWin();
-            if(ShowDebugWin)
+          }
+          else
+          {
+            if (ShowDebugWin)
               _debugInfoWin.Show();
           }
 
@@ -240,8 +248,11 @@ namespace BackTester.ViewModels
                                       var signal = algo.OnTick(tick, out isClosePos, SL);
                                       tickPro.OnTick(tick, signal, isClosePos);
 
-                                      _setProgress(i*100/ticks.Count);
+                                      if(i % 100 == 0)
+                                        _setProgress(i*100/ticks.Count);
                                     }
+
+                                    _setProgress(100);
                                   }, ct);
     }
 

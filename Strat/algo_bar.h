@@ -21,22 +21,23 @@ namespace strat{
 
 	private:
 
-		std::vector<bar_watcher> _bar_watchers;
+		concurrency::concurrent_vector<bar_watcher> _bar_watchers;
+		//std::vector<bar_watcher> _bar_watchers;
 
 	protected:
 
 		void _process_bar_tick(const tick& crr_tick) {
 
-			//concurrency::parallel_for_each(std::begin(_bar_watchers), std::end(_bar_watchers),
-			//	[&crr_tick](bar_watcher watcher){
+			concurrency::parallel_for_each(std::begin(_bar_watchers), std::end(_bar_watchers),
+				[&](bar_watcher& watcher){
 
-			//	watcher.on_tick(crr_tick);
-			//});
+				watcher.on_tick(crr_tick);
+			});
 
-			for (std::vector<bar_watcher>::iterator it = _bar_watchers.begin(); it != _bar_watchers.end(); ++it){
+			//for (std::vector<bar_watcher>::iterator it = _bar_watchers.begin(); it != _bar_watchers.end(); ++it){
 
-				it->on_tick(crr_tick);
-			}
+			//	it->on_tick(crr_tick);
+			//}
 		};
 
 		void _attach_watcher(const bar_watcher& watcher){
@@ -46,11 +47,19 @@ namespace strat{
 
 		bool _is_on_new_bar_tick(bar_interval type) {
 		
-			for (std::vector<bar_watcher>::iterator it = _bar_watchers.begin(); it != _bar_watchers.end(); ++it){
+			for (concurrency::concurrent_vector<bar_watcher>::iterator it = _bar_watchers.begin(); 
+				it != _bar_watchers.end(); ++it){
 
 				if (it->interval == type && it->is_on_new_bar_tick())
 					return true;
 			}
+
+			//for (std::vector<bar_watcher>::iterator it = _bar_watchers.begin();
+			//	it != _bar_watchers.end(); ++it){
+
+			//	if (it->interval == type && it->is_on_new_bar_tick())
+			//		return true;
+			//}
 
 			return false;
 		}
