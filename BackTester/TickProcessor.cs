@@ -1,7 +1,6 @@
 ﻿
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows;
 using GalaSoft.MvvmLight.Messaging;
 using System;
 using GalaSoft.MvvmLight.Threading;

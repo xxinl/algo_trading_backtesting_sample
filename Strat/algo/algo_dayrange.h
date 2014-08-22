@@ -18,7 +18,7 @@ implementation:
 
 #include <boost/date_time.hpp>
 
-#include <ppl.h>
+//#include <ppl.h>
 
 #ifndef MQL5_RELEASE
 
@@ -62,7 +62,7 @@ namespace strat{
 		sd _run_sd;
 		double _sd_multiplier;
 
-		concurrency::critical_section _cs;
+		//concurrency::critical_section _cs;
 
 #pragma endregion variables
 
@@ -76,7 +76,7 @@ namespace strat{
 		void _on_new_min_bar(const tick& crr_tick, const bar& last_bar){
 
 			//lock for _run_sd & _sd_multiplier
-			concurrency::critical_section::scoped_lock::scoped_lock(_cs);
+			//concurrency::critical_section::scoped_lock::scoped_lock(_cs);
 
 			if (_crr_hour >= _start_close_hour - 1)
 				_run_sd.push(crr_tick.last - last_bar.open);
@@ -118,7 +118,7 @@ namespace strat{
 				_exit_lev = _init_exit_lev;
 
 				//lock for _run_sd & _sd_multiplier
-				concurrency::critical_section::scoped_lock::scoped_lock(_cs);
+				//concurrency::critical_section::scoped_lock::scoped_lock(_cs);
 
 				_run_sd.reset();
 				_sd_multiplier = 5;
