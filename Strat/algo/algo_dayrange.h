@@ -121,7 +121,7 @@ namespace strat{
 				//concurrency::critical_section::scoped_lock::scoped_lock(_cs);
 
 				_run_sd.reset();
-				_sd_multiplier = 5;
+				_sd_multiplier = 3;
 
 				_is_skip_day = false;
 			}
