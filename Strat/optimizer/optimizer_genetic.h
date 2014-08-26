@@ -41,7 +41,7 @@ namespace strat{
 		std::vector<tick> _read_sample_ticks(string hist_ticks_f_path, 
 			boost::posix_time::ptime start_date, boost::posix_time::ptime end_date){
 		
-			LOG("optimizer reading sample ticks");
+			LOG_SEV("optimizer reading sample ticks", logger::notification);
 
 			std::vector<tick> ticks;
 			std::vector<int> cols_v{ 0, 1, 2, 3 };
@@ -110,25 +110,27 @@ namespace strat{
 
 			for (int i = 0; i < max; ++i){
 
-				LOG("elite..." << _opti_algo->print_params(_population[i].second) << " fitness:" << _population[i].first);
+				LOG_SEV("elite..." << _opti_algo->print_params(_population[i].second) << " fitness:" << _population[i].first,
+					logger::notification);
 			}
 		}
 
 		CITIZEN_TYPE _optimize(const std::vector<tick>& ticks){
 		
-			LOG("initialising population");
+			LOG_SEV("initialising population", logger::notification);
 			_init_population();
 			_calc_population_fitness(0, ticks, _population, _opti_algo);
 			_sort_population();
 
-			LOG("initialised population with top fitness "
-				<< _population.front().first << " params: " << _opti_algo->print_params(_population.front().second));
+			LOG_SEV("initialised population with top fitness "
+				<< _population.front().first << " params: " << _opti_algo->print_params(_population.front().second),
+				logger::notification);
 			_print_elite();
 
 			//TODO stop when max doesn't change for N iteration
 			for (int i = 0; i < _max_iteration; i++){
 
-				LOG("starting optimization iteration " << i);
+				LOG_SEV("starting optimization iteration " << i, logger::notification);
 
 				_mate();
 
@@ -138,8 +140,9 @@ namespace strat{
 				_calc_population_fitness(_elite_size, ticks, _population, _opti_algo);
 				_sort_population();
 
-				LOG("completed optimization iteration " << i << " with top fitness "
-					<< _population.front().first << " params: " << _opti_algo->print_params(_population.front().second));
+				LOG_SEV("completed optimization iteration " << i << " with top fitness "
+					<< _population.front().first << " params: " << _opti_algo->print_params(_population.front().second),
+					logger::notification);
 
 				_print_elite();
 
@@ -148,7 +151,8 @@ namespace strat{
 					_no_iter_no_change++;
 					if (_no_iter_no_change >= _max_iter_no_change){
 
-						LOG("max no of iteration that top fitness hasnot change reached:" << _max_iter_no_change);
+						LOG_SEV("max no of iteration that top fitness hasnot change reached:" << _max_iter_no_change,
+							logger::notification);
 						break;
 					}
 
