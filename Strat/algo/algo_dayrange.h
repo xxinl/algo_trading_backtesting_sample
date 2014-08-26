@@ -36,7 +36,7 @@ namespace strat{
 	class algo_dayrange : public algo_bar{
 #else
 	class algo_dayrange : public algo_bar,
-		public optimizable_algo_genetic < int, double, double > {
+		public optimizable_algo_genetic < int, double > {
 #endif MQL5_RELEASE
 
 	private:
@@ -46,8 +46,6 @@ namespace strat{
 		//input params---
 		const int _complete_hour;
 		const double _init_exit_lev;
-		//extend entry_lev after each position closed. i.e. make it more difficult to entry each time
-		const double _extend_entry_factor;
 		//input params end---
 
 		const int _last_entry_hour = 21;
@@ -169,7 +167,7 @@ namespace strat{
 				_delete_position();
 
 				//extend entry level each time after a buy/sell signal
-				_entry_lev += _init_exit_lev * _extend_entry_factor;
+				_entry_lev += _init_exit_lev + _risk.get_risk();
 
 				if (is_stop_out){
 
@@ -191,7 +189,7 @@ namespace strat{
 		algo_dayrange(const string symbol, int complete_hour, double exit_lev, 
 			double extend_factor = 1.5) : algo_bar(symbol),
 			_complete_hour(complete_hour), _init_exit_lev(exit_lev),
-			_run_sd_min(60), _extend_entry_factor(extend_factor), _risk(10){
+			_run_sd_min(60), _risk(10){
 
 			_attach_watcher(bar_watcher(bar_interval::HOUR, boost::bind(&algo_dayrange::_on_new_hour_bar, this, _1, _2)));
 			_attach_watcher(bar_watcher(bar_interval::MIN, boost::bind(&algo_dayrange::_on_new_min_bar, this, _1, _2)));
@@ -257,7 +255,7 @@ namespace strat{
 
 #pragma region optimizable_algo members
 
-#define OPTI_PARAMS_DAYRANGE int, double, double
+#define OPTI_PARAMS_DAYRANGE int, double
 
 		typedef std::pair<double, std::tuple<OPTI_PARAMS_DAYRANGE>> CITIZEN_TYPE;
 
@@ -265,8 +263,7 @@ namespace strat{
 
 			return std::make_tuple(
 				_rand_from_range(12, 20),
-				_rand_from_range(2, 50) * 0.00010,
-				_rand_from_range(2, 10) * 0.5
+				_rand_from_range(2, 50) * 0.00010
 				);
 		}
 
@@ -278,8 +275,7 @@ namespace strat{
 			population.push_back(std::make_pair(0,
 				std::make_tuple(
 				_complete_hour,
-				_exit_lev,
-				_extend_entry_factor
+				_exit_lev
 				)));
 
 			for (int i = 0; i < population_size - 1; i++){
@@ -295,7 +291,7 @@ namespace strat{
 		std::shared_ptr<algo> get_optimizable_algo(std::tuple<OPTI_PARAMS_DAYRANGE> params) override{
 
 			std::shared_ptr<algo> casted_ret = std::make_shared<algo_dayrange>(
-				_symbol, std::get<0>(params), std::get<1>(params), std::get<2>(params));
+				_symbol, std::get<0>(params), std::get<1>(params));
 
 			return casted_ret;
 		}
@@ -305,8 +301,7 @@ namespace strat{
 
 			return std::make_tuple(
 				std::get<0>(i),
-				std::get<1>(i),
-				std::get<2>(j)
+				std::get<1>(j)
 				);
 		}
 
@@ -324,10 +319,6 @@ namespace strat{
 			case 1:
 				std::get<1>(ret) = std::get<1>(params);
 				break;
-
-			case 2:
-				std::get<2>(ret) = std::get<2>(params);
-				break;
 			}
 
 			return ret;
@@ -336,8 +327,7 @@ namespace strat{
 		string print_params(std::tuple<OPTI_PARAMS_DAYRANGE> params) override{
 
 			return static_cast<std::ostringstream&>(std::ostringstream().flush() <<
-				std::get<0>(params) << "," << std::get<1>(params) <<
-				"," << std::get<2>(params)).str();
+				std::get<0>(params) << "," << std::get<1>(params)).str();
 		}
 
 #pragma endregion

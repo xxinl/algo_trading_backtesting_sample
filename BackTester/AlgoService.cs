@@ -11,7 +11,7 @@ namespace BackTester
     [DllImport("strat.dll", EntryPoint = "get_dayrange_algo", CallingConvention = CallingConvention.Cdecl,
       CharSet = CharSet.Unicode)]
     private static extern IntPtr _get_dayrange_algo(string symbol,
-      IntPtr complete_hour, double exit_lev, double extend_factor,
+      IntPtr complete_hour, double exit_lev,
       _callback callback_handler);
 
     [DllImport("strat.dll", EntryPoint = "get_bollinger_algo", CallingConvention = CallingConvention.Cdecl,
@@ -67,12 +67,12 @@ namespace BackTester
       };
     }
 
-    public async Task InitDayRange(int completeHour, double exitLev, double extendFactor)
+    public async Task InitDayRange(int completeHour, double exitLev)
     {
       await Task.Run(() =>
                      {
                        _algo_p = _get_dayrange_algo("xxx",
-                         (IntPtr) completeHour, exitLev, extendFactor,
+                         (IntPtr) completeHour, exitLev,
                          _callbackInstance);
                      });
     }
