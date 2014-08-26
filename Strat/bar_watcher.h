@@ -61,9 +61,10 @@ namespace strat{
 				crr_bar.high = crr_tick.last;
 				crr_bar.low = crr_tick.last;
 				crr_bar.volume = crr_tick.volume;
+				crr_bar.open = crr_tick.last;
 
 				if (!_on_new_bar_handler_ptr->empty())
-					(*_on_new_bar_handler_ptr)(crr_tick, last_bar = crr_bar);
+					(*_on_new_bar_handler_ptr)(crr_tick, last_bar);
 			}
 			else{
 

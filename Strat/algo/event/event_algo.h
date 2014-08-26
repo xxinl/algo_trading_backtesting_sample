@@ -152,7 +152,7 @@ namespace strat{
 			_load_event(event_f_path, std::vector<int>{ 0, 1, 3, 5 });
 		};
 				
-		signal process_tick(const tick& crr_tick, position& close_pos, 
+		signal process_tick(const tick& crr_tick, position& close_pos, double& risk_lev,
 			double stop_loss = -1, const double take_profit = -1) override{
 			
 			_push_obser_queue_if_event(crr_tick);

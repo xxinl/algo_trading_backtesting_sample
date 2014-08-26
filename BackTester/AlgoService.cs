@@ -25,9 +25,9 @@ namespace BackTester
 
     [DllImport("strat.dll", EntryPoint = "process_tick", CallingConvention = CallingConvention.Cdecl,
       CharSet = CharSet.Unicode)]
-    private static extern int _process_tick(IntPtr algo_addr,
-      string time, double ask, double bid, double last, IntPtr volume, double stop_loss, double take_profit,
-      [Out] out bool is_close_pos, _callback _callbackInstance);
+    private static extern int _process_tick(IntPtr algo_addr, string time,
+      double ask, double bid, double last, IntPtr volume, double stop_loss, double take_profit,
+      [Out] out bool is_close_pos, [Out] out double risk, _callback _callbackInstance);
 
     [DllImport("strat.dll", EntryPoint = "optimize", CallingConvention = CallingConvention.Cdecl,
       CharSet = CharSet.Unicode)]
@@ -87,10 +87,10 @@ namespace BackTester
       });
     }
 
-    public int OnTick(Tick t, out bool isClosePos, double sl)
+    public int OnTick(Tick t, out bool isClosePos, out double risk, double sl)
     {
       return _process_tick(_algo_p, t.TimeStr, t.Ask, t.Bid, t.Last,
-        (IntPtr)t.Volume, sl, 1, out isClosePos,
+        (IntPtr)t.Volume, sl, 1, out isClosePos, out risk,
         _callbackInstance);
     }
 

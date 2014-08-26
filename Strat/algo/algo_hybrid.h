@@ -54,7 +54,7 @@ namespace strat{
 
 #pragma endregion
 
-		signal process_tick(const tick& crr_tick, position& close_pos, 
+		signal process_tick(const tick& crr_tick, position& close_pos, double& risk_lev,
 			double stop_loss = -1, const double take_profit = -1) override{
 
 			signal sig = signal::NONE;
@@ -65,14 +65,14 @@ namespace strat{
 				if (_algos[i]->has_open_position()){
 
 					has_pos = true;
-					return _algos[i]->process_tick(crr_tick, close_pos, stop_loss);
+					return _algos[i]->process_tick(crr_tick, close_pos, risk_lev, stop_loss, take_profit);
 				}
 			}
 
 			for (std::vector<std::shared_ptr<strat::algo>>::iterator it = _algos.begin();
 				it != _algos.end(); ++it){
 			
-				sig = (*it)->process_tick(crr_tick, close_pos, stop_loss);
+				sig = (*it)->process_tick(crr_tick, close_pos, risk_lev, stop_loss, take_profit);
 				if (sig != signal::NONE)
 					return sig;
 			}			

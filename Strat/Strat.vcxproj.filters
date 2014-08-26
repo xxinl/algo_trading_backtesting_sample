@@ -90,6 +90,9 @@
     <ClInclude Include="bar_watcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="risk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

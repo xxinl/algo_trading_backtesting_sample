@@ -51,7 +51,8 @@ namespace strat{
 			for (tick t : ticks){
 				
 				position close_pos;
-				algo_p->process_tick(t, close_pos);
+				double risk_lev;
+				algo_p->process_tick(t, close_pos, risk_lev);
 
 				if (close_pos.type != signal::NONE){
 

@@ -155,7 +155,7 @@ namespace strat{
 
 #pragma endregion
 
-		signal process_tick(const tick& crr_tick, position& close_pos, 
+		signal process_tick(const tick& crr_tick, position& close_pos, double& risk_lev,
 			double stop_loss = -1, const double take_profit = -1) override{
 
 			_process_bar_tick(crr_tick);

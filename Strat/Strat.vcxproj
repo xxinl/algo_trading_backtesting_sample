@@ -262,6 +262,7 @@
     <ClInclude Include="optimizer\optimizer_genetic.h" />
     <ClInclude Include="optimizer\optimizer_genetic_day_research.h" />
     <ClInclude Include="position.h" />
+    <ClInclude Include="risk.h" />
     <ClInclude Include="tick.h" />
     <ClInclude Include="algo.h" />
     <ClInclude Include="stdafx.h" />

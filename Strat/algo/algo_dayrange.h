@@ -12,6 +12,7 @@ implementation:
 #include "position.h"
 #include "algo_bar.h"
 #include "indicator/sd.h"
+//#include "risk.h"
 
 #include <vector>
 #include <algorithm>
@@ -59,8 +60,10 @@ namespace strat{
 		bool _is_skip_day;
 		int _crr_hour;
 
-		sd _run_sd;
+		sd _run_sd_min;
 		double _sd_multiplier;
+
+		//risk _risk;
 
 		//concurrency::critical_section _cs;
 
@@ -70,23 +73,23 @@ namespace strat{
 
 		void _on_new_15sec_bar(const tick& crr_tick, const bar& last_bar){
 
-			return;
+			//_risk.push_return(crr_tick.last - last_bar.open);
 		}
 
 		void _on_new_min_bar(const tick& crr_tick, const bar& last_bar){
 
-			//lock for _run_sd & _sd_multiplier
+			//lock for _run_sd_min & _sd_multiplier
 			//concurrency::critical_section::scoped_lock::scoped_lock(_cs);
 
 			if (_crr_hour >= _start_close_hour - 1)
-				_run_sd.push(crr_tick.last - last_bar.open);
+				_run_sd_min.push(crr_tick.last - last_bar.open);
 
 			if (_crr_hour >= _start_close_hour){
 
 				// >= _start_close_hour, strat close positions and accept losses
 				if (has_open_position()){
 					
-					double dev = _run_sd.get_value();
+					double dev = _run_sd_min.get_value();
 					if (dev != -1){
 
 						double adjusted_dev = dev * _sd_multiplier;
@@ -117,11 +120,13 @@ namespace strat{
 				_entry_lev = 0;
 				_exit_lev = _init_exit_lev;
 
-				//lock for _run_sd & _sd_multiplier
+				//lock for _run_sd_min & _sd_multiplier
 				//concurrency::critical_section::scoped_lock::scoped_lock(_cs);
 
-				_run_sd.reset();
+				_run_sd_min.reset();
 				_sd_multiplier = 3;
+
+				//_risk.reset();
 
 				_is_skip_day = false;
 			}
@@ -184,7 +189,7 @@ namespace strat{
 		algo_dayrange(const string symbol, int complete_hour, double exit_lev, 
 			double extend_factor = 1.5) : algo_bar(symbol),
 			_complete_hour(complete_hour), _init_exit_lev(exit_lev),
-			_run_sd(60), _extend_entry_factor(extend_factor){
+			_run_sd_min(60), _extend_entry_factor(extend_factor)/*, _risk(40)*/{
 
 			_attach_watcher(bar_watcher(bar_interval::HOUR, boost::bind(&algo_dayrange::_on_new_hour_bar, this, _1, _2)));
 			_attach_watcher(bar_watcher(bar_interval::MIN, boost::bind(&algo_dayrange::_on_new_min_bar, this, _1, _2)));
@@ -196,10 +201,12 @@ namespace strat{
 
 #pragma endregion
 
-		signal process_tick(const tick& crr_tick, position& close_pos, 
+		signal process_tick(const tick& crr_tick, position& close_pos, double& risk_lev,
 			const double stop_loss = -1, const double take_profit = -1) override{
 				
 			_process_bar_tick(crr_tick);
+
+			//risk_lev = _risk.get_risk();
 
 			if (_crr_hour < _complete_hour){
 

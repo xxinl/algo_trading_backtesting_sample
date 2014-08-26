@@ -30,7 +30,7 @@ namespace BackTester
       _profits = new List<double>();
     }
 
-    public void OnTick(Tick tick, int signal, bool isClosePos)
+    public void OnTick(Tick tick, int signal, bool isClosePos, double riskLev)
     {
       PerformanceTick pTick = new PerformanceTick()
                               {
@@ -47,7 +47,8 @@ namespace BackTester
 
       if (_currPosSignal.HasValue)
       {
-        double profit = _calcProfit(_currPosSignal.Value, _lotSize, _posOpenRate,
+        int size = riskLev > 0 ? Convert.ToInt32(30 / riskLev) : _lotSize;
+        double profit = _calcProfit(_currPosSignal.Value, size, _posOpenRate,
           _currPosSignal == -1 ? tick.Ask : tick.Bid);
         double margin = _lotSize/(_currPosSignal == 1 ? _posOpenRate : 1)/_leverage;
 

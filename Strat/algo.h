@@ -68,7 +68,7 @@ namespace strat{
 
 		//stop_loss and take_profit are pips level. 
 		//  -1: ignore
-		virtual signal process_tick(const tick&, position& close_pos, 
+		virtual signal process_tick(const tick&, position& close_pos, double& risk_lev,
 			const double stop_loss = -1, const double take_profit = -1) = 0;
 
 		position get_position() const{

@@ -130,7 +130,7 @@ int delete_algo(size_t algo_addr){
 extern "C"	__declspec(dllexport)
 int process_tick(size_t algo_addr, const wchar_t* time, 
 									double ask, double bid, double last, size_t volume,
-									double stop_loss, double take_profit, bool* is_close_pos, 
+									double stop_loss, double take_profit, bool* is_close_pos, double& risk,
 									logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
@@ -152,7 +152,7 @@ int process_tick(size_t algo_addr, const wchar_t* time,
 		tick.volume = volume;
 				
 		strat::algo* algo_p = reinterpret_cast<strat::algo*>(algo_addr);
-		sig = algo_p->process_tick(tick, close_pos, stop_loss, take_profit);
+		sig = algo_p->process_tick(tick, close_pos, risk, stop_loss, take_profit);
 	}
 	catch (std::exception& e){
 

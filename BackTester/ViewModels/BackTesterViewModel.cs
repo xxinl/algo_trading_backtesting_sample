@@ -245,8 +245,9 @@ namespace BackTester.ViewModels
                                       //}
 
                                       bool isClosePos = false;
-                                      var signal = algo.OnTick(tick, out isClosePos, SL);
-                                      tickPro.OnTick(tick, signal, isClosePos);
+                                      double riskLev = -1;
+                                      var signal = algo.OnTick(tick, out isClosePos, out riskLev, SL);
+                                      tickPro.OnTick(tick, signal, isClosePos, riskLev);
 
                                       if(i % 100 == 0)
                                         _setProgress(i*100/ticks.Count);
