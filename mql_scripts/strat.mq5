@@ -3,38 +3,39 @@
 
 #import "strat.dll"
 
-ulong get_dayrange_algo(string base, string quote, 
-				ulong complete_hour, double entry_lev, double exit_lev, 
+ulong get_dayrange_algo(string symbol, ulong complete_hour, double exit_lev, 
 				ulong callback_handler);
-ulong get_bollinger_algo(string base, string quote, 
-				ulong obser_win, double exit_lev, double ini_t, double obser_t, 
-				ulong callback_handler);
+//ulong get_bollinger_algo(string symbol,
+//				ulong obser_win, double exit_lev, double ini_t, double obser_t, 
+//				ulong callback_handler);
 int process_tick(ulong algo_p, string time, double ask, double bid, double last, ulong volume, 
-									double stop_loss, bool &is_close_pos, ulong callback_handler);
+						double stop_loss, double take_profit, bool &is_close_pos, double &risk,
+						ulong callback_handler);
 int delete_algo(ulong algo_p);
 
 #import
 
 enum AlgoType{
 
-	HYBRID = 0,
+	//HYBRID = 0,
 	DAYRANGE = 1,
 	BOLLINGER = 2
 };
 
 //--- input parameters
+
 input double SL = 0.01;
 input double TP = 0.05;
 
 input ulong COMPLETE_HOUR = 13;
-input double ENTRY_LEV = 0;
-input double EXIT_LEV = 0.0005;
+input double EXIT_LEV = 0.00035;
 input AlgoType ALGO_TYPE = DAYRANGE;
 
-input ulong OBSER_WIN = 10;
-input double EXIT_LEV_BL = 0.0002;
-input double INI_T = 0.0004;
-input double OBSER_T = 0.002;
+//input ulong OBSER_WIN = 10;
+//input double EXIT_LEV_BL = 0.0002;
+//input double INI_T = 0.0004;
+//input double OBSER_T = 0.002;
+
 //--- input parameters end
 
 ulong algo_p = -1;
@@ -47,19 +48,18 @@ int OnInit(void){
    
    switch(ALGO_TYPE){
    
-  // case 0:
+   //case 0:
 	  // algo_p = get_algo(StringSubstr(symbol, 0, 3), StringSubstr(symbol, 3, 3), ALGO_TYPE,
-				// COMPLETE_HOUR, ENTRY_LEV, EXIT_LEV,
-				// COMPLETE_HOUR, ENTRY_LEV, EXIT_LEV, 0);
-		// break;
+			//	 COMPLETE_HOUR, ENTRY_LEV, EXIT_LEV,
+			//	 COMPLETE_HOUR, ENTRY_LEV, EXIT_LEV, 0);
+		 //break;
 	case 1:
-	   algo_p = get_dayrange_algo(StringSubstr(symbol, 0, 3), StringSubstr(symbol, 3, 3), 
-				COMPLETE_HOUR, ENTRY_LEV, EXIT_LEV, 0);
+	   algo_p = get_dayrange_algo(symbol, COMPLETE_HOUR,  EXIT_LEV, 0);
 		break;
-	case 2:
-	   algo_p = get_bollinger_algo(StringSubstr(symbol, 0, 3), StringSubstr(symbol, 3, 3), 
-				OBSER_WIN, EXIT_LEV_BL, INI_T, OBSER_T, 0);
-		break;
+	//case 2:
+	//   algo_p = get_bollinger_algo(StringSubstr(symbol, 0, 3), StringSubstr(symbol, 3, 3), 
+	//			OBSER_WIN, EXIT_LEV_BL, INI_T, OBSER_T, 0);
+	//	break;
    }
    
    if(ALGO_TYPE == 0 || ALGO_TYPE == 1){
@@ -81,8 +81,9 @@ int OnInit(void){
       
             string dt_str =  TimeToString(rt[i].time, TIME_DATE|TIME_MINUTES|TIME_SECONDS);
             bool is_close_pos;
+            double risk_lev;
             process_tick(algo_p, dt_str, rt[i].close, rt[i].close, rt[i].close, rt[i].tick_volume, 
-                             SL, is_close_pos, 0);  
+                             SL, TP, is_close_pos, risk_lev, 0);  
          }
       }
       else{
@@ -106,6 +107,7 @@ void OnTick(void){
    MqlTick last_tick;
    int signal = 0;
    bool is_close_pos = false;
+   double risk_lev = 0;
    
    string dt_str;
    
@@ -113,7 +115,7 @@ void OnTick(void){
    
       dt_str = TimeToString(last_tick.time, TIME_DATE|TIME_MINUTES|TIME_SECONDS);
       signal = process_tick(algo_p, dt_str, last_tick.ask, last_tick.bid, last_tick.last, last_tick.volume, 
-                             SL, is_close_pos, 0);     
+                             SL, TP, is_close_pos, risk_lev, 0);     
    }
    else{
    
@@ -130,7 +132,7 @@ void OnTick(void){
    
    if(signal != 0 && !has_position){
            
-      double size = 0.05;
+      double size = NormalizeDouble(30 / (risk_lev * 4.5 * 100000), 2);
    
       Print(_Symbol, ":opening position at ", last_tick.time);
 	  
