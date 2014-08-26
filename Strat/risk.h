@@ -28,7 +28,7 @@ namespace strat{
 		/// -1 invalid value, not enough notes to calculate
 		double get_risk() {
 
-			return 2 * _sd.get_value();
+			return 5.5 * _sd.get_value();
 		}
 
 		void reset(){
