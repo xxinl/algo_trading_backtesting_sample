@@ -12,7 +12,7 @@ implementation:
 #include "position.h"
 #include "algo_bar.h"
 #include "indicator/sd.h"
-//#include "risk.h"
+#include "risk.h"
 
 #include <vector>
 #include <algorithm>
@@ -63,7 +63,7 @@ namespace strat{
 		sd _run_sd_min;
 		double _sd_multiplier;
 
-		//risk _risk;
+		risk _risk;
 
 		//concurrency::critical_section _cs;
 
@@ -109,6 +109,8 @@ namespace strat{
 
 		void _on_new_hour_bar(const tick& crr_tick, const bar& last_bar){
 
+			_risk.push_return(crr_tick.last - last_bar.open);
+
 			_crr_hour = crr_tick.time.time_of_day().hours();
 
 			//new day
@@ -126,7 +128,7 @@ namespace strat{
 				_run_sd_min.reset();
 				_sd_multiplier = 3;
 
-				//_risk.reset();
+				_risk.reset();
 
 				_is_skip_day = false;
 			}
@@ -189,7 +191,7 @@ namespace strat{
 		algo_dayrange(const string symbol, int complete_hour, double exit_lev, 
 			double extend_factor = 1.5) : algo_bar(symbol),
 			_complete_hour(complete_hour), _init_exit_lev(exit_lev),
-			_run_sd_min(60), _extend_entry_factor(extend_factor)/*, _risk(40)*/{
+			_run_sd_min(60), _extend_entry_factor(extend_factor), _risk(10){
 
 			_attach_watcher(bar_watcher(bar_interval::HOUR, boost::bind(&algo_dayrange::_on_new_hour_bar, this, _1, _2)));
 			_attach_watcher(bar_watcher(bar_interval::MIN, boost::bind(&algo_dayrange::_on_new_min_bar, this, _1, _2)));
@@ -206,7 +208,7 @@ namespace strat{
 				
 			_process_bar_tick(crr_tick);
 
-			//risk_lev = _risk.get_risk();
+			risk_lev = _risk.get_risk();
 
 			if (_crr_hour < _complete_hour){
 

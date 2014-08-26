@@ -5,8 +5,6 @@
 
 #include "indicator/sd.h"
 
-#include <math.h>
-
 using std::string;
 
 namespace strat{
@@ -30,7 +28,7 @@ namespace strat{
 		/// -1 invalid value, not enough notes to calculate
 		double get_risk() {
 
-			return /*std::abs(_sd.get_mean()) +*/ 6 * _sd.get_value();
+			return 2 * _sd.get_value();
 		}
 
 		void reset(){
