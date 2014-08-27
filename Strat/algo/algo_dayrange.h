@@ -69,9 +69,9 @@ namespace strat{
 
 #pragma region bar_warcher handlers
 
-		void _on_new_15sec_bar(const tick& crr_tick, const bar& last_bar){
+		void _on_new_20sec_bar(const tick& crr_tick, const bar& last_bar){
 
-			//_risk.push_return(crr_tick.last - last_bar.open);
+			return;
 		}
 
 		void _on_new_min_bar(const tick& crr_tick, const bar& last_bar){
@@ -193,7 +193,7 @@ namespace strat{
 
 			_attach_watcher(bar_watcher(bar_interval::HOUR, boost::bind(&algo_dayrange::_on_new_hour_bar, this, _1, _2)));
 			_attach_watcher(bar_watcher(bar_interval::MIN, boost::bind(&algo_dayrange::_on_new_min_bar, this, _1, _2)));
-			_attach_watcher(bar_watcher(bar_interval::SEC_15, boost::bind(&algo_dayrange::_on_new_15sec_bar, this, _1, _2)));
+			_attach_watcher(bar_watcher(bar_interval::SEC_20, boost::bind(&algo_dayrange::_on_new_20sec_bar, this, _1, _2)));
 		};
 		
 		/// Destructor
@@ -231,8 +231,8 @@ namespace strat{
 			
 				if (has_open_position()){
 					
-					//check close every 15 sec
-					if (_is_on_new_bar_tick(bar_interval::SEC_15)){
+					//check close every 20 sec
+					if (_is_on_new_bar_tick(bar_interval::SEC_20)){
 
 						_close_position_algo(crr_tick, close_pos, stop_loss, take_profit);
 					}

@@ -10,6 +10,7 @@ namespace strat{
 	enum bar_interval{
 
 		SEC_15 = 15,
+		SEC_20 = 20,
 		MIN = 60,
 		HOUR = 3600,
 		DAY = 86400
