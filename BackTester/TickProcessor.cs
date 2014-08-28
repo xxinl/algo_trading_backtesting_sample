@@ -15,6 +15,7 @@ namespace BackTester
 
     private double _posOpenRate = -1;
     private int? _currPosSignal = null;
+    private double? _currRiskLev = null;
     private DateTime? _posOpenTime = null;
 
     private List<double> _profits;
@@ -47,7 +48,9 @@ namespace BackTester
 
       if (_currPosSignal.HasValue)
       {
-        int size = riskLev > 0 ? Convert.ToInt32(30 / (riskLev * 4.5)) : _lotSize;
+        int dollar = _currRiskLev.HasValue && _currRiskLev > 0 ? Convert.ToInt32(30 / (_currRiskLev * 4.5)) : _lotSize;
+        //int dollar = riskLev > 0 ? Convert.ToInt32(30 / (riskLev * 6)) : _lotSize;
+        int size = (int) (dollar/1000)*1000;
         double profit = _calcProfit(_currPosSignal.Value, size, _posOpenRate,
           _currPosSignal == -1 ? tick.Ask : tick.Bid);
         double margin = _lotSize/(_currPosSignal == 1 ? _posOpenRate : 1)/_leverage;
@@ -68,6 +71,7 @@ namespace BackTester
           DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(_performanceSummary));
 
           _currPosSignal = null;
+          _currRiskLev = null;
           _posOpenRate = -1;
           _posOpenTime = null;
         }
@@ -80,6 +84,7 @@ namespace BackTester
           _posOpenRate = signal == 1 ? tick.Ask : tick.Bid;
           _posOpenTime = tick.Time;
           _currPosSignal = signal;
+          _currRiskLev = riskLev;
 
           double margin = _lotSize/(_currPosSignal == 1 ? _posOpenRate : 1)/_leverage;
           _balance = _balance - margin;

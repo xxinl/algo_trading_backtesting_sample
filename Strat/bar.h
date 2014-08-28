@@ -12,6 +12,7 @@ namespace strat{
 		SEC_15 = 15,
 		SEC_20 = 20,
 		MIN = 60,
+		MIN_30 = 1800,
 		HOUR = 3600,
 		DAY = 86400
 	};

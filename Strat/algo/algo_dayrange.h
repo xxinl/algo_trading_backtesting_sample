@@ -167,7 +167,8 @@ namespace strat{
 				_delete_position();
 
 				//extend entry level each time after a buy/sell signal
-				_entry_lev += _init_exit_lev + _risk.get_risk();
+				_entry_lev += _risk.get_risk();
+				//_entry_lev += _init_exit_lev * 1.5;
 
 				if (is_stop_out){
 
@@ -186,8 +187,7 @@ namespace strat{
 
 #pragma region constructors
 
-		algo_dayrange(const string symbol, int complete_hour, double exit_lev, 
-			double extend_factor = 1.5) : algo_bar(symbol),
+		algo_dayrange(const string symbol, int complete_hour, double exit_lev) : algo_bar(symbol),
 			_complete_hour(complete_hour), _init_exit_lev(exit_lev),
 			_run_sd_min(60), _risk(10){
 
