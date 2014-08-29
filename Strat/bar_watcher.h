@@ -30,6 +30,7 @@ namespace strat{
 		size_t interval;
 		bar crr_bar;
 		bar last_bar;
+		bar last_bar_2;
 
 		bar_watcher(bar_interval interval, const SIGNAL_TYPE::slot_type& on_new_bar_handler)
 			:interval(interval){
@@ -52,6 +53,7 @@ namespace strat{
 
 			if (new_bar_id != _crr_bar_id){
 
+				last_bar_2 = last_bar;
 				last_bar = crr_bar;
 
 				_crr_bar_id = new_bar_id;
@@ -80,6 +82,23 @@ namespace strat{
 		bool is_on_new_bar_tick() const{
 		
 			return _is_on_new_bar_tick;
+		}
+
+		int get_trend() const{
+		
+			if (crr_bar.high > last_bar.high && last_bar.high > last_bar_2.high
+				&& crr_bar.low > last_bar.low && last_bar.low > last_bar_2.low){
+			
+				return 1;
+			}
+
+			if (crr_bar.high < last_bar.high && last_bar.high < last_bar_2.high
+				&& crr_bar.low < last_bar.low && last_bar.low < last_bar_2.low){
+
+				return -1;
+			}
+
+			return 0;
 		}
 	};
 }

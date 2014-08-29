@@ -69,7 +69,7 @@ namespace strat{
 
 #pragma region bar_warcher handlers
 
-		void _on_new_20sec_bar(const tick& crr_tick, const bar& last_bar){
+		void _stub(const tick& crr_tick, const bar& last_bar){
 
 			return;
 		}
@@ -143,7 +143,7 @@ namespace strat{
 				_open_position(crr_tick, signal::SELL);
 				return signal::SELL;
 			}
-
+			
 			if (crr_tick.ask <= _low - _entry_lev){
 
 				_open_position(crr_tick, signal::BUY);
@@ -193,7 +193,7 @@ namespace strat{
 
 			_attach_watcher(bar_watcher(bar_interval::HOUR, boost::bind(&algo_dayrange::_on_new_hour_bar, this, _1, _2)));
 			_attach_watcher(bar_watcher(bar_interval::MIN, boost::bind(&algo_dayrange::_on_new_min_bar, this, _1, _2)));
-			_attach_watcher(bar_watcher(bar_interval::SEC_20, boost::bind(&algo_dayrange::_on_new_20sec_bar, this, _1, _2)));
+			_attach_watcher(bar_watcher(bar_interval::SEC_20, boost::bind(&algo_dayrange::_stub, this, _1, _2)));
 		};
 		
 		/// Destructor

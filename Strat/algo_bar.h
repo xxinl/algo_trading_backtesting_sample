@@ -64,6 +64,18 @@ namespace strat{
 			return false;
 		}
 
+		int _get_bar_trend(bar_interval type) {
+			
+			for (std::vector<bar_watcher>::iterator it = _bar_watchers.begin();
+				it != _bar_watchers.end(); ++it){
+
+				if (it->interval == type)
+					return it->get_trend();
+			}
+
+			return 0;
+		}
+
 	public:
 
 		virtual ~algo_bar() {}

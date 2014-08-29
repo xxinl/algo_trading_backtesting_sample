@@ -96,7 +96,7 @@ namespace BackTester.ViewModels
       Threshold2 = 0.002;
       OptimizeInterval = 30;
       OptimizeLookback = 90;
-      SL = 0.01;
+      SL = 0.0055;
       CompleteHour = 13;
       ExitLev = 0.00025;
       //ExtendFactor = 1.5;
@@ -138,7 +138,7 @@ namespace BackTester.ViewModels
       }
 
       _summaryWin.Show();
-
+      
       try {
 
         _setProgress();
