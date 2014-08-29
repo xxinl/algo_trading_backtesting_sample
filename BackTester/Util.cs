@@ -50,7 +50,7 @@ namespace BackTester
                   t.Ask = Convert.ToDouble(values[1]);
                   t.Bid = Convert.ToDouble(values[2]);
                   t.Last = Convert.ToDouble(values[3]);
-                  t.Volume = 0; //Convert.ToUInt32(values[3]);
+                  t.Volume = Convert.ToUInt32(values[4]);
 
                   ret.Add(t);
                 }
