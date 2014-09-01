@@ -106,6 +106,7 @@ namespace BackTester
     private void _updatePerformanceSummary(double profit)
     {
       _performanceSummary.Profit += profit;
+
       if (profit >= 0)
       {
         _performanceSummary.TotalWin += profit;
@@ -125,6 +126,11 @@ namespace BackTester
         if (profit < _performanceSummary.MaxLoss)
           _performanceSummary.MaxLoss = profit;
       }
+
+      if (_currPosSignal.Value == 1)
+        _performanceSummary.NoLong++;
+      else
+        _performanceSummary.NoShort++;
 
       _performanceSummary.SharpeR = _calcSharpe();
     }

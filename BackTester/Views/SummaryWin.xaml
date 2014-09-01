@@ -29,10 +29,10 @@
         <TextBlock Text="{Binding PerformanceSummary.NoWinDisp,Mode=OneWay}" Height="16" />
         <Label Content="no. loss" Margin="5,0,0,0" />
         <TextBlock Text="{Binding PerformanceSummary.NoLossDisp,Mode=OneWay}" Height="16" />
-        <Label Content="no. win long" Margin="5,0,0,0" />
-        <TextBlock Text="{Binding PerformanceSummary.NoWinLongDisp,Mode=OneWay}" Height="16" />
-        <Label Content="no. win short" Margin="5,0,0,0" />
-        <TextBlock Text="{Binding PerformanceSummary.NoWinShortDisp,Mode=OneWay}" Height="16" />
+        <Label Content="no. long" Margin="5,0,0,0" />
+        <TextBlock Text="{Binding PerformanceSummary.NoLongDisp,Mode=OneWay}" Height="16" />
+        <Label Content="no. short" Margin="5,0,0,0" />
+        <TextBlock Text="{Binding PerformanceSummary.NoShortDisp,Mode=OneWay}" Height="16" />
       </StackPanel>
       <StackPanel Orientation="Horizontal">
         <Label Content="max win" />

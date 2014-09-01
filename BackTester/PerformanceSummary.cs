@@ -29,6 +29,8 @@ namespace BackTester
 
     public int NoWinPos { get; set; }
     public int NoLossPos { get; set; }
+    public int NoLong { get; set; }
+    public int NoShort { get; set; }
     public int NoWinLong { get; set; }
     public int NoWinShort { get; set; }
     public double SharpeR { get; set; }
@@ -51,13 +53,13 @@ namespace BackTester
     {
       get { return string.Format("{0}({1:P})", NoLossPos, (double)NoLossPos / TotalNoPos); }
     }
-    public string NoWinLongDisp
+    public string NoLongDisp
     {
-      get { return string.Format("{0}({1:P})", NoWinLong, (double)NoWinLong / NoWinPos); }
+      get { return string.Format("{0}({1:P})", NoLong, (double)NoWinLong / NoLong); }
     }
-    public string NoWinShortDisp
+    public string NoShortDisp
     {
-      get { return string.Format("{0}({1:P})", NoWinShort, (double)NoWinShort / NoWinPos); }
+      get { return string.Format("{0}({1:P})", NoShort, (double)NoWinShort / NoShort); }
     }
     public double AvgWin {
       get { return TotalWin / NoWinPos; }
