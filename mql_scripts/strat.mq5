@@ -132,10 +132,12 @@ void OnTick(void){
    
    if(signal != 0 && !has_position){
        
-      double dollar = risk_lev > 0 ? (int)(30 / (risk_lev * 4.5)) : 5000;	   
+      double risk_dollar = _Symbol == "USDJPY" ? 30 * last_tick.last : 30;
+       
+      double dollar = risk_lev > 0 ? (int)(risk_dollar / (risk_lev * 4.5)) : 5000;	   
       double size = NormalizeDouble(dollar / 100000, 2);
    
-      Print(_Symbol, ":opening position at ", last_tick.time, ". risk_lev: ", risk_lev, ". size: ", size);
+      Print(_Symbol, ":opening position at ", last_tick.time, ". risk_lev: ", risk_lev, ". dollar: ", dollar, ". size: ", size);
 	  
       CTrade trade;
       double price = SymbolInfoDouble(_Symbol, signal == 1 ? SYMBOL_ASK : SYMBOL_BID);
