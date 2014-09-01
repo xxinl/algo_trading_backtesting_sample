@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace BackTester
 {
   public class PerformanceSummary
@@ -39,6 +41,7 @@ namespace BackTester
     public double MaxWin { get; set; }
     public double MaxLoss { get; set; }
     public double MaxDrawDown { get; set; }
+    public double TotalHoldSec { get; set; }
 
     public int TotalNoPos 
     {
@@ -66,6 +69,17 @@ namespace BackTester
     }
     public double AvgLoss {
       get { return TotalLoss / NoLossPos; }
+    }
+    public string AvgHoldDisp
+    {
+      get
+      {
+        double avgSec = TotalHoldSec / TotalNoPos;
+        int hour = (int) (avgSec/3600);
+        int minute = (int)((avgSec - 3600 * hour)/60);
+        int sec = (int)avgSec - 3600 * hour - 60 * minute;
+        return string.Format("{0}:{1}:{2}", hour, minute, sec); ;
+      }
     }
   }
 }

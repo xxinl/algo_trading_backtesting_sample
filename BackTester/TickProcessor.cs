@@ -67,7 +67,7 @@ namespace BackTester
           pTick.IsPosClosed = true;
 
           _profits.Add(profit);
-          _updatePerformanceSummary(profit);
+          _updatePerformanceSummary(profit, tick);
           DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(_performanceSummary));
 
           _currPosSignal = null;
@@ -103,7 +103,7 @@ namespace BackTester
       return signal * (closeRate - openRate) * lot;
     }
 
-    private void _updatePerformanceSummary(double profit)
+    private void _updatePerformanceSummary(double profit, Tick tick)
     {
       _performanceSummary.Profit += profit;
 
@@ -131,6 +131,8 @@ namespace BackTester
         _performanceSummary.NoLong++;
       else
         _performanceSummary.NoShort++;
+
+      _performanceSummary.TotalHoldSec += (tick.Time - _posOpenTime).Value.TotalSeconds;
 
       _performanceSummary.SharpeR = _calcSharpe();
     }

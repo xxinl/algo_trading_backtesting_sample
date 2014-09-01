@@ -21,6 +21,8 @@
         <TextBlock Text="{Binding PerformanceSummary.SharpeR,Mode=OneWay,StringFormat=F2}" Height="16" />
         <Label Content="max dd" Margin="5,0,0,0" />
         <TextBlock Text="{Binding PerformanceSummary.MaxDrawDown,Mode=OneWay,StringFormat=F2}" Height="16" />
+        <Label Content="avg hold" Margin="5,0,0,0" />
+        <TextBlock Text="{Binding PerformanceSummary.AvgHoldDisp,Mode=OneWay}" Height="16" />
       </StackPanel>
       <StackPanel Orientation="Horizontal">
         <Label Content="total no. pos" />
