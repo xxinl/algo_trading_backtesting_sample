@@ -167,8 +167,8 @@ namespace strat{
 				_delete_position();
 
 				//extend entry level each time after a buy/sell signal
-				_entry_lev += _risk.get_risk();
-				//_entry_lev += _init_exit_lev * 1.5;
+				//_entry_lev += _risk.get_risk();
+				_entry_lev += _init_exit_lev * 1.5;
 
 				if (is_stop_out){
 
