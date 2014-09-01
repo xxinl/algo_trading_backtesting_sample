@@ -12,6 +12,7 @@ if price jump up or down, oberve a period to confirm the sudden jump, then hold 
 #include "position.h"
 #include "algo_bar.h"
 #include "indicator/sd.h"
+#include "risk.h"
 
 #include <vector>
 #include <cmath>
@@ -55,7 +56,9 @@ namespace strat{
 		const int _start_close_hour = 22; 
 
 		int _crr_hour;
-		bool _can_close_pos;
+		sd _run_sd_min;
+		double _sd_multiplier;
+		risk _risk;
 
 #pragma endregion variables
 
@@ -68,9 +71,9 @@ namespace strat{
 
 #pragma region bar_warcher handlers
 
-		void _on_new_15sec_bar(const tick& crr_tick, const bar& last_bar){
+		void _stub(const tick& crr_tick, const bar& last_bar){
 
-			_can_close_pos = true;
+			return;
 		}
 
 		void _on_new_min_bar(const tick& crr_tick, const bar& last_bar){
@@ -78,11 +81,46 @@ namespace strat{
 			// update _last_obser_tick every minute
 			if (_can_obser)
 				_last_obser_tick = crr_tick;
+			
+			if (_crr_hour >= _start_close_hour - 1)
+				_run_sd_min.push(crr_tick.last - last_bar.open);
+
+			if (_crr_hour >= _start_close_hour){
+
+				// >= _start_close_hour, strat close positions and accept losses
+				if (has_open_position()){
+
+					double dev = _run_sd_min.get_value();
+					if (dev != -1){
+
+						double adjusted_dev = dev * _sd_multiplier;
+						//update exit to keep it as deviation range of last_m_tick.last
+						//	+-_exit_lev to adjust the _close_position_algo(i.e. ignore _exit_lev)
+						if (_position.type == signal::SELL)
+							_exit_lev = (std::min)((double)0, _position.open_rate - (last_bar.close - adjusted_dev));
+						else
+							_exit_lev = (std::min)((double)0, (last_bar.close + adjusted_dev) - _position.open_rate);
+					}
+
+					//reduce sd range every minute to close position faster
+					_sd_multiplier *= 0.98;
+				}
+			}
 		}
 
 		void _on_new_hour_bar(const tick& crr_tick, const bar& last_bar){
 
+			_risk.push_return(crr_tick.last - last_bar.open);
+
 			_crr_hour = crr_tick.time.time_of_day().hours();
+
+			//new day
+			if (_crr_hour == 0){
+
+				_run_sd_min.reset();
+				_sd_multiplier = 3;
+				_risk.reset();
+			}
 		}
 
 #pragma endregion bar_warcher handlers
@@ -142,11 +180,11 @@ namespace strat{
 			size_t obser_max, double exit_lev, double initial_threshold, double obser_threshold) :
 			algo_bar(symbol), _obser_max(obser_max), _exit_lev(exit_lev),
 			_initial_threshold(initial_threshold), _obser_threshold(obser_threshold),
-			_can_obser(true){
+			_can_obser(true), _run_sd_min(60), _risk(10){
 
-			_attach_watcher(bar_watcher(bar_interval::SEC_15, boost::bind(&algo_bollinger::_on_new_15sec_bar, this, _1, _2)));
-			_attach_watcher(bar_watcher(bar_interval::MIN, boost::bind(&algo_bollinger::_on_new_min_bar, this, _1, _2)));
 			_attach_watcher(bar_watcher(bar_interval::HOUR, boost::bind(&algo_bollinger::_on_new_hour_bar, this, _1, _2)));
+			_attach_watcher(bar_watcher(bar_interval::MIN, boost::bind(&algo_bollinger::_on_new_min_bar, this, _1, _2)));
+			_attach_watcher(bar_watcher(bar_interval::SEC_20, boost::bind(&algo_bollinger::_stub, this, _1, _2)));
 		};
 
 
@@ -159,6 +197,8 @@ namespace strat{
 			double stop_loss = -1, const double take_profit = -1) override{
 
 			_process_bar_tick(crr_tick);
+
+			risk_lev = _risk.get_risk();
 			
 			if (_crr_hour < _start_close_hour){
 
@@ -184,15 +224,15 @@ namespace strat{
 
 					return signal::NONE;
 				}
+				//observing
 				else {
 
 					if (has_open_position()){
 
-						//this reset every 15 sec
-						if (_can_close_pos){
+						//check close every 20 sec
+						if (_is_on_new_bar_tick(bar_interval::SEC_20)){
 
 							_close_position_algo(crr_tick, close_pos, stop_loss, take_profit);
-							_can_close_pos = false;
 						}
 
 						return signal::NONE;
@@ -203,6 +243,7 @@ namespace strat{
 					}
 				}
 			}
+			//start close hour
 			else{
 
 				// >= _start_close_hour, strat close positions and accept losses
@@ -211,6 +252,8 @@ namespace strat{
 					_close_position_algo(crr_tick, close_pos, stop_loss, take_profit);
 				}
 			}
+
+			return signal::NONE;
 		}
 
 		void reset_params(size_t obser_max, double exit_lev, double initial_threshold, double obser_threshold){

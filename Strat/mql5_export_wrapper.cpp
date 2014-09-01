@@ -11,7 +11,7 @@
 
 #include "logger.h"
 #include "algo.h"
-//#include "algo\algo_bollinger.h"
+#include "algo\algo_bollinger.h"
 #include "algo\algo_dayrange.h"
 //#include "algo\algo_hybrid.h"
 
@@ -84,35 +84,35 @@ size_t get_dayrange_algo(const wchar_t* symbol,	size_t complete_hour, double exi
 	return ret_addr;
 }
 
-//extern "C"	__declspec(dllexport)
-//size_t get_bollinger_algo(const wchar_t* symbol,
-//						size_t obser_win, double exit_lev, double ini_t, double obser_t,
-//						logger::callback callback_handler){
-//
-//	logger::on_callback = callback_handler;
-//	strat::algo* ret_p = nullptr;
-//
-//	string symbol_str = convert_wchar_to_string(symbol);
-//
-//	try{		
-//
-//		ret_p = new strat::algo_bollinger(symbol_str,
-//			obser_win, exit_lev, ini_t, obser_t);
-//	}
-//	catch (std::exception& e){
-//
-//		LOG_SEV("get_bollinger_algo error: " << e.what(), logger::error);
-//	}
-//
-//	size_t ret_addr = reinterpret_cast<size_t>(ret_p);
-//
-//	LOG_SEV("get_bollinger_algo instantiated. base: symbol:" << symbol_str <<
-//		" obser_win: " << obser_win << " exit_lev:" << exit_lev << 
-//		" ini_t:" << ini_t << " obser_t:" << obser_t <<
-//		". return pointer adreess:" << ret_addr, logger::notification);
-//
-//	return ret_addr;
-//}
+extern "C"	__declspec(dllexport)
+size_t get_bollinger_algo(const wchar_t* symbol,
+						size_t obser_win, double exit_lev, double ini_t, double obser_t,
+						logger::callback callback_handler){
+
+	logger::on_callback = callback_handler;
+	strat::algo* ret_p = nullptr;
+
+	string symbol_str = convert_wchar_to_string(symbol);
+
+	try{		
+
+		ret_p = new strat::algo_bollinger(symbol_str,
+			obser_win, exit_lev, ini_t, obser_t);
+	}
+	catch (std::exception& e){
+
+		LOG_SEV("get_bollinger_algo error: " << e.what(), logger::error);
+	}
+
+	size_t ret_addr = reinterpret_cast<size_t>(ret_p);
+
+	LOG_SEV("get_bollinger_algo instantiated. base: symbol:" << symbol_str <<
+		" obser_win: " << obser_win << " exit_lev:" << exit_lev << 
+		" ini_t:" << ini_t << " obser_t:" << obser_t <<
+		". return pointer adreess:" << ret_addr, logger::notification);
+
+	return ret_addr;
+}
 
 extern "C"	__declspec(dllexport)
 int delete_algo(size_t algo_addr){

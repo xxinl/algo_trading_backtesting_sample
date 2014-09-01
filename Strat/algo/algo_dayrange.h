@@ -245,7 +245,10 @@ namespace strat{
 			else{
 				
 				//every minute the exit_lev is reset based on current deviation in method _on_new_min_bar
-				_close_position_algo(crr_tick, close_pos, stop_loss, take_profit);
+				if (has_open_position()){
+
+					_close_position_algo(crr_tick, close_pos, stop_loss, take_profit);
+				}
 			}
 
 			return signal::NONE;
