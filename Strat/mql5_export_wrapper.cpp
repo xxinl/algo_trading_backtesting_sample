@@ -13,7 +13,7 @@
 #include "algo.h"
 #include "algo\algo_bollinger.h"
 #include "algo\algo_dayrange.h"
-//#include "algo\algo_hybrid.h"
+#include "algo\algo_hybrid.h"
 
 //#include "algo\event\event_algo_ma.h"
 //#include "algo\event\event_long_short.h"
@@ -115,6 +115,42 @@ size_t get_bollinger_algo(const wchar_t* symbol,
 }
 
 extern "C"	__declspec(dllexport)
+size_t get_hybrid_algo(const wchar_t* symbol, size_t algos[],
+	logger::callback callback_handler){
+
+	logger::on_callback = callback_handler;
+	strat::algo* ret_p = nullptr;
+
+	string symbol_str = convert_wchar_to_string(symbol);
+
+	try{
+
+		std::vector<strat::algo*> algo_v;
+
+		int algos_size = sizeof(algos) / sizeof(*algos);
+
+		for (int i = 0; i <= algos_size; i++){
+		
+			strat::algo* algo_p = reinterpret_cast<strat::algo*>(algos[i]);
+			algo_v.push_back(algo_p);
+		}
+
+		ret_p = new strat::algo_hybrid(symbol_str, algo_v);
+	}
+	catch (std::exception& e){
+
+		LOG_SEV("get_dayrange_algo error: " << e.what(), logger::error);
+	}
+
+	size_t ret_addr = reinterpret_cast<size_t>(ret_p);
+
+	LOG_SEV("get_hybrid_algo instantiated. symbol:" << symbol_str <<
+		". return pointer adreess:" << ret_addr, logger::notification);
+
+	return ret_addr;
+}
+
+extern "C"	__declspec(dllexport)
 int delete_algo(size_t algo_addr){
 
 	strat::algo* algo_p = reinterpret_cast<strat::algo*>(algo_addr);
@@ -128,7 +164,7 @@ int delete_algo(size_t algo_addr){
 extern "C"	__declspec(dllexport)
 int process_tick(size_t algo_addr, const wchar_t* time, 
 									double ask, double bid, double last, size_t volume,
-									double stop_loss, double take_profit, bool* is_close_pos, double& risk,
+									double stop_loss, bool* is_close_pos, double& risk,
 									logger::callback callback_handler){
 
 	logger::on_callback = callback_handler;
@@ -150,7 +186,7 @@ int process_tick(size_t algo_addr, const wchar_t* time,
 		tick.volume = volume;
 				
 		strat::algo* algo_p = reinterpret_cast<strat::algo*>(algo_addr);
-		sig = algo_p->process_tick(tick, close_pos, risk, stop_loss, take_profit);
+		sig = algo_p->process_tick(tick, close_pos, risk, stop_loss);
 	}
 	catch (std::exception& e){
 

@@ -58,7 +58,7 @@ namespace strat{
 
 		virtual signal _get_signal_algo(const tick& crr_tick) = 0;
 		virtual int _close_position_algo(const tick& crr_tick, position& close_pos, 
-			double stop_loss, const double take_profit) = 0;
+			double stop_loss) = 0;
 
 	public:
 
@@ -69,7 +69,7 @@ namespace strat{
 		//stop_loss and take_profit are pips level. 
 		//  -1: ignore
 		virtual signal process_tick(const tick&, position& close_pos, double& risk_lev,
-			const double stop_loss = -1, const double take_profit = -1) = 0;
+			const double stop_loss = -1, const bool ignore = false) = 0;
 
 		position get_position() const{
 

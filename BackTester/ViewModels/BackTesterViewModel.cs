@@ -103,7 +103,7 @@ namespace BackTester.ViewModels
       //CompleteHour2 = 15;
       //EntryLev2 = 0.0001;
       //ExitLev2 = 0.0002;
-      AlgoType = 2;
+      AlgoType = 0;
 
       RunTestCommand = new RelayCommand(async () => {
         if (IsBusy)
@@ -147,6 +147,7 @@ namespace BackTester.ViewModels
           switch (AlgoType)
           {
             case 0:
+              await algo.InitHybrid(CompleteHour, ExitLev, ObserWin, ExitLev2, Threshold1, Threshold2);
               break;
             case 1:
               await algo.InitDayRange(CompleteHour, ExitLev);
@@ -269,6 +270,7 @@ namespace BackTester.ViewModels
           switch (AlgoType)
           {
             case 0:
+              await algo.InitHybrid(CompleteHour, ExitLev, ObserWin, ExitLev2, Threshold1, Threshold2);
               break;
             case 1:
               await algo.InitDayRange(CompleteHour, ExitLev);

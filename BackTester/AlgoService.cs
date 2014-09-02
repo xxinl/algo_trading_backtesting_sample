@@ -20,13 +20,18 @@ namespace BackTester
       IntPtr obser_win, double exit_lev, double ini_t, double obser_t,
       _callback callback_handler);
 
+    [DllImport("strat.dll", EntryPoint = "get_hybrid_algo", CallingConvention = CallingConvention.Cdecl,
+      CharSet = CharSet.Unicode)]
+    private static extern IntPtr _get_hybrid_algo(string symbol, IntPtr[] algos,
+      _callback callback_handler);
+
     [DllImport("strat.dll", EntryPoint = "delete_algo", CallingConvention = CallingConvention.Cdecl)]
     private static extern int _delete_algo(IntPtr algo_add);
 
     [DllImport("strat.dll", EntryPoint = "process_tick", CallingConvention = CallingConvention.Cdecl,
       CharSet = CharSet.Unicode)]
     private static extern int _process_tick(IntPtr algo_addr, string time,
-      double ask, double bid, double last, IntPtr volume, double stop_loss, double take_profit,
+      double ask, double bid, double last, IntPtr volume, double stop_loss,
       [Out] out bool is_close_pos, [Out] out double risk, _callback _callbackInstance);
 
     [DllImport("strat.dll", EntryPoint = "optimize", CallingConvention = CallingConvention.Cdecl,
@@ -87,10 +92,23 @@ namespace BackTester
       });
     }
 
+    public async Task InitHybrid(int completeHour, double exitLev, int obserWin, 
+      double exitLev2, double iniT, double obserT)
+    {
+      await Task.Run(() =>
+      {
+        IntPtr[] algos = new IntPtr[2];
+        algos[0] = _get_dayrange_algo("xxx", (IntPtr)completeHour, exitLev, _callbackInstance);
+        algos[1] = _get_bollinger_algo("xxx", (IntPtr)obserWin, exitLev2, iniT, obserT, _callbackInstance);
+
+        _algo_p = _get_hybrid_algo("xxx", algos, _callbackInstance);
+      });
+    }
+
     public int OnTick(Tick t, out bool isClosePos, out double risk, double sl)
     {
       return _process_tick(_algo_p, t.TimeStr, t.Ask, t.Bid, t.Last,
-        (IntPtr)t.Volume, sl, 1, out isClosePos, out risk,
+        (IntPtr)t.Volume, sl, out isClosePos, out risk,
         _callbackInstance);
     }
 

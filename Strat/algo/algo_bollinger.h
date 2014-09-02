@@ -152,7 +152,7 @@ namespace strat{
 		}
 
 		int _close_position_algo(const tick& crr_tick, position& close_pos, 
-			const double stop_loss, const double take_profit) override{
+			const double stop_loss) override{
 
 			double profit = _calc_profit(crr_tick);
 			bool is_stop_out = algo::_is_stop_out(profit, stop_loss);
@@ -194,7 +194,7 @@ namespace strat{
 #pragma endregion
 
 		signal process_tick(const tick& crr_tick, position& close_pos, double& risk_lev,
-			double stop_loss = -1, const double take_profit = -1) override{
+			double stop_loss = -1, const bool ignore = false) override{
 
 			_process_bar_tick(crr_tick);
 
@@ -215,7 +215,7 @@ namespace strat{
 
 				if (_can_obser){
 
-					if (_check_if_obser(crr_tick)){
+					if (!ignore && _check_if_obser(crr_tick)){
 
 						_can_obser = false;
 
@@ -232,12 +232,12 @@ namespace strat{
 						//check close every 20 sec
 						if (_is_on_new_bar_tick(bar_interval::SEC_20)){
 
-							_close_position_algo(crr_tick, close_pos, stop_loss, take_profit);
+							_close_position_algo(crr_tick, close_pos, stop_loss);
 						}
 
 						return signal::NONE;
 					}
-					else if (_crr_hour <= _last_entry_hour){
+					else if (!ignore && _crr_hour <= _last_entry_hour){
 
 						return _get_signal_algo(crr_tick);
 					}
@@ -249,7 +249,7 @@ namespace strat{
 				// >= _start_close_hour, strat close positions and accept losses
 				if (has_open_position()){
 
-					_close_position_algo(crr_tick, close_pos, stop_loss, take_profit);
+					_close_position_algo(crr_tick, close_pos, stop_loss);
 				}
 			}
 

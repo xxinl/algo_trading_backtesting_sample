@@ -8,7 +8,6 @@ implementation:
 #define _STRAT_HYBRID
 
 #include "algo.h"
-#include "algo\algo_dayrange.h"
 
 #include <vector>
 
@@ -20,7 +19,9 @@ namespace strat{
 
 	private:
 
-		std::vector<std::shared_ptr<strat::algo>> _algos;
+		//algo with higher priority push in first
+		std::vector<strat::algo*> _algos;
+		int _has_pos_algo_index = -1;
 
 	protected:
 
@@ -30,7 +31,7 @@ namespace strat{
 		}
 
 		int _close_position_algo(const tick& crr_tick, position& close_pos, 
-			double stop_loss, const double take_profit) override{
+			double stop_loss) override{
 
 			return 0;
 		}
@@ -39,15 +40,8 @@ namespace strat{
 
 #pragma region constructors
 
-		algo_hybrid(const string symbol,			
-			int complete_hour, double entry_lev, double exit_lev,
-			int complete_hour2, double entry_lev2, double exit_lev2) :
-			algo(symbol){
-
-			//algo with higher priority push in first
-			//_algos.push_back(std::make_shared<strat::algo_dayrange>(symbol,
-			//	complete_hour, entry_lev, exit_lev));
-		};
+		algo_hybrid(const string symbol, std::vector<strat::algo*>& algos) :
+			algo(symbol), _algos(algos){		};
 		
 		/// Destructor
 		~algo_hybrid(){};
@@ -55,27 +49,45 @@ namespace strat{
 #pragma endregion
 
 		signal process_tick(const tick& crr_tick, position& close_pos, double& risk_lev,
-			double stop_loss = -1, const double take_profit = -1) override{
+			double stop_loss = -1, const bool ignore = false) override{
 
 			signal sig = signal::NONE;
 
-			bool has_pos = false;
-			for (int i = 0; i < _algos.size(); i++){
+			if (_has_pos_algo_index >= 0){
 			
-				if (_algos[i]->has_open_position()){
+				for (int i = 0; i < _algos.size(); i++){
 
-					has_pos = true;
-					return _algos[i]->process_tick(crr_tick, close_pos, risk_lev, stop_loss, take_profit);
+					if (_has_pos_algo_index == i && _algos[i]->has_open_position()){
+
+						_algos[i]->process_tick(crr_tick, close_pos, risk_lev, stop_loss);
+						if (close_pos.type != NONE)
+							_has_pos_algo_index = -1;
+					}
+					else{
+					
+						_algos[i]->process_tick(crr_tick, close_pos, risk_lev, stop_loss, true);
+					}
 				}
 			}
-
-			for (std::vector<std::shared_ptr<strat::algo>>::iterator it = _algos.begin();
-				it != _algos.end(); ++it){
+			else{
 			
-				sig = (*it)->process_tick(crr_tick, close_pos, risk_lev, stop_loss, take_profit);
-				if (sig != signal::NONE)
-					return sig;
-			}			
+				for (int i = 0; i < _algos.size(); i++){
+
+					if (_has_pos_algo_index == -1){
+
+						sig = _algos[i]->process_tick(crr_tick, close_pos, risk_lev, stop_loss);
+
+						if (sig != NONE)
+							_has_pos_algo_index = i;
+					}
+					else{
+
+						_algos[i]->process_tick(crr_tick, close_pos, risk_lev, stop_loss, true);
+					}
+				}
+			}		
+
+			return sig;
 		}
 	};
 }
