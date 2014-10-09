@@ -1,5 +1,4 @@
-@set path=c:\workspace\strat - copy
-
+@set path=c:\workspace\strat
 del *.sdf
 
 cd "%path%\x64\Debug"
@@ -35,11 +34,17 @@ del . /F /Q
 cd "%path%\BackTester\bin\Release"
 del . /F /Q
 
-cd "%path%\test_files"
-del . /F /Q
+REM cd "%path%\test_files"
+REM del . /F /Q
 
-cd "%path%\back_test_files"
-del . /F /Q
+REM cd "%path%\back_test_files"
+REM del . /F /Q
 
 cd "%path%\ipch\strat-8673b740
 del . /F /Q
+
+
+cd "%path%\Tradedash\bin"
+del . /F /Q
+
+pause
