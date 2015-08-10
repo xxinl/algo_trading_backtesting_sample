@@ -12,6 +12,7 @@ implementation:
 #include "position.h"
 #include "algo_bar.h"
 #include "indicator/sd.h"
+#include "indicator/rsi.h"
 #include "risk.h"
 
 #include <vector>
@@ -57,11 +58,14 @@ namespace strat{
 		double _exit_lev;
 		bool _is_skip_day;
 		int _crr_hour;
+		double _low_since_open = 999;
+		double _high_since_open = 0;
 
 		sd _run_sd_min;
 		double _sd_multiplier;
 
-		risk _risk;
+		//rsi _rsi;
+		//risk _risk;
 
 		//concurrency::critical_section _cs;
 
@@ -78,6 +82,8 @@ namespace strat{
 
 			//lock for _run_sd_min & _sd_multiplier
 			//concurrency::critical_section::scoped_lock::scoped_lock(_cs);
+
+			//_rsi.push(last_bar.close);
 
 			if (_crr_hour >= _start_close_hour - 1)
 				_run_sd_min.push(crr_tick.last - last_bar.open);
@@ -107,7 +113,10 @@ namespace strat{
 
 		void _on_new_hour_bar(const tick& crr_tick, const bar& last_bar){
 
-			_risk.push_return(crr_tick.last - last_bar.open);
+			//_risk.push_return(crr_tick.last - last_bar.open);
+
+			//LOG_SEV("," << crr_tick.time << "," << _risk.get_risk() << "," << _rsi.get_value() << "," << _run_sd_min_15.get_value(),
+			//	logger::notification);
 
 			_crr_hour = crr_tick.time.time_of_day().hours();
 
@@ -126,13 +135,24 @@ namespace strat{
 				_run_sd_min.reset();
 				_sd_multiplier = 3;
 
-				_risk.reset();
+				//_risk.reset();
 
 				_is_skip_day = false;
 			}
 		}
 
 #pragma endregion bar_warcher handlers
+
+		//bool _strong_trend_stop(const tick& crr_tick, const double stop_loss){
+		//
+		//	if (crr_tick.time - _position.open_tick.time < boost::posix_time::minutes(2)
+		//		&& 0 - _calc_profit(crr_tick) > stop_loss / 3){
+		//	
+		//		return true;
+		//	}
+
+		//	return false;
+		//}
 
 	protected:
 
@@ -156,9 +176,14 @@ namespace strat{
 		int _close_position_algo(const tick& crr_tick, position& close_pos, 
 			const double stop_loss) override{
 
+			if (crr_tick.last < _low_since_open)
+				_low_since_open = crr_tick.last;
+			if (crr_tick.last > _high_since_open)
+				_high_since_open = crr_tick.last;
+
 			bool is_stop_out = algo::_is_stop_out(crr_tick, stop_loss);
 
-			if (is_stop_out ||
+			if (is_stop_out || /*_strong_trend_stop(crr_tick, stop_loss) ||*/
 				(_position.type == signal::SELL && crr_tick.ask <= (_high + _entry_lev - _exit_lev))
 				|| (_position.type == signal::BUY && crr_tick.bid >= (_low - _entry_lev + _exit_lev))){
 
@@ -168,7 +193,20 @@ namespace strat{
 
 				//extend entry level each time after a buy/sell signal
 				//_entry_lev += _risk.get_risk();
-				_entry_lev += _init_exit_lev * 1.5;
+				double dd = 0;
+				if (_position.type == signal::SELL){
+					
+					dd = _high_since_open - _position.open_tick.bid;
+				}
+				else{
+				
+					dd = _position.open_tick.ask - _low_since_open;
+				}
+
+				_entry_lev += (std::max)(_init_exit_lev * 1.5, dd / 2);
+
+				_low_since_open = 999;
+				_high_since_open = 0;
 
 				if (is_stop_out){
 
@@ -189,7 +227,7 @@ namespace strat{
 
 		algo_dayrange(const string symbol, int complete_hour, double exit_lev) : algo_bar(symbol),
 			_complete_hour(complete_hour), _init_exit_lev(exit_lev),
-			_run_sd_min(60), _risk(10){
+			_run_sd_min(60)/*, _risk(10), _rsi(15)*/{
 
 			_attach_watcher(bar_watcher(bar_interval::HOUR, boost::bind(&algo_dayrange::_on_new_hour_bar, this, _1, _2)));
 			_attach_watcher(bar_watcher(bar_interval::MIN, boost::bind(&algo_dayrange::_on_new_min_bar, this, _1, _2)));
@@ -206,7 +244,9 @@ namespace strat{
 				
 			_process_bar_tick(crr_tick);
 
-			risk_lev = _risk.get_risk();
+			//risk_lev = _risk.get_risk() * 6.929e-03 - _rsi.get_value() * 7.948e-06 + 1.516e-03;
+			//risk_lev = 1.526e-03 - _rsi.get_value() * 7.987e-06;
+			//risk_lev = 2.427 * _run_sd_min_15.get_value() + 7.721e-04;
 
 			if (_crr_hour < _complete_hour){
 
@@ -337,6 +377,6 @@ namespace strat{
 
 #endif MQL5_RELEASE
 	};
-}
 
+}
 #endif

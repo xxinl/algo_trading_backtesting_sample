@@ -93,6 +93,12 @@
     <ClInclude Include="risk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="indicator\ema.h">
+      <Filter>Header Files\indicators</Filter>
+    </ClInclude>
+    <ClInclude Include="indicator\rsi.h">
+      <Filter>Header Files\indicators</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -105,9 +111,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="unit_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\dlib-18.7\dlib\all\source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

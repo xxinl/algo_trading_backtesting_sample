@@ -5,11 +5,11 @@
 
 ulong get_dayrange_algo(string symbol, ulong complete_hour, double exit_lev, 
 				ulong callback_handler);
-//ulong get_bollinger_algo(string symbol,
-//				ulong obser_win, double exit_lev, double ini_t, double obser_t, 
-//				ulong callback_handler);
+ulong get_bollinger_algo(string symbol,
+				ulong obser_win, double exit_lev, double ini_t, double obser_t, 
+				ulong callback_handler);
 int process_tick(ulong algo_p, string time, double ask, double bid, double last, ulong volume, 
-						double stop_loss, double take_profit, bool &is_close_pos, double &risk,
+						double stop_loss, bool &is_close_pos, double &risk,
 						ulong callback_handler);
 int delete_algo(ulong algo_p);
 
@@ -29,12 +29,12 @@ input double TP = 0.05;
 
 input ulong COMPLETE_HOUR = 13;
 input double EXIT_LEV = 0.00035;
-input AlgoType ALGO_TYPE = DAYRANGE;
+input AlgoType ALGO_TYPE = BOLLINGER;
 
-//input ulong OBSER_WIN = 10;
-//input double EXIT_LEV_BL = 0.0002;
-//input double INI_T = 0.0004;
-//input double OBSER_T = 0.002;
+input ulong OBSER_WIN = 10;
+input double EXIT_LEV_BL = 0.0002;
+input double INI_T = 0.0004;
+input double OBSER_T = 0.002;
 
 //--- input parameters end
 
@@ -56,13 +56,13 @@ int OnInit(void){
 	case 1:
 	   algo_p = get_dayrange_algo(symbol, COMPLETE_HOUR,  EXIT_LEV, 0);
 		break;
-	//case 2:
-	//   algo_p = get_bollinger_algo(StringSubstr(symbol, 0, 3), StringSubstr(symbol, 3, 3), 
-	//			OBSER_WIN, EXIT_LEV_BL, INI_T, OBSER_T, 0);
-	//	break;
+	case 2:
+	   algo_p = get_bollinger_algo(symbol, 
+				OBSER_WIN, EXIT_LEV_BL, INI_T, OBSER_T, 0);
+		break;
    }
    
-   if(ALGO_TYPE == 0 || ALGO_TYPE == 1){
+//   if(ALGO_TYPE == 0 || ALGO_TYPE == 1){
          
       MqlDateTime stm;
       MqlTick last_tick;
@@ -83,7 +83,7 @@ int OnInit(void){
             bool is_close_pos;
             double risk_lev;
             process_tick(algo_p, dt_str, rt[i].close, rt[i].close, rt[i].close, rt[i].tick_volume, 
-                             SL, TP, is_close_pos, risk_lev, 0);  
+                             SL, is_close_pos, risk_lev, 0);  
          }
       }
       else{
@@ -91,7 +91,7 @@ int OnInit(void){
          Print("CopyRates of ",_Symbol," failed, no history");
          return(INIT_FAILED);
       }
-   }   
+ //  }   
    
    if(algo_p == -1){
    
@@ -115,7 +115,7 @@ void OnTick(void){
    
       dt_str = TimeToString(last_tick.time, TIME_DATE|TIME_MINUTES|TIME_SECONDS);
       signal = process_tick(algo_p, dt_str, last_tick.ask, last_tick.bid, last_tick.last, last_tick.volume, 
-                             SL, TP, is_close_pos, risk_lev, 0);     
+                             SL, is_close_pos, risk_lev, 0);     
    }
    else{
    
