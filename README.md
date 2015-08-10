@@ -11,7 +11,7 @@ The generated lilbrary can be used in MQL5 and meta trader5. (examples included)
 ###Folders
 BackTester -back testing UI (C#, .Net)
 
-Strat      -algo trading framework including a few standard and customized algorithm examples.
+Strat      -algo trading framework including a few standard and customized algorithm examples (C++).
 
 mql_scripts-scripts used by meta trader to execute the generated .dll
 
