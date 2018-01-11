@@ -4,11 +4,13 @@ A sample for end to end implementation of a few standard algo trading algorithm 
 The generated lilbrary can be used in MQL5 and meta trader5. (examples included).
 
 
-###Screen shots
+### Screen shots
+
 ![screen shots](screen_shot.PNG)
 
 
-###Folders
+### Folders
+
 BackTester -back testing UI (C#, .Net)
 
 Strat      -algo trading framework including a few standard and customized algorithm examples (C++).
@@ -16,9 +18,11 @@ Strat      -algo trading framework including a few standard and customized algor
 mql_scripts-scripts used by meta trader to execute the generated .dll
 
 
-###Dependencies
+### Dependencies
+
 Boost
     
     
-###Contact
+### Contact
+
 *tonyxliu at hotmail.co.uk*
